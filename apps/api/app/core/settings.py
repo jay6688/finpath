@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import os
+from pathlib import Path
 
 
 DEFAULT_SEC_REQUESTS_PER_SECOND = 2.0
@@ -24,6 +25,7 @@ class Settings:
     sec_company_facts_ttl_seconds: int
     sec_ticker_map_ttl_seconds: int
     sec_stale_if_error_seconds: int
+    sec_cache_path: Path
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -44,6 +46,9 @@ class Settings:
             sec_stale_if_error_seconds=int(
                 os.getenv("SEC_STALE_IF_ERROR_SECONDS", "604800")
             ),
+            sec_cache_path=Path(
+                os.getenv("SEC_CACHE_PATH", "apps/api/var/sec-cache.sqlite3")
+            ),
         )
 
     def require_sec_user_agent(self) -> str:
@@ -52,4 +57,3 @@ class Settings:
                 "SEC_USER_AGENT is required before FinPath can call SEC endpoints."
             )
         return self.sec_user_agent
-

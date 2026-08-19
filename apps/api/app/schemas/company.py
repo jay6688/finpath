@@ -58,6 +58,7 @@ class AnnualFinancialFact(ApiModel):
 class DataState(StrEnum):
     LIVE = "live"
     CACHED = "cached"
+    STALE = "stale"
 
 
 class DataStatus(ApiModel):
@@ -70,4 +71,3 @@ class CompanyOverviewResponse(ApiModel):
     metric: MetricMetadata
     series: list[AnnualFinancialFact]
     data_status: DataStatus = Field(alias="dataStatus")
-

@@ -1,15 +1,39 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { RevenueHistory } from "@/components/revenue-history";
 import revenueConcept from "@/content/concepts/revenue.json";
+import { FinPathApiError, getCompanyOverview } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Apple Revenue",
   description: "Explore Apple's Revenue with beginner-friendly context and source provenance.",
 };
 
-export default function AppleCompanyPage() {
+export const dynamic = "force-dynamic";
+
+const compactCurrency = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+export default async function AppleCompanyPage() {
   const english = revenueConcept.locales.en;
+  let overview = null;
+  let dataError = null;
+
+  try {
+    overview = await getCompanyOverview("AAPL");
+  } catch (error) {
+    dataError =
+      error instanceof FinPathApiError
+        ? error.message
+        : "The FinPath API is not available. Start FastAPI and try again.";
+  }
+
+  const latest = overview?.series.at(-1);
 
   return (
     <div className="company-shell">
@@ -22,8 +46,10 @@ export default function AppleCompanyPage() {
       <header className="company-header">
         <div>
           <p className="eyebrow">Company record</p>
-          <h1>Apple Inc.</h1>
-          <p className="company-header__meta">AAPL · Nasdaq · SEC CIK 0000320193</p>
+          <h1>{overview?.company.name ?? "Apple Inc."}</h1>
+          <p className="company-header__meta">
+            AAPL · Nasdaq · SEC CIK {overview?.company.cik ?? "0000320193"}
+          </p>
         </div>
         <span className="coverage-badge">V0 supported</span>
       </header>
@@ -35,37 +61,51 @@ export default function AppleCompanyPage() {
               <p className="eyebrow">Income statement · Annual</p>
               <h2 id="revenue-heading">Revenue</h2>
             </div>
-            <span className="metric-state">Data pipeline next</span>
+            {overview ? (
+              <span className="metric-state" data-state={overview.dataStatus.state}>
+                {overview.dataStatus.state} data
+              </span>
+            ) : null}
           </div>
 
-          <div className="data-empty-state" role="status">
-            <div className="data-empty-state__value" aria-hidden="true">
-              —
-            </div>
-            <div>
-              <strong>No hard-coded financial value</strong>
-              <p>
-                The scaffold is ready. Revenue will appear only after FastAPI retrieves,
-                normalizes, caches, and links the real SEC fact to its filing.
+          {overview && latest ? (
+            <>
+              <div className="metric-latest">
+                <strong>{compactCurrency.format(latest.value)}</strong>
+                <span>
+                  FY{latest.fiscalYear} · year ended {latest.endDate}
+                </span>
+              </div>
+
+              <RevenueHistory currency={overview.metric.currency} series={overview.series} />
+
+              <div className="source-row">
+                <span>Latest source</span>
+                <a href={latest.sourceUrl} rel="noreferrer" target="_blank">
+                  SEC {latest.form} · filed {latest.filedAt} · {latest.accession}
+                </a>
+              </div>
+              <p className="retrieved-note">
+                Retrieved {new Date(overview.dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}
+                {overview.dataStatus.state === "stale"
+                  ? " · SEC was unavailable, so FinPath is showing the last known public filing data."
+                  : ""}
               </p>
+            </>
+          ) : (
+            <div className="data-empty-state" role="status">
+              <div className="data-empty-state__value" aria-hidden="true">
+                —
+              </div>
+              <div>
+                <strong>Revenue data is not available yet</strong>
+                <p>{dataError}</p>
+                <p>
+                  FinPath will not replace a missing SEC response with a hard-coded financial value.
+                </p>
+              </div>
             </div>
-          </div>
-
-          <div className="chart-scaffold" aria-label="Future five-year Revenue chart area">
-            <span>Five-year annual Revenue chart</span>
-            <div className="chart-scaffold__bars" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-              <i />
-              <i />
-            </div>
-          </div>
-
-          <div className="source-row">
-            <span>Source</span>
-            <strong>Pending verified SEC response</strong>
-          </div>
+          )}
         </div>
 
         <aside className="learning-margin" aria-labelledby="learning-heading">

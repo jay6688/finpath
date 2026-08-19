@@ -8,3 +8,4 @@ def test_health_handler_and_route_registration() -> None:
 
     assert response.model_dump() == {"status": "ok", "service": "finpath-api"}
     assert "/health" in registered_paths
+    assert "/v1/companies/{ticker}/overview" in registered_paths

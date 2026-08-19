@@ -20,11 +20,13 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-q"
+addopts = "-q -p no:cacheprovider"
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+  "live: optional tests that make real SEC network requests when explicitly enabled"
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["app*"]
-

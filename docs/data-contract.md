@@ -1,6 +1,6 @@
 # V0 Data Contract
 
-## Planned endpoint
+## Endpoint
 
 ```http
 GET /v1/companies/{ticker}/overview
@@ -75,5 +75,22 @@ filedAt     = 2025-10-31
 sourceUrl   = valid SEC filing URL for that accession
 ```
 
-The scaffold includes the typed schema and a contract-level golden assertion. The next data milestone will add a recorded SEC Company Facts fixture and prove that the extractor produces this contract from upstream-shaped JSON.
+The deterministic integration test now derives this complete assertion from a recorded, SEC-shaped Company Facts fixture. It does not rely on SEC network availability.
 
+## Filing link construction
+
+`sourceUrl` is derived only from the normalized CIK and accession:
+
+```text
+https://www.sec.gov/Archives/edgar/data/{CIK without leading zeroes}/{accession without hyphens}/{accession}-index.htm
+```
+
+The pipeline links to the official filing index and never guesses a company-controlled primary-document filename.
+
+## Cache status
+
+- `live`: this request retrieved the payload from SEC and stored it.
+- `cached`: the payload was within its fresh TTL and no SEC call was made.
+- `stale`: SEC refresh failed and a still-eligible last-known public payload was used.
+
+`retrievedAt` always describes when the displayed upstream payload was retrieved, not when the browser rendered the page.

@@ -18,6 +18,18 @@
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 html {
   color-scheme: light;
   background: var(--canvas);
@@ -110,6 +122,16 @@ summary {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.metric-state[data-state="live"] {
+  color: var(--trust-dark);
+  background: var(--soft-jade);
+}
+
+.metric-state[data-state="stale"] {
+  color: #81501b;
+  background: var(--soft-amber);
 }
 
 .v0-label {
@@ -366,15 +388,36 @@ h1 {
   color: var(--muted);
 }
 
-.chart-scaffold {
-  color: var(--muted);
-  font-size: 0.8rem;
+.metric-latest {
+  margin: 2.7rem 0 1.8rem;
 }
 
-.chart-scaffold__bars {
-  height: 12rem;
-  margin-top: 1rem;
-  padding: 1rem 1.5rem 0;
+.metric-latest strong,
+.metric-latest span {
+  display: block;
+}
+
+.metric-latest strong {
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: clamp(3.2rem, 8vw, 6.5rem);
+  font-weight: 500;
+  letter-spacing: -0.075em;
+  line-height: 1;
+}
+
+.metric-latest span {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.revenue-history {
+  margin-top: 2rem;
+}
+
+.revenue-chart {
+  height: 18rem;
+  padding: 1.5rem 1rem 0;
   display: flex;
   align-items: end;
   justify-content: space-around;
@@ -384,18 +427,84 @@ h1 {
   background: repeating-linear-gradient(to top, transparent 0 2.9rem, rgb(215 224 227 / 60%) 3rem);
 }
 
-.chart-scaffold__bars i {
-  width: min(3.5rem, 14%);
-  display: block;
-  background: var(--soft-jade);
-  border-top: 2px solid var(--trust);
+.revenue-bar {
+  width: min(5rem, 17%);
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1.5rem 1fr 2rem;
+  align-items: end;
+  justify-items: center;
 }
 
-.chart-scaffold__bars i:nth-child(1) { height: 42%; }
-.chart-scaffold__bars i:nth-child(2) { height: 58%; }
-.chart-scaffold__bars i:nth-child(3) { height: 52%; }
-.chart-scaffold__bars i:nth-child(4) { height: 68%; }
-.chart-scaffold__bars i:nth-child(5) { height: 76%; }
+.revenue-bar__value,
+.revenue-bar__year {
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: clamp(0.62rem, 1.1vw, 0.74rem);
+}
+
+.revenue-bar__value {
+  color: var(--muted);
+}
+
+.revenue-bar__shape {
+  width: 70%;
+  height: var(--bar-height);
+  min-height: 0.5rem;
+  align-self: end;
+  display: block;
+  background: var(--soft-jade);
+  border-top: 3px solid var(--trust);
+  transition: background 150ms ease;
+}
+
+.revenue-bar__shape:hover,
+.revenue-bar__shape:focus-visible {
+  background: #cfe5df;
+}
+
+.revenue-bar__year {
+  align-self: center;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.revenue-table-wrap {
+  margin-top: 2rem;
+  overflow-x: auto;
+}
+
+.revenue-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.revenue-table caption {
+  padding-bottom: 0.75rem;
+  color: var(--muted);
+  text-align: left;
+}
+
+.revenue-table th,
+.revenue-table td {
+  padding: 0.7rem 0.5rem;
+  border-bottom: 1px solid var(--divider);
+  white-space: nowrap;
+}
+
+.revenue-table thead th {
+  color: var(--muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.revenue-table a,
+.source-row a {
+  color: var(--trust-dark);
+  font-weight: 700;
+}
 
 .source-row {
   margin-top: 2rem;
@@ -409,6 +518,12 @@ h1 {
 
 .source-row span {
   color: var(--muted);
+}
+
+.retrieved-note {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
 }
 
 .learning-margin {
@@ -568,4 +683,3 @@ h1 {
     transition-duration: 0.01ms !important;
   }
 }
-

@@ -1,6 +1,6 @@
 # V0 Architecture
 
-**Status:** Approved for scaffold  
+**Status:** Implemented through SEC Revenue pipeline
 **Decision date:** 2026-08-19
 
 ## Outcome
@@ -13,16 +13,18 @@ V0 is one learning loop, two screens, one metric, and one authoritative financia
 
 ```text
 Browser
-  → Next.js / React
-  → HTTP to FastAPI
+  → Next.js route
+  → Next.js Server Component
+  → loopback HTTP to FastAPI
   → SEC adapter
   → SEC ticker map + Company Facts JSON
+  → SQLite public-data cache
   → normalization and provenance
   → Pydantic response
-  → React render
+  → server-rendered React response
 ```
 
-The browser does not call `data.sec.gov` directly because SEC does not support CORS. FastAPI owns SEC identification, request pacing, caching, normalization, and errors.
+The browser does not call `data.sec.gov` directly because SEC does not support CORS. It also does not call FastAPI directly in V0: the Next.js server fetches the loopback API. FastAPI therefore has no CORS middleware. FastAPI owns SEC identification, request pacing, caching, normalization, and errors.
 
 ## Applications
 
@@ -48,6 +50,8 @@ The browser does not call `data.sec.gov` directly because SEC does not support C
 
 The default FinPath request policy is two upstream requests per second, below SEC's published maximum of ten. V0 does not collect or store user information.
 
+Next.js and FastAPI bind to `127.0.0.1` during local development. Neither service is intentionally exposed to the LAN.
+
 ## Cache policy
 
 | Resource | Fresh TTL | Stale-if-error |
@@ -57,7 +61,8 @@ The default FinPath request policy is two upstream requests per second, below SE
 
 The response reports whether data is live or cached and when it was retrieved. A stale value is never presented as live.
 
+Normal tests read trimmed, SEC-shaped JSON fixtures. A separate `live` test is skipped unless `FINPATH_RUN_LIVE_SEC_TEST=1` and `SEC_USER_AGENT` are both supplied.
+
 ## Deferred deliberately
 
 Authentication, PostgreSQL, Redis, Docker, queues, microservices, an AI Tutor, news, paper trading, gamification, PWA service workers, and multi-market data are outside V0.
-

@@ -1,6 +1,5 @@
-# Recorded SEC fixtures
+# Trimmed SEC fixtures
 
-The next data milestone will add a minimal, upstream-shaped AAPL Company Facts fixture here.
+These fixtures preserve the relevant shape of SEC's ticker map and Company Facts responses while retaining only the fields required by V0.
 
-The fixture must retain only the fields needed to prove Revenue selection, annual-period filtering, deduplication, and the complete FY2025 provenance chain. Do not commit an unexplained full Company Facts dump.
-
+`aapl_companyfacts.json` proves Revenue tag selection, annual-period filtering, comparative-fact deduplication, and the complete FY2025 provenance chain. It intentionally includes a quarterly fact and an invalid short-duration fact so those filters are exercised. Do not replace it with an unexplained full Company Facts dump.
