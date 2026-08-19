@@ -8,7 +8,7 @@ from app.services.sec.client import SecClient
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings.from_environment()
+    return Settings.from_project_environment()
 
 
 @lru_cache

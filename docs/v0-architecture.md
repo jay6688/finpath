@@ -46,7 +46,10 @@ The browser does not call `data.sec.gov` directly because SEC does not support C
 
 ## Configuration and privacy
 
-`SEC_USER_AGENT` is required before calling SEC. It is supplied through the environment and is intentionally blank in `.env.example`. A private email address must not be committed.
+`SEC_USER_AGENT` is required before calling SEC. Local development loads it
+from the Git-ignored project `.env`; an explicitly supplied process value wins.
+It is intentionally blank in `.env.example`. A private email address must not
+be committed or printed by startup tooling.
 
 The default FinPath request policy is two upstream requests per second, below SEC's published maximum of ten. V0 does not collect or store user information.
 

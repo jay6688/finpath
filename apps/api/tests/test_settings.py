@@ -24,3 +24,32 @@ def test_private_contact_is_not_required_until_sec_is_called(
     with pytest.raises(RuntimeError, match="SEC_USER_AGENT is required"):
         settings.require_sec_user_agent()
 
+
+def test_project_env_file_loads_without_requiring_shell_injection(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    monkeypatch.delenv("SEC_USER_AGENT", raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "SEC_USER_AGENT=FinPath/0.1 contact@example.invalid\n",
+        encoding="utf-8",
+    )
+
+    settings = Settings.from_project_environment(env_file=env_file)
+
+    assert settings.sec_user_agent == "FinPath/0.1 contact@example.invalid"
+
+
+def test_process_environment_overrides_project_env_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path
+) -> None:
+    monkeypatch.setenv("SEC_USER_AGENT", "FinPath/0.1 process@example.invalid")
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "SEC_USER_AGENT=FinPath/0.1 file@example.invalid\n",
+        encoding="utf-8",
+    )
+
+    settings = Settings.from_project_environment(env_file=env_file)
+
+    assert settings.sec_user_agent == "FinPath/0.1 process@example.invalid"

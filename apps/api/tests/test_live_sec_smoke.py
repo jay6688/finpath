@@ -16,7 +16,7 @@ def test_live_aapl_sec_pipeline_when_explicitly_enabled(tmp_path) -> None:
     if os.getenv("FINPATH_RUN_LIVE_SEC_TEST") != "1":
         pytest.skip("Set FINPATH_RUN_LIVE_SEC_TEST=1 to enable real SEC requests.")
 
-    settings = Settings.from_environment()
+    settings = Settings.from_project_environment()
     if not settings.sec_user_agent:
         pytest.skip("SEC_USER_AGENT is required for the optional live smoke test.")
 

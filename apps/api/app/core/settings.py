@@ -2,9 +2,18 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 
 DEFAULT_SEC_REQUESTS_PER_SECOND = 2.0
 MAX_FINPATH_SEC_REQUESTS_PER_SECOND = 2.0
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
+PROJECT_ENV_FILE = PROJECT_ROOT / ".env"
+
+
+def load_project_environment(env_file: Path = PROJECT_ENV_FILE) -> None:
+    """Load local project settings without replacing explicit process values."""
+    load_dotenv(dotenv_path=env_file, override=False)
 
 
 def _read_float(name: str, default: float) -> float:
@@ -50,6 +59,15 @@ class Settings:
                 os.getenv("SEC_CACHE_PATH", "apps/api/var/sec-cache.sqlite3")
             ),
         )
+
+    @classmethod
+    def from_project_environment(
+        cls, env_file: Path = PROJECT_ENV_FILE
+    ) -> "Settings":
+        # Local development reads one known file. Values already supplied by the
+        # process take precedence, which keeps deployment configuration explicit.
+        load_project_environment(env_file)
+        return cls.from_environment()
 
     def require_sec_user_agent(self) -> str:
         if not self.sec_user_agent:

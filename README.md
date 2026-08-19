@@ -23,52 +23,120 @@ The UI never substitutes a hard-coded financial value when the API or SEC is una
 ## Prerequisites
 
 - Node.js 20.9 or newer
-- pnpm 10
 - Python 3.12
 
-## Local setup
+FinPath uses the pnpm version pinned in `package.json` through Corepack. You do
+not need to install pnpm globally, run `corepack enable`, use administrator
+permissions, or approve LAN access.
 
-Supply a declared SEC `User-Agent` to the API process. Use a project contact address rather than committing a private email address. `.env.example` documents the available configuration, but the application reads process environment variables directly.
+## One-time setup
 
-### Web
+From the repository root (`D:\gpt work\finpath`), install the two applications:
 
-```powershell
-pnpm install
-pnpm dev:web
-```
-
-Open `http://localhost:3000`.
-
-### API
-
-```powershell
+```text
+corepack pnpm install
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e ".\apps\api[dev]"
-$env:SEC_USER_AGENT="FinPath/0.1 project-contact@example.com"
-python -m uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000 --reload
+.\.venv\Scripts\python.exe -m pip install -e ".\apps\api[dev]"
 ```
 
-Open `http://127.0.0.1:8000/health`, or inspect `http://127.0.0.1:8000/v1/companies/AAPL/overview`.
+Copy `.env.example` to a new file named `.env`, then add a real project contact
+to `SEC_USER_AGENT`. `.env` is ignored by Git. FinPath reads it without showing
+the contact in startup output, and an explicitly supplied process environment
+value still takes precedence.
 
-Both development servers bind to loopback by default. Normal V0 development does not expose either service to the local network and should not require a Windows Firewall exception.
+## Recommended beginner startup
 
-The browser requests the Next.js page, and the Next.js server calls FastAPI at `FINPATH_API_BASE_URL`. The browser does not call FastAPI directly, so V0 does not enable CORS middleware.
+Double-click:
 
-### Checks
-
-```powershell
-pnpm check:web
-pnpm test:web
-python -m pytest apps/api/tests
+```text
+scripts\start-finpath.cmd
 ```
 
-The normal API suite uses recorded, minimal SEC-shaped fixtures and never makes a live SEC request. To run the optional smoke test deliberately:
+You can run that same command from either Command Prompt or PowerShell. It:
+
+1. checks Corepack, the Python environment, dependencies, `.env`, and ports;
+2. starts FastAPI and waits for its health check;
+3. starts Next.js and waits for the homepage;
+4. opens `http://127.0.0.1:3000/` in the browser.
+
+Keep the startup window open. Press Enter in it to stop only the API and web
+process trees created by that launch. If the window was closed, run
+`scripts\stop-finpath.cmd`; it verifies the recorded process ID, start time,
+executable, and project directory before stopping anything.
+
+Startup logs and the temporary process record live under the Git-ignored
+`apps/api/var/` directory. Ports 3000 and 8000 must be free. If either is in
+use, startup reports the port and stops without killing its owner.
+
+## Manual startup — PowerShell
+
+Open two PowerShell windows in the repository root. In the first:
 
 ```powershell
-$env:SEC_USER_AGENT="FinPath/0.1 project-contact@example.com"
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000 --reload
+```
+
+In the second:
+
+```powershell
+corepack pnpm dev:web
+```
+
+## Manual startup — Command Prompt
+
+PowerShell commands such as `$env:NAME=...` do not work in Command Prompt.
+They are not needed here because the API reads the project `.env` itself.
+
+Open two Command Prompt windows. In each one, first run:
+
+```bat
+cd /d "D:\gpt work\finpath"
+```
+
+Then start the API in the first window:
+
+```bat
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir apps/api --host 127.0.0.1 --port 8000 --reload
+```
+
+Start the web app in the second:
+
+```bat
+corepack pnpm dev:web
+```
+
+Both servers bind only to `127.0.0.1`. Normal V0 development does not expose
+them to the local network and should not require a Windows Firewall exception.
+
+The root `.env` configures the API. The browser requests the Next.js page, and
+the Next.js server calls FastAPI at a process-level `FINPATH_API_BASE_URL` when
+one is supplied, otherwise at the built-in `http://127.0.0.1:8000` default. The
+browser does not call FastAPI directly, so V0 does not enable CORS middleware.
+
+## Checks
+
+```powershell
+corepack pnpm check:web
+corepack pnpm test:web
+.\.venv\Scripts\python.exe -m pytest apps/api/tests --basetemp apps/api/var/pytest
+```
+
+The normal API suite uses recorded, minimal SEC-shaped fixtures and never
+makes a live SEC request. The optional live test also reads `SEC_USER_AGENT`
+from the ignored project `.env`.
+
+PowerShell:
+
+```powershell
 $env:FINPATH_RUN_LIVE_SEC_TEST="1"
-python -m pytest apps/api/tests/test_live_sec_smoke.py -m live
+.\.venv\Scripts\python.exe -m pytest apps/api/tests/test_live_sec_smoke.py -m live --basetemp apps/api/var/pytest-live
+```
+
+Command Prompt:
+
+```bat
+set FINPATH_RUN_LIVE_SEC_TEST=1
+.\.venv\Scripts\python.exe -m pytest apps/api/tests/test_live_sec_smoke.py -m live --basetemp apps/api/var/pytest-live
 ```
 
 ## Important documentation
