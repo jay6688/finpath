@@ -2,6 +2,11 @@
 
 **Collected:** 2026-08-19
 
+> This remains the approved company-metric detail direction. It is no longer
+> proposed as the global app language; see
+> [`product-visual-direction.md`](product-visual-direction.md) for the revised
+> product shell and responsive system awaiting approval.
+
 ## Product-pattern findings
 
 - Simply Wall St demonstrates useful progressive disclosure, but a single visual score can over-compress a nuanced company judgment.
@@ -62,4 +67,3 @@ Anthropic's `webapp-testing` includes a Python server-management script that lau
 - https://zogo.com/
 - https://github.com/anthropics/skills/tree/main/skills/frontend-design
 - https://github.com/anthropics/skills/tree/main/skills/webapp-testing
-

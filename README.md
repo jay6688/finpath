@@ -145,3 +145,4 @@ set FINPATH_RUN_LIVE_SEC_TEST=1
 - [`docs/v0-architecture.md`](docs/v0-architecture.md)
 - [`docs/data-contract.md`](docs/data-contract.md)
 - [`docs/design/research.md`](docs/design/research.md)
+- [`docs/design/product-visual-direction.md`](docs/design/product-visual-direction.md)
