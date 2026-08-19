@@ -73,7 +73,7 @@ export default async function AppleCompanyPage() {
               <div className="metric-latest">
                 <strong>{compactCurrency.format(latest.value)}</strong>
                 <span>
-                  FY{latest.fiscalYear} · year ended {latest.endDate}
+                  FY{latest.fiscalYear} · {overview.metric.currency} · year ended {latest.endDate}
                 </span>
               </div>
 
@@ -146,4 +146,3 @@ export default async function AppleCompanyPage() {
     </div>
   );
 }
-

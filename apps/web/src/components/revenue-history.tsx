@@ -42,8 +42,6 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
               <span
                 className="revenue-bar__shape"
                 style={barStyle}
-                tabIndex={0}
-                aria-label={`Fiscal year ${fact.fiscalYear}: ${exactCurrency.format(fact.value)}, year ended ${fact.endDate}`}
               />
               <span className="revenue-bar__year">FY{fact.fiscalYear}</span>
             </div>
@@ -53,7 +51,7 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
 
       <div className="revenue-table-wrap">
         <table className="revenue-table">
-          <caption>Annual Revenue values and source filings</caption>
+          <caption>Annual Revenue values in {currency} and source filings</caption>
           <thead>
             <tr>
               <th scope="col">Fiscal year</th>
@@ -71,9 +69,13 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
                 <td>{fact.endDate}</td>
                 <td>{fact.filedAt}</td>
                 <td>
-                  <a href={fact.sourceUrl} rel="noreferrer" target="_blank">
+                  <a
+                    aria-label={`${fact.form} filing for fiscal year ${fact.fiscalYear}`}
+                    href={fact.sourceUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
                     {fact.form}
-                    <span className="visually-hidden"> for fiscal year {fact.fiscalYear}</span>
                   </a>
                 </td>
               </tr>

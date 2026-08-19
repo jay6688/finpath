@@ -18,18 +18,6 @@
   box-sizing: border-box;
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 html {
   color-scheme: light;
   background: var(--canvas);
@@ -340,6 +328,7 @@ h1 {
 }
 
 .metric-column {
+  min-width: 0;
   padding: clamp(1.5rem, 4vw, 3rem);
 }
 
@@ -504,6 +493,7 @@ h1 {
 .source-row a {
   color: var(--trust-dark);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .source-row {
@@ -528,6 +518,7 @@ h1 {
 
 .learning-margin {
   position: relative;
+  min-width: 0;
   padding: clamp(1.5rem, 4vw, 3rem);
   background: #f8faf9;
   border-left: 1px solid var(--divider);
@@ -586,6 +577,9 @@ h1 {
 }
 
 .language-note summary {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
   color: var(--trust-dark);
   cursor: pointer;
   font-weight: 750;
@@ -645,6 +639,31 @@ h1 {
 
   .metric-heading {
     flex-direction: column;
+  }
+
+  .metric-latest strong {
+    font-size: clamp(2.75rem, 14vw, 4rem);
+  }
+
+  .revenue-chart {
+    height: 15rem;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .revenue-bar {
+    width: min(3rem, 19%);
+    grid-template-rows: 1.75rem 1fr 2rem;
+  }
+
+  .revenue-bar__value,
+  .revenue-bar__year {
+    font-size: 0.75rem;
+  }
+
+  .retrieved-note {
+    font-size: 0.8rem;
   }
 
   .data-empty-state {
