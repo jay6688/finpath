@@ -9,6 +9,7 @@
       "simpleDefinition": "Revenue is the money a company earns from selling its products or services during a stated period, before subtracting the costs and expenses needed to run the business.",
       "whyItMatters": "Revenue helps you see the scale of a business and whether customer spending on its products and services is growing, stable, or shrinking over time.",
       "limitation": "Revenue is not profit and it is not the same as cash flow. A company can report high or growing Revenue while its costs, debt, or cash collection still create problems.",
+      "comparison": "Revenue is the top line: money earned from sales before costs and expenses. Profit is what remains after the relevant costs and expenses are subtracted.",
       "appleExample": "For Apple, Revenue includes sales from products such as iPhone and Mac and from services such as the App Store, advertising, and cloud services."
     },
     "zh-CN": {
@@ -16,6 +17,7 @@
       "simpleDefinition": "Revenue（营业收入）是公司在一个明确期间内，通过销售产品或提供服务所赚取的金额，还没有扣除经营业务所需的成本和费用。",
       "whyItMatters": "Revenue 可以帮助你了解一家公司的业务规模，以及顾客对其产品和服务的支出是在增长、持平还是下降。",
       "limitation": "Revenue 不等于利润，也不等于现金流。即使 Revenue 很高或持续增长，公司仍可能面对成本、债务或收款方面的问题。",
+      "comparison": "Revenue 是扣除成本和费用之前的销售收入；Profit（利润）则是在扣除相关成本和费用之后剩余的金额。",
       "appleExample": "对 Apple 而言，Revenue 包括 iPhone、Mac 等产品销售，也包括 App Store、广告和云服务等服务收入。"
     }
   },
@@ -26,7 +28,7 @@
       "publisher": "U.S. Securities and Exchange Commission",
       "url": "https://www.sec.gov/about/reports-publications/beginners-guide-financial-statements",
       "sourceType": "primary-educational",
-      "supports": ["simpleDefinition", "whyItMatters", "limitation"],
+      "supports": ["simpleDefinition", "whyItMatters", "limitation", "comparison"],
       "accessedAt": "2026-08-19"
     },
     {
@@ -49,4 +51,3 @@
     }
   ]
 }
-

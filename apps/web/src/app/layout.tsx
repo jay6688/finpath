@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AppNavigation } from "@/components/app-navigation";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,12 +29,13 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               </span>
               <span>FinPath</span>
             </Link>
-            <span className="v0-label">V0 · Apple first</span>
+            <AppNavigation variant="desktop" />
+            <span className="shell-note">Learn with real financial records</span>
           </div>
         </header>
         <main id="main-content">{children}</main>
+        <AppNavigation variant="mobile" />
       </body>
     </html>
   );
 }
-

@@ -8,6 +8,7 @@ const content = JSON.parse(await readFile(contentUrl, "utf8"));
 test("Revenue content supplies English and Chinese explanations", () => {
   assert.equal(content.conceptId, "revenue");
   assert.ok(content.locales.en.simpleDefinition.length > 40);
+  assert.ok(content.locales.en.comparison.includes("Profit"));
   assert.ok(content.locales["zh-CN"].simpleDefinition.length > 20);
 });
 
@@ -22,4 +23,3 @@ test("Revenue teaching content carries reviewable provenance", () => {
     assert.match(source.accessedAt, /^\d{4}-\d{2}-\d{2}$/);
   }
 });
-

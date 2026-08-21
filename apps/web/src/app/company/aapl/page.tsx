@@ -40,25 +40,27 @@ export default async function AppleCompanyPage() {
       <nav className="breadcrumb" aria-label="Breadcrumb">
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
-        <span>Apple</span>
+        <span>Explore</span>
+        <span aria-hidden="true">/</span>
+        <strong>Apple Inc.</strong>
       </nav>
 
       <header className="company-header">
         <div>
-          <p className="eyebrow">Company record</p>
+          <p className="eyebrow">Company research</p>
           <h1>{overview?.company.name ?? "Apple Inc."}</h1>
           <p className="company-header__meta">
             AAPL · Nasdaq · SEC CIK {overview?.company.cik ?? "0000320193"}
           </p>
         </div>
-        <span className="coverage-badge">V0 supported</span>
+        <span className="source-connected">SEC source connected</span>
       </header>
 
-      <section className="annotated-record" aria-labelledby="revenue-heading">
+      <section className="research-grid" aria-labelledby="revenue-heading">
         <div className="metric-column">
           <div className="metric-heading">
             <div>
-              <p className="eyebrow">Income statement · Annual</p>
+              <p className="eyebrow">Annual Revenue</p>
               <h2 id="revenue-heading">Revenue</h2>
             </div>
             {overview ? (
@@ -75,16 +77,21 @@ export default async function AppleCompanyPage() {
                 <span>
                   FY{latest.fiscalYear} · {overview.metric.currency} · year ended {latest.endDate}
                 </span>
+                <a href={latest.sourceUrl} rel="noreferrer" target="_blank">
+                  SEC {latest.form} ↗
+                </a>
+              </div>
+
+              <div className="learning-trace">
+                <span aria-hidden="true" />
+                <p>
+                  <strong>This number</strong> is explained in the Learning Margin and linked to
+                  its filing.
+                </p>
               </div>
 
               <RevenueHistory currency={overview.metric.currency} series={overview.series} />
 
-              <div className="source-row">
-                <span>Latest source</span>
-                <a href={latest.sourceUrl} rel="noreferrer" target="_blank">
-                  SEC {latest.form} · filed {latest.filedAt} · {latest.accession}
-                </a>
-              </div>
               <p className="retrieved-note">
                 Retrieved {new Date(overview.dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}
                 {overview.dataStatus.state === "stale"
@@ -109,38 +116,52 @@ export default async function AppleCompanyPage() {
         </div>
 
         <aside className="learning-margin" aria-labelledby="learning-heading">
-          <div className="learning-margin__line" aria-hidden="true" />
-          <p className="eyebrow">Learning margin</p>
-          <h2 id="learning-heading">{english.title}</h2>
-          <p className="learning-margin__lead">{english.simpleDefinition}</p>
+          <header className="learning-margin__header">
+            <span aria-hidden="true" />
+            <div>
+              <p className="eyebrow">Learning margin</p>
+              <h2 id="learning-heading">Understand the number</h2>
+            </div>
+          </header>
 
-          <section>
+          <section className="learning-section learning-section--essential">
+            <h3>{english.title}</h3>
+            <p>{english.simpleDefinition}</p>
+          </section>
+
+          <section className="learning-section learning-section--essential">
             <h3>Why this matters</h3>
             <p>{english.whyItMatters}</p>
           </section>
 
-          <section>
+          <section className="learning-section learning-section--essential">
             <h3>What it cannot tell you</h3>
             <p>{english.limitation}</p>
           </section>
 
-          <details className="language-note">
-            <summary>Explain in Chinese</summary>
+          <details className="learning-section">
+            <summary>Revenue vs Profit</summary>
+            <p>{english.comparison}</p>
+          </details>
+
+          <details className="learning-section">
+            <summary>中文解释</summary>
             <p lang="zh-CN">{revenueConcept.locales["zh-CN"].simpleDefinition}</p>
           </details>
 
-          <div className="teaching-sources">
-            <h3>Explanation sources</h3>
+          <details className="learning-section teaching-sources">
+            <summary>Teaching sources</summary>
             <ul>
               {revenueConcept.sources.map((source) => (
                 <li key={source.id}>
                   <a href={source.url} rel="noreferrer" target="_blank">
                     {source.title}
                   </a>
+                  <span>{source.publisher}</span>
                 </li>
               ))}
             </ul>
-          </div>
+          </details>
         </aside>
       </section>
     </div>
