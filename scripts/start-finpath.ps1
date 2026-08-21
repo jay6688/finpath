@@ -3,6 +3,18 @@ param(
     [switch]$StopAfterReady
 )
 
+# Beginner-readable startup lifecycle:
+# 1. Check prerequisites and the local .env file.
+# 2. Lock startup so two launchers cannot race each other.
+# 3. Check that the API and web ports are free.
+# 4. Start the API, then wait for /health.
+# 5. Start the web app, then wait for its homepage.
+# 6. Save exact process ownership after each process starts.
+# 7. Open the browser (unless -NoBrowser was requested).
+# 8. Keep running until the user presses Enter.
+# 9. Stop only the processes created by this launch.
+# 10. Keep the ownership record if safe cleanup cannot be verified.
+
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 Set-StrictMode -Version Latest
@@ -143,23 +155,7 @@ function Wait-ForEndpoint {
     throw "$Name did not become ready within $TimeoutSeconds seconds. See the logs in $LogDir."
 }
 
-$exitCode = 0
-Push-Location $RepoRoot
-try {
-    Write-Host "FinPath local startup"
-    Write-Host "Checking this computer..."
-
-    $StartupMutex = New-RepositoryMutex
-    try {
-        $OwnsStartupMutex = $StartupMutex.WaitOne(0)
-    }
-    catch [System.Threading.AbandonedMutexException] {
-        $OwnsStartupMutex = $true
-    }
-    if (-not $OwnsStartupMutex) {
-        throw "Another FinPath startup is already in progress or running."
-    }
-
+function Assert-StartupPrerequisites {
     if (-not (Test-Path -LiteralPath $PythonExe -PathType Leaf)) {
         throw "Python environment not found. Create .venv and install apps/api[dev] first."
     }
@@ -201,7 +197,25 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "FinPath could not load .env. Check that its setting values are valid."
     }
+}
 
+function Lock-RepositoryStartup {
+    $mutex = New-RepositoryMutex
+    try {
+        $acquired = $mutex.WaitOne(0)
+    }
+    catch [System.Threading.AbandonedMutexException] {
+        $acquired = $true
+    }
+
+    if (-not $acquired) {
+        $mutex.Dispose()
+        throw "Another FinPath startup is already in progress or running."
+    }
+    return $mutex
+}
+
+function Assert-StartupTargetsAvailable {
     if (Test-Path -LiteralPath $StateFile) {
         throw "A previous FinPath startup record exists. Run scripts\stop-finpath.cmd, then try again."
     }
@@ -210,11 +224,11 @@ try {
             throw "Port $port is already in use. Close that program, or run scripts\stop-finpath.cmd if it is FinPath."
         }
     }
+}
 
-    New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
-
+function Start-ApiService {
     Write-Host "Starting API on http://127.0.0.1:8000 ..."
-    $apiProcess = Start-Process -FilePath $PythonExe `
+    $process = Start-Process -FilePath $PythonExe `
         -ArgumentList @(
             "-m", "uvicorn", "app.main:app",
             "--app-dir", "apps/api",
@@ -225,53 +239,59 @@ try {
         -RedirectStandardOutput (Join-Path $LogDir "api.out.log") `
         -RedirectStandardError (Join-Path $LogDir "api.err.log") `
         -WindowStyle Hidden -PassThru
-    $apiRecord = New-ProcessRecord -Name "api" -Process $apiProcess
-    $OwnedProcesses.Add($apiRecord)
-    Save-ProcessState
-    $StateFileOwnedByThisRun = $true
-    Wait-ForEndpoint -Name "API" -Uri "http://127.0.0.1:8000/health" -Process $apiProcess
-    Write-Host "API is ready."
 
+    $OwnedProcesses.Add((New-ProcessRecord -Name "api" -Process $process))
+    Save-ProcessState
+    $script:StateFileOwnedByThisRun = $true
+    Wait-ForEndpoint -Name "API" -Uri "http://127.0.0.1:8000/health" -Process $process
+    Write-Host "API is ready."
+    return $process
+}
+
+function Start-WebService {
     Write-Host "Starting web app on http://127.0.0.1:3000 ..."
     # Keep cmd.exe as a stable parent so taskkill /T can later stop only this
     # launch's Corepack/Next process tree.
-    $webProcess = Start-Process -FilePath $env:ComSpec `
+    $process = Start-Process -FilePath $env:ComSpec `
         -ArgumentList @("/d", "/c", "corepack pnpm --dir apps/web dev") `
         -WorkingDirectory $RepoRoot `
         -RedirectStandardOutput (Join-Path $LogDir "web.out.log") `
         -RedirectStandardError (Join-Path $LogDir "web.err.log") `
         -WindowStyle Hidden -PassThru
-    $webRecord = New-ProcessRecord -Name "web" -Process $webProcess
-    $OwnedProcesses.Add($webRecord)
-    Save-ProcessState
-    Wait-ForEndpoint -Name "Web app" -Uri "http://127.0.0.1:3000/" -Process $webProcess
-    Write-Host "Web app is ready."
 
-    if (-not $NoBrowser) {
-        try {
-            Start-Process "http://127.0.0.1:3000/"
-        }
-        catch {
-            Write-Warning "The browser could not open automatically. Open http://127.0.0.1:3000/ yourself."
-        }
+    $OwnedProcesses.Add((New-ProcessRecord -Name "web" -Process $process))
+    Save-ProcessState
+    Wait-ForEndpoint -Name "Web app" -Uri "http://127.0.0.1:3000/" -Process $process
+    Write-Host "Web app is ready."
+    return $process
+}
+
+function Open-FinPathBrowser {
+    if ($NoBrowser) {
+        return
     }
 
+    try {
+        Start-Process "http://127.0.0.1:3000/"
+    }
+    catch {
+        Write-Warning "The browser could not open automatically. Open http://127.0.0.1:3000/ yourself."
+    }
+}
+
+function Wait-ForShutdownRequest {
     if ($StopAfterReady) {
         Write-Host "Readiness check passed."
+        return
     }
-    else {
-        Write-Host ""
-        Write-Host "FinPath is running. Keep this window open."
-        Write-Host "Press Enter here to stop only the API and web app started above."
-        Read-Host | Out-Null
-    }
-}
-catch {
-    $exitCode = 1
+
     Write-Host ""
-    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "FinPath is running. Keep this window open."
+    Write-Host "Press Enter here to stop only the API and web app started above."
+    Read-Host | Out-Null
 }
-finally {
+
+function Stop-ProcessesStartedByThisRun {
     $cleanupSucceeded = $true
     if ($OwnedProcesses.Count -gt 0) {
         Write-Host "Stopping FinPath..."
@@ -281,6 +301,33 @@ finally {
             }
         }
     }
+    return $cleanupSucceeded
+}
+
+$exitCode = 0
+Push-Location $RepoRoot
+try {
+    Write-Host "FinPath local startup"
+    Write-Host "Checking this computer..."
+
+    Assert-StartupPrerequisites
+    $StartupMutex = Lock-RepositoryStartup
+    $OwnsStartupMutex = $true
+    Assert-StartupTargetsAvailable
+
+    New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
+    $apiProcess = Start-ApiService
+    $webProcess = Start-WebService
+    Open-FinPathBrowser
+    Wait-ForShutdownRequest
+}
+catch {
+    $exitCode = 1
+    Write-Host ""
+    Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+}
+finally {
+    $cleanupSucceeded = Stop-ProcessesStartedByThisRun
     if ($StateFileOwnedByThisRun -and $cleanupSucceeded -and (Test-Path -LiteralPath $StateFile)) {
         Remove-Item -LiteralPath $StateFile -Force
     }
