@@ -139,6 +139,15 @@ set FINPATH_RUN_LIVE_SEC_TEST=1
 .\.venv\Scripts\python.exe -m pytest apps/api/tests/test_live_sec_smoke.py -m live --basetemp apps/api/var/pytest-live
 ```
 
+## Preview deployment
+
+The approved preview architecture uses two Vercel Hobby projects connected to
+the same private GitHub repository: one for `apps/web` and one for `apps/api`.
+The backend's SQLite file remains a disposable cache of public SEC responses;
+no user data is stored there. Production configuration, secret handling,
+project settings, and the public validation checklist are documented in
+[`docs/preview-deployment.md`](docs/preview-deployment.md).
+
 ## Important documentation
 
 - [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md)

@@ -37,8 +37,35 @@ export class FinPathApiError extends Error {
   }
 }
 
+function getApiBaseUrl(): string {
+  const configuredUrl = process.env.FINPATH_API_BASE_URL?.trim();
+
+  if (!configuredUrl) {
+    if (process.env.NODE_ENV === "production") {
+      throw new FinPathApiError(
+        "FINPATH_API_BASE_URL is required for a production deployment.",
+      );
+    }
+
+    return "http://127.0.0.1:8000";
+  }
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(configuredUrl);
+  } catch {
+    throw new FinPathApiError("FINPATH_API_BASE_URL must be a valid absolute URL.");
+  }
+
+  if (process.env.NODE_ENV === "production" && parsedUrl.protocol !== "https:") {
+    throw new FinPathApiError("FINPATH_API_BASE_URL must use HTTPS in production.");
+  }
+
+  return configuredUrl.replace(/\/$/, "");
+}
+
 export async function getCompanyOverview(ticker: string): Promise<CompanyOverview> {
-  const apiBaseUrl = process.env.FINPATH_API_BASE_URL ?? "http://127.0.0.1:8000";
+  const apiBaseUrl = getApiBaseUrl();
   const response = await fetch(
     `${apiBaseUrl}/v1/companies/${encodeURIComponent(ticker)}/overview`,
     { cache: "no-store" },

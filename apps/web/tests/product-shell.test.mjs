@@ -27,3 +27,11 @@ test("Company research keeps provenance and mobile-native exact records", async 
   assert.match(history, /Open SEC filing/);
   assert.match(history, /fact\.accession/);
 });
+
+test("Production data requests require an explicit HTTPS API origin", async () => {
+  const apiClient = await readSource("lib/api.ts");
+
+  assert.match(apiClient, /FINPATH_API_BASE_URL is required for a production deployment/);
+  assert.match(apiClient, /parsedUrl\.protocol !== "https:"/);
+  assert.match(apiClient, /return "http:\/\/127\.0\.0\.1:8000"/);
+});
