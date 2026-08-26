@@ -1,0 +1,48 @@
+{
+  "insightId": "aapl-revenue-fy2023",
+  "ticker": "AAPL",
+  "metric": "revenue",
+  "selectedFiscalYear": 2023,
+  "selectionRule": "largest-decline-in-mixed-series",
+  "question": {
+    "prompt": "Which statement can this chart support on its own?",
+    "choices": [
+      {
+        "id": "revenue-declined",
+        "label": "Apple Revenue fell from FY2022 to FY2023."
+      },
+      {
+        "id": "customers-lost-interest",
+        "label": "Customers stopped liking Apple products."
+      },
+      {
+        "id": "profit-declined",
+        "label": "Apple Profit fell in FY2023."
+      }
+    ],
+    "supportedChoiceId": "revenue-declined",
+    "supportedFeedback": "Yes. The chart supports a Revenue decline from FY2022 to FY2023. It does not show the cause, and it does not show what happened to Profit.",
+    "unsupportedFeedback": "The chart cannot support that statement on its own. It shows that Revenue fell from FY2022 to FY2023, but it does not prove why or what happened to Profit."
+  },
+  "sourcedContext": "Apple reported that weaker foreign currencies against the U.S. dollar accounted for more than the full year-over-year decrease in total net sales. It also reported lower Mac and iPhone net sales, partly offset by higher Services net sales.",
+  "interpretation": "The decline was not uniform across Apple’s business. Product categories and currency effects are useful next checks, but they must remain separate from what the chart directly shows.",
+  "unknown": "These five annual totals cannot isolate how much every factor contributed, whether customer demand changed everywhere, or whether Profit rose or fell.",
+  "nextPreview": "Next: Profit — Revenue tells us what Apple sold. Profit asks what remained after costs.",
+  "sources": [
+    {
+      "id": "apple-2023-10k",
+      "title": "Apple Inc. FY2023 Form 10-K",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019323000106/aapl-20230930.htm",
+      "filedAt": "2023-11-03",
+      "accession": "0000320193-23-000106",
+      "location": "Fiscal Year Highlights; Products and Services Performance",
+      "supports": [
+        "FY2023 total net sales change",
+        "reported foreign-currency effect",
+        "reported Mac, iPhone and Services context"
+      ],
+      "accessedAt": "2026-08-26"
+    }
+  ]
+}

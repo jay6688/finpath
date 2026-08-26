@@ -1,6 +1,9 @@
 import type { CSSProperties } from "react";
 
+import { RevenueHistoryInsight } from "@/components/revenue-history-insight";
+import insightContent from "@/content/history-insights/aapl-revenue-fy2023.json";
 import type { AnnualFinancialFact } from "@/lib/api";
+import { selectGuidedRevenueObservation } from "@/lib/history-insight";
 
 type RevenueHistoryProps = {
   currency: string;
@@ -23,6 +26,15 @@ const exactCurrency = new Intl.NumberFormat("en-US", {
 export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
   const largestValue = Math.max(...series.map((fact) => fact.value));
   const latestEndDate = series.at(-1)?.endDate;
+  const selectedObservation = selectGuidedRevenueObservation(series);
+  const guidedObservation =
+    selectedObservation?.current.fiscalYear === insightContent.selectedFiscalYear &&
+    selectedObservation.selectionRule === insightContent.selectionRule
+      ? selectedObservation
+      : null;
+  const chartDescription = series
+    .map((fact) => `FY${fact.fiscalYear} ${compactCurrency.format(fact.value)}`)
+    .join(", ");
 
   return (
     <div className="revenue-history">
@@ -33,7 +45,7 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
       <div
         className="revenue-chart"
         role="img"
-        aria-label={`Annual Revenue history in ${currency} from fiscal year ${series[0]?.fiscalYear} to ${series.at(-1)?.fiscalYear}`}
+        aria-label={`Annual Revenue history in ${currency}: ${chartDescription}`}
       >
         {series.map((fact) => {
           const relativeHeight = largestValue === 0 ? 0 : fact.value / largestValue;
@@ -43,7 +55,15 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
 
           return (
             <div
-              className={`revenue-bar${fact.endDate === latestEndDate ? " revenue-bar--current" : ""}`}
+              className={[
+                "revenue-bar",
+                fact.endDate === latestEndDate ? "revenue-bar--current" : "",
+                fact.fiscalYear === guidedObservation?.current.fiscalYear
+                  ? "revenue-bar--guided"
+                  : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               key={fact.endDate}
             >
               <span className="revenue-bar__value">{compactCurrency.format(fact.value)}</span>
@@ -56,6 +76,10 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
           );
         })}
       </div>
+
+      {guidedObservation ? (
+        <RevenueHistoryInsight observation={guidedObservation} />
+      ) : null}
 
       <section className="exact-record" aria-labelledby="exact-record-heading">
         <div className="exact-record__heading">
