@@ -1,9 +1,11 @@
-import type { CSSProperties } from "react";
-
+import { RevenueGrowthExplorer } from "@/components/revenue-growth-explorer";
 import { RevenueHistoryInsight } from "@/components/revenue-history-insight";
 import insightContent from "@/content/history-insights/aapl-revenue-fy2023.json";
 import type { AnnualFinancialFact } from "@/lib/api";
-import { selectGuidedRevenueObservation } from "@/lib/history-insight";
+import {
+  orderRevenueSeries,
+  selectGuidedRevenueObservation,
+} from "@/lib/history-insight";
 
 type RevenueHistoryProps = {
   currency: string;
@@ -24,58 +26,20 @@ const exactCurrency = new Intl.NumberFormat("en-US", {
 });
 
 export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
-  const largestValue = Math.max(...series.map((fact) => fact.value));
-  const latestEndDate = series.at(-1)?.endDate;
-  const selectedObservation = selectGuidedRevenueObservation(series);
+  const orderedSeries = orderRevenueSeries(series);
+  const selectedObservation = selectGuidedRevenueObservation(orderedSeries);
   const guidedObservation =
     selectedObservation?.current.fiscalYear === insightContent.selectedFiscalYear &&
     selectedObservation.selectionRule === insightContent.selectionRule
       ? selectedObservation
       : null;
-  const chartDescription = series
-    .map((fact) => `FY${fact.fiscalYear} ${compactCurrency.format(fact.value)}`)
-    .join(", ");
 
   return (
     <div className="revenue-history">
-      <div className="revenue-chart__heading">
-        <h3>Five-year Revenue history</h3>
-        <span>{currency} billions</span>
-      </div>
-      <div
-        className="revenue-chart"
-        role="img"
-        aria-label={`Annual Revenue history in ${currency}: ${chartDescription}`}
-      >
-        {series.map((fact) => {
-          const relativeHeight = largestValue === 0 ? 0 : fact.value / largestValue;
-          const barStyle = {
-            "--bar-height": `${Math.max(relativeHeight * 100, 8)}%`,
-          } as CSSProperties;
-
-          return (
-            <div
-              className={[
-                "revenue-bar",
-                fact.endDate === latestEndDate ? "revenue-bar--current" : "",
-                fact.fiscalYear === guidedObservation?.current.fiscalYear
-                  ? "revenue-bar--guided"
-                  : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              key={fact.endDate}
-            >
-              <span className="revenue-bar__value">{compactCurrency.format(fact.value)}</span>
-              <span
-                className="revenue-bar__shape"
-                style={barStyle}
-              />
-              <span className="revenue-bar__year">FY{fact.fiscalYear}</span>
-            </div>
-          );
-        })}
-      </div>
+      <RevenueGrowthExplorer
+        defaultFiscalYear={insightContent.selectedFiscalYear}
+        series={orderedSeries}
+      />
 
       {guidedObservation ? (
         <RevenueHistoryInsight observation={guidedObservation} />
@@ -104,8 +68,8 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
             </tr>
           </thead>
           <tbody>
-            {series.map((fact) => (
-              <tr key={fact.endDate}>
+            {orderedSeries.map((fact, index) => (
+              <tr key={`${fact.fiscalYear}-${fact.accession}-${fact.endDate}-${index}`}>
                 <th scope="row">FY{fact.fiscalYear}</th>
                 <td>{exactCurrency.format(fact.value)}</td>
                 <td>{fact.endDate}</td>
@@ -126,8 +90,11 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
         </table>
 
         <div className="mobile-records" aria-label={`Annual Revenue values in ${currency}`}>
-          {series.toReversed().map((fact, index) => (
-            <details key={fact.endDate} open={index === 0}>
+          {orderedSeries.toReversed().map((fact, index) => (
+            <details
+              key={`${fact.fiscalYear}-${fact.accession}-${fact.endDate}-${index}`}
+              open={index === 0}
+            >
               <summary>
                 <span>
                   <strong>FY{fact.fiscalYear}</strong>

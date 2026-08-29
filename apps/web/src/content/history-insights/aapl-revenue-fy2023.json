@@ -5,7 +5,7 @@
   "selectedFiscalYear": 2023,
   "selectionRule": "largest-decline-in-mixed-series",
   "question": {
-    "prompt": "Which statement can this chart support on its own?",
+    "prompt": "Which statement can the FY2022–FY2023 comparison support on its own?",
     "choices": [
       {
         "id": "revenue-declined",

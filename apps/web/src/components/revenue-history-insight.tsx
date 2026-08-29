@@ -9,30 +9,10 @@ type RevenueHistoryInsightProps = {
   observation: YearOverYearObservation;
 };
 
-const exactBillions = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 3,
-  maximumFractionDigits: 3,
-});
-
 const oneDecimal = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
-
-const sixDecimals = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 6,
-  maximumFractionDigits: 6,
-});
-
-function formatBillions(value: number): string {
-  return `${exactBillions.format(value / 1_000_000_000)} billion`;
-}
-
-function formatBillionsFormula(value: number): string {
-  return `${exactBillions.format(value / 1_000_000_000)}B`;
-}
 
 export function RevenueHistoryInsight({
   observation,
@@ -42,7 +22,9 @@ export function RevenueHistoryInsight({
 
   const isSupported = reviewedChoice === insightContent.question.supportedChoiceId;
   const source = insightContent.sources[0];
-  const decrease = Math.abs(observation.absoluteChange);
+  const hasReviewedContext = Boolean(
+    source?.url && source?.title && insightContent.sourcedContext.trim(),
+  );
   const percentageDecrease = Math.abs(observation.percentageChange);
 
   function reviewObservation(event: FormEvent<HTMLFormElement>) {
@@ -54,12 +36,12 @@ export function RevenueHistoryInsight({
     <section className="history-insight" aria-labelledby="history-insight-heading">
       <header className="history-insight__header">
         <div>
-          <p className="eyebrow">Guided history insight</p>
-          <h3 id="history-insight-heading">Notice first. Explain second.</h3>
+          <p className="eyebrow">FY2023 evidence check</p>
+          <h3 id="history-insight-heading">What can this decline actually prove?</h3>
         </div>
         <p>
-          Start with what the five reported numbers can support. Context comes after the
-          observation.
+          This check returns to FY2022 → FY2023. The calculation shows what changed,
+          but not why Revenue changed or what happened to Profit.
         </p>
       </header>
 
@@ -103,35 +85,41 @@ export function RevenueHistoryInsight({
                 {observation.current.fiscalYear}.
               </h4>
               <p>
-                Apple Revenue decreased by {formatBillions(decrease)}, from{" "}
-                {formatBillions(observation.previous.value)} in FY
-                {observation.previous.fiscalYear} to {formatBillions(observation.current.value)} in
-                FY{observation.current.fiscalYear}. The calculation is ({formatBillionsFormula(
-                  observation.current.value,
-                )} − {formatBillionsFormula(observation.previous.value)}) ÷{" "}
-                {formatBillionsFormula(observation.previous.value)} × 100 = −
-                {sixDecimals.format(percentageDecrease)}%, shown as down{" "}
-                {oneDecimal.format(percentageDecrease)}%.
+                The two reported annual totals support this statement. They do not
+                support a conclusion about the cause or about Profit.
               </p>
             </section>
 
-            <section>
-              <p className="evidence-label">Apple reported</p>
-              <h4>Currency and business mix added context.</h4>
-              <p>{insightContent.sourcedContext}</p>
-              <a href={source.url} rel="noreferrer" target="_blank">
-                Read the FY2023 10-K context ↗
-              </a>
-              <small>
-                {source.location} · filed {source.filedAt}
-              </small>
-            </section>
+            {hasReviewedContext ? (
+              <>
+                <section>
+                  <p className="evidence-label">Apple reported</p>
+                  <h4>Currency and business mix added context.</h4>
+                  <p>{insightContent.sourcedContext}</p>
+                  <a href={source.url} rel="noreferrer" target="_blank">
+                    Read the FY2023 10-K context ↗
+                  </a>
+                  <small>
+                    {source.location} · filed {source.filedAt}
+                  </small>
+                </section>
 
-            <section>
-              <p className="evidence-label">FinPath interpretation</p>
-              <h4>This was not a one-cause story.</h4>
-              <p>{insightContent.interpretation}</p>
-            </section>
+                <section>
+                  <p className="evidence-label">FinPath interpretation</p>
+                  <h4>This was not a one-cause story.</h4>
+                  <p>{insightContent.interpretation}</p>
+                </section>
+              </>
+            ) : (
+              <section>
+                <p className="evidence-label">Context unavailable</p>
+                <h4>FinPath is not presenting a cause.</h4>
+                <p>
+                  The reviewed source or its context is missing. The Revenue change is
+                  still visible, but a cause should not be inferred from the chart.
+                </p>
+              </section>
+            )}
 
             <section>
               <p className="evidence-label">Still unknown</p>

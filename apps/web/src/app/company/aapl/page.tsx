@@ -4,6 +4,7 @@ import Link from "next/link";
 import { RevenueHistory } from "@/components/revenue-history";
 import revenueConcept from "@/content/concepts/revenue.json";
 import { FinPathApiError, getCompanyOverview } from "@/lib/api";
+import { orderRevenueSeries } from "@/lib/history-insight";
 
 export const metadata: Metadata = {
   title: "Apple Revenue",
@@ -33,7 +34,8 @@ export default async function AppleCompanyPage() {
         : "The FinPath API is not available. Start FastAPI and try again.";
   }
 
-  const latest = overview?.series.at(-1);
+  const orderedSeries = overview ? orderRevenueSeries(overview.series) : [];
+  const latest = orderedSeries.at(-1);
 
   return (
     <div className="company-shell">
@@ -90,7 +92,7 @@ export default async function AppleCompanyPage() {
                 </p>
               </div>
 
-              <RevenueHistory currency={overview.metric.currency} series={overview.series} />
+              <RevenueHistory currency={overview.metric.currency} series={orderedSeries} />
 
               <p className="retrieved-note">
                 Retrieved {new Date(overview.dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}
