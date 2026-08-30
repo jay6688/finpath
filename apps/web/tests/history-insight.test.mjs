@@ -59,7 +59,7 @@ test("reviewed content keeps source, uncertainty, and continuation boundaries", 
   assert.equal(new URL(content.sources[0].url).hostname, "www.sec.gov");
 });
 
-test("the interaction gives feedback without a score or a fake Profit link", async () => {
+test("the interaction gives feedback without a score and continues to the real Profit lesson", async () => {
   const component = await readFile(
     new URL("../src/components/revenue-history-insight.tsx", import.meta.url),
     "utf8",
@@ -70,6 +70,6 @@ test("the interaction gives feedback without a score or a fake Profit link", asy
   assert.match(component, /Apple reported/);
   assert.match(component, /FinPath interpretation/);
   assert.match(component, /Still unknown/);
-  assert.match(component, /Preview only\. The Profit lesson is not available yet/);
-  assert.doesNotMatch(component, /href=.*profit/i);
+  assert.match(component, /href="\/company\/aapl\/profit"/);
+  assert.match(component, /Open the Profit lesson/);
 });

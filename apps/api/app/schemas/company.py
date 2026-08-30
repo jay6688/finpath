@@ -55,6 +55,56 @@ class AnnualFinancialFact(ApiModel):
         return value
 
 
+IncomeStatementLineId = Literal[
+    "total-net-sales",
+    "total-cost-of-sales",
+    "gross-margin",
+    "total-operating-expenses",
+    "operating-income",
+    "other-income-expense-net",
+    "income-before-income-taxes",
+    "income-tax-provision",
+    "net-income",
+]
+
+IncomeStatementLineRole = Literal[
+    "starting-line",
+    "deduction",
+    "subtotal",
+    "signed-adjustment",
+    "final-total",
+]
+
+
+class IncomeStatementLine(ApiModel):
+    id: IncomeStatementLineId
+    taxonomy_tag: str = Field(alias="taxonomyTag")
+    taxonomy_label: str = Field(alias="taxonomyLabel")
+    value: int
+    role: IncomeStatementLineRole
+
+
+class IncomeStatement(ApiModel):
+    fiscal_year: int = Field(alias="fiscalYear")
+    start_date: date = Field(alias="startDate")
+    end_date: date = Field(alias="endDate")
+    currency: Literal["USD"]
+    form: Literal["10-K", "10-K/A"]
+    filed_at: date = Field(alias="filedAt")
+    accession: str
+    source_url: HttpUrl = Field(alias="sourceUrl")
+    lines: list[IncomeStatementLine]
+
+    @field_validator("source_url")
+    @classmethod
+    def require_sec_filing_url(cls, value: HttpUrl) -> HttpUrl:
+        if value.host not in {"sec.gov", "www.sec.gov"}:
+            raise ValueError("sourceUrl must point to an SEC host")
+        if "/Archives/edgar/data/" not in value.path:
+            raise ValueError("sourceUrl must point to an EDGAR filing")
+        return value
+
+
 class DataState(StrEnum):
     LIVE = "live"
     CACHED = "cached"
@@ -70,4 +120,10 @@ class CompanyOverviewResponse(ApiModel):
     company: CompanyIdentity
     metric: MetricMetadata
     series: list[AnnualFinancialFact]
+    data_status: DataStatus = Field(alias="dataStatus")
+
+
+class CompanyIncomeStatementResponse(ApiModel):
+    company: CompanyIdentity
+    statement: IncomeStatement
     data_status: DataStatus = Field(alias="dataStatus")

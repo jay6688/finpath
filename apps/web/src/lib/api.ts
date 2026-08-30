@@ -30,6 +30,48 @@ export type CompanyOverview = {
   };
 };
 
+export type IncomeStatementLineId =
+  | "total-net-sales"
+  | "total-cost-of-sales"
+  | "gross-margin"
+  | "total-operating-expenses"
+  | "operating-income"
+  | "other-income-expense-net"
+  | "income-before-income-taxes"
+  | "income-tax-provision"
+  | "net-income";
+
+export type IncomeStatementLineRole =
+  | "starting-line"
+  | "deduction"
+  | "subtotal"
+  | "signed-adjustment"
+  | "final-total";
+
+export type IncomeStatementLine = {
+  id: IncomeStatementLineId;
+  taxonomyTag: string;
+  taxonomyLabel: string;
+  value: number;
+  role: IncomeStatementLineRole;
+};
+
+export type CompanyIncomeStatement = {
+  company: CompanyOverview["company"];
+  statement: {
+    fiscalYear: number;
+    startDate: string;
+    endDate: string;
+    currency: "USD";
+    form: "10-K" | "10-K/A";
+    filedAt: string;
+    accession: string;
+    sourceUrl: string;
+    lines: IncomeStatementLine[];
+  };
+  dataStatus: CompanyOverview["dataStatus"];
+};
+
 export class FinPathApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -83,4 +125,28 @@ export async function getCompanyOverview(ticker: string): Promise<CompanyOvervie
   }
 
   return (await response.json()) as CompanyOverview;
+}
+
+export async function getCompanyIncomeStatement(
+  ticker: string,
+  fiscalYear: number,
+): Promise<CompanyIncomeStatement> {
+  const apiBaseUrl = getApiBaseUrl();
+  const response = await fetch(
+    `${apiBaseUrl}/v1/companies/${encodeURIComponent(ticker)}/income-statements/${fiscalYear}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    let detail = `FinPath API returned ${response.status}.`;
+    try {
+      const payload = (await response.json()) as { detail?: string };
+      if (payload.detail) detail = payload.detail;
+    } catch {
+      // Keep the status-based message when an upstream proxy returns non-JSON.
+    }
+    throw new FinPathApiError(detail);
+  }
+
+  return (await response.json()) as CompanyIncomeStatement;
 }

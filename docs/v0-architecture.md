@@ -1,13 +1,14 @@
 # V0 Architecture
 
-**Status:** Implemented through SEC Revenue pipeline
+**Status:** Implemented through the guided Apple Profit learning slice
 **Decision date:** 2026-08-19
 
 ## Outcome
 
-V0 is one learning loop, two screens, one metric, and one authoritative financial-data source:
+V0 is one company, one authoritative financial-data source, and a controlled
+set of connected learning slices:
 
-> Apple/AAPL → Revenue history → beginner explanation → limitation → original SEC filing.
+> Apple/AAPL → Revenue history → guided observation → FY2025 Profit path → limitation → original SEC filing.
 
 ## System boundary
 
@@ -35,12 +36,16 @@ The browser does not call `data.sec.gov` directly because SEC does not support C
 - Curated, reviewed concept content.
 - No financial values hard-coded as live data.
 - V0 UI explicitly offers Apple/AAPL rather than pretending to search the full market.
+- A progressive FY2025 Profit lesson that keeps Apple-reported statement lines
+  primary and treats Profit Margin as a preview only.
 
 ### `apps/api`
 
 - FastAPI and Pydantic.
 - SEC network adapter and ticker-to-CIK lookup.
 - Revenue fact selection and deduplication.
+- Coherent annual income-statement extraction anchored to one filing context,
+  with explicit reconciliation failures instead of mixed or missing values.
 - SQLite cache for public upstream data only.
 - A normalized API contract independent of SEC's raw JSON shape.
 

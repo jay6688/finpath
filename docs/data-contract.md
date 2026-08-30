@@ -1,6 +1,6 @@
 # V0 Data Contract
 
-## Endpoint
+## Revenue history endpoint
 
 ```http
 GET /v1/companies/{ticker}/overview
@@ -94,3 +94,46 @@ The pipeline links to the official filing index and never guesses a company-cont
 - `stale`: SEC refresh failed and a still-eligible last-known public payload was used.
 
 `retrievedAt` always describes when the displayed upstream payload was retrieved, not when the browser rendered the page.
+
+## FY income-statement endpoint
+
+```http
+GET /v1/companies/{ticker}/income-statements/{fiscal_year}
+```
+
+The Profit lesson uses this narrow statement contract. The API returns one
+coherent annual filing context rather than selecting each line independently.
+V0 guarantees the reviewed Apple FY2025 path only.
+
+The ordered `statement.lines` are:
+
+```text
+Total net sales
+- Total cost of sales
+= Gross margin
+- Total operating expenses
+= Operating income
++ signed Other income/(expense), net
+= Income before provision for income taxes
+- Provision for income taxes
+= Net income
+```
+
+Each line carries a stable FinPath id, SEC taxonomy tag and taxonomy label,
+integer USD value, and presentation role. Deduction facts remain positive as
+reported by Company Facts; `Other income/(expense), net` preserves its signed
+value. Apple-specific display labels live in reviewed teaching content and are
+rendered only when the returned fiscal year and accession match that content.
+
+### Statement selection and reconciliation policy
+
+1. Select the requested annual Revenue fact as the statement anchor.
+2. Require every other fact to match its accession, start date, end date,
+   fiscal year, form, and USD unit.
+3. Collapse only identical duplicates. Reject conflicting duplicates, missing
+   lines, and cross-filing combinations as unsupported instead of using zero.
+4. Validate all four reported arithmetic relationships before responding.
+5. Build one official SEC filing-index URL from CIK and accession and retain
+   the shared filed date and period metadata.
+6. Return the same `live`, `cached`, or `stale` retrieval status used by the
+   Revenue endpoint.

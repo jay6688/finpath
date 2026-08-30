@@ -1,0 +1,153 @@
+{
+  "lessonId": "aapl-profit-fy2025",
+  "ticker": "AAPL",
+  "fiscalYear": 2025,
+  "accession": "0000320193-25-000079",
+  "title": "What sits between Revenue and Net Income?",
+  "introduction": "Apple reported Revenue and Net Income for FY2025. Read the reported income-statement lines that connect the two figures.",
+  "boundary": "This lesson follows Apple’s income statement. It does not show when cash moved, Apple’s cash balance, or the cash generated during the year.",
+  "lines": {
+    "total-net-sales": {
+      "reportedLabel": "Total net sales",
+      "helper": "FinPath learning term: Revenue"
+    },
+    "total-cost-of-sales": {
+      "reportedLabel": "Total cost of sales",
+      "helper": "Cost recorded for the products and services Apple sold"
+    },
+    "gross-margin": {
+      "reportedLabel": "Gross margin",
+      "helper": "Apple’s label for this dollar subtotal; it is often called gross profit"
+    },
+    "total-operating-expenses": {
+      "reportedLabel": "Total operating expenses",
+      "helper": "Research and development plus selling, general and administrative expenses"
+    },
+    "operating-income": {
+      "reportedLabel": "Operating income",
+      "helper": "After cost of sales and operating expenses"
+    },
+    "other-income-expense-net": {
+      "reportedLabel": "Other income/(expense), net",
+      "helper": "A signed line; it was negative in FY2025"
+    },
+    "income-before-income-taxes": {
+      "reportedLabel": "Income before provision for income taxes",
+      "helper": "The subtotal before Apple’s income tax provision"
+    },
+    "income-tax-provision": {
+      "reportedLabel": "Provision for income taxes",
+      "helper": "Accounting tax expense, not necessarily cash tax paid during the year"
+    },
+    "net-income": {
+      "reportedLabel": "Net income",
+      "helper": "The final Profit line used in this lesson"
+    }
+  },
+  "stages": [
+    {
+      "id": "starting-line",
+      "navigationLabel": "Starting line",
+      "continueLabel": "Start with cost of sales",
+      "lineIds": ["total-net-sales"],
+      "traceHeading": "Revenue is the starting line.",
+      "traceBody": "Apple’s filing labels Revenue as Total net sales. The reported costs and expenses below it determine the later Profit lines.",
+      "traceBoundary": "Revenue alone cannot tell you Net Income."
+    },
+    {
+      "id": "cost-of-sales",
+      "navigationLabel": "Cost of sales",
+      "continueLabel": "Continue to operating expenses",
+      "lineIds": ["total-cost-of-sales", "gross-margin"],
+      "traceHeading": "The first Profit checkpoint.",
+      "traceBody": "Apple labels this dollar subtotal Gross margin. The same amount is often called gross profit.",
+      "traceBoundary": "This is an amount, not the Gross Margin percentage."
+    },
+    {
+      "id": "operating-expenses",
+      "navigationLabel": "Operating expenses",
+      "continueLabel": "Continue to the final reported lines",
+      "lineIds": ["total-operating-expenses", "operating-income"],
+      "traceHeading": "Operating income is not the final line.",
+      "traceBody": "Apple reported Operating income after cost of sales and operating expenses.",
+      "traceBoundary": "Other income or expense and income tax still sit between this subtotal and Net income."
+    },
+    {
+      "id": "final-lines",
+      "navigationLabel": "Other item, tax and final line",
+      "continueLabel": "",
+      "lineIds": [
+        "other-income-expense-net",
+        "income-before-income-taxes",
+        "income-tax-provision",
+        "net-income"
+      ],
+      "traceHeading": "Net income is the final Profit line used here.",
+      "traceBody": "Other income/(expense), net reduced Apple’s FY2025 income before tax. After its income tax provision, Apple reported Net income.",
+      "traceBoundary": "Net income is an accounting result. It is not cash held or cash generated."
+    }
+  ],
+  "question": {
+    "prompt": "Revenue rises next year, but costs and expenses rise even faster. What could happen to Net Income?",
+    "hint": "Choose one. This is practice, not a score.",
+    "choices": [
+      {
+        "id": "could-fall",
+        "label": "Net Income could still fall."
+      },
+      {
+        "id": "must-rise",
+        "label": "Net Income must rise too."
+      }
+    ],
+    "supportedChoiceId": "could-fall",
+    "supportedFeedback": "Yes. Revenue is the starting line. If costs and expenses grow faster, Net Income may be lower.",
+    "unsupportedFeedback": "Revenue alone does not decide Net Income. Costs, expenses, other income or expense, and tax can change too."
+  },
+  "verification": {
+    "statementName": "Consolidated Statements of Operations",
+    "location": "Item 8 · page 29",
+    "unitNote": "Apple reports USD millions. FinPath displays the same values in USD billions.",
+    "displayNote": "Minus and plus signs organize the learning calculation. The exact record preserves Apple’s reported line names and signed other-income/expense amount."
+  },
+  "nextPreview": "Next: Profit Margin — compare Net Income with Revenue to ask how much Net Income Apple reported for every $100 of Revenue.",
+  "sources": [
+    {
+      "id": "apple-2025-10k",
+      "title": "Apple Inc. FY2025 Form 10-K",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+      "location": "Consolidated Statements of Operations · page 29",
+      "supports": [
+        "Apple FY2025 reported income-statement labels",
+        "Apple FY2025 reported values",
+        "period, form and filing provenance"
+      ],
+      "accessedAt": "2026-08-30"
+    },
+    {
+      "id": "sec-financial-statements-guide",
+      "title": "Beginners’ Guide to Financial Statements",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "url": "https://www.sec.gov/about/reports-publications/beginners-guide-financial-statements",
+      "location": "Income Statements",
+      "supports": [
+        "income-statement sequence",
+        "cost, expense and Net Income teaching context"
+      ],
+      "accessedAt": "2026-08-30"
+    },
+    {
+      "id": "investor-gov-net-income",
+      "title": "Net Income",
+      "publisher": "Investor.gov",
+      "url": "https://www.investor.gov/introduction-investing/investing-basics/glossary/net-income",
+      "location": "Glossary",
+      "supports": [
+        "Net Income definition",
+        "Revenue less expenses and taxes relationship"
+      ],
+      "accessedAt": "2026-08-30"
+    }
+  ]
+}

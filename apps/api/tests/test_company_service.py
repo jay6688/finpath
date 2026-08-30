@@ -29,3 +29,19 @@ def test_fixture_pipeline_produces_serializable_aapl_api_response() -> None:
         "state": "cached",
         "retrievedAt": "2026-08-19T00:00:00Z",
     }
+
+
+def test_fixture_pipeline_produces_serializable_aapl_income_statement() -> None:
+    service = CompanyOverviewService(FixtureSecDataSource())
+
+    response = asyncio.run(service.get_income_statement("aapl", 2025))
+    payload = response.model_dump(mode="json", by_alias=True)
+
+    assert payload["statement"]["lines"][5] == {
+        "id": "other-income-expense-net",
+        "taxonomyTag": "NonoperatingIncomeExpense",
+        "taxonomyLabel": "Nonoperating Income (Expense)",
+        "value": -321_000_000,
+        "role": "signed-adjustment",
+    }
+    assert payload["statement"]["lines"][-1]["value"] == 112_010_000_000

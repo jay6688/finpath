@@ -110,6 +110,170 @@
             }
           ]
         }
+      },
+      "CostOfGoodsAndServicesSold": {
+        "label": "Cost of Goods and Services Sold",
+        "description": "Amount of cost of goods and services sold.",
+        "units": {
+          "USD": [
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": 220960000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            }
+          ]
+        }
+      },
+      "GrossProfit": {
+        "label": "Gross Profit",
+        "description": "Revenue less cost of goods and services sold.",
+        "units": {
+          "USD": [
+            {
+              "start": "2023-10-01",
+              "end": "2024-09-28",
+              "val": 180683000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            },
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": 195201000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            }
+          ]
+        }
+      },
+      "OperatingExpenses": {
+        "label": "Operating Expenses",
+        "description": "Total operating expenses.",
+        "units": {
+          "USD": [
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": 62151000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            }
+          ]
+        }
+      },
+      "OperatingIncomeLoss": {
+        "label": "Operating Income (Loss)",
+        "description": "Income or loss from continuing operations.",
+        "units": {
+          "USD": [
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": 133050000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            }
+          ]
+        }
+      },
+      "NonoperatingIncomeExpense": {
+        "label": "Nonoperating Income (Expense)",
+        "description": "Income or expense outside operations.",
+        "units": {
+          "USD": [
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": -321000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            }
+          ]
+        }
+      },
+      "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest": {
+        "label": "Income (Loss) from Continuing Operations before Income Taxes, Extraordinary Items, Noncontrolling Interest",
+        "description": "Income before income taxes.",
+        "units": {
+          "USD": [
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": 132729000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            }
+          ]
+        }
+      },
+      "IncomeTaxExpenseBenefit": {
+        "label": "Income Tax Expense (Benefit)",
+        "description": "Amount of income tax expense or benefit.",
+        "units": {
+          "USD": [
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": 20719000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            }
+          ]
+        }
+      },
+      "NetIncomeLoss": {
+        "label": "Net Income (Loss)",
+        "description": "Net income or loss attributable to the entity.",
+        "units": {
+          "USD": [
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": 112010000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            },
+            {
+              "start": "2024-09-29",
+              "end": "2025-09-27",
+              "val": 112010000000,
+              "accn": "0000320193-25-000079",
+              "fy": 2025,
+              "fp": "FY",
+              "form": "10-K",
+              "filed": "2025-10-31"
+            }
+          ]
+        }
       }
     }
   }

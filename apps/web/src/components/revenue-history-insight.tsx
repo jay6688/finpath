@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 import type { YearOverYearObservation } from "@/lib/history-insight";
@@ -133,7 +134,7 @@ export function RevenueHistoryInsight({
             <div>
               <p className="eyebrow">Continue</p>
               <p>{insightContent.nextPreview}</p>
-              <small>Preview only. The Profit lesson is not available yet.</small>
+              <Link href="/company/aapl/profit">Open the Profit lesson →</Link>
             </div>
           </aside>
         </div>
