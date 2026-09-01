@@ -1,0 +1,61 @@
+{
+  "lessonId": "aapl-profit-margin-fy2025",
+  "ticker": "AAPL",
+  "fiscalYear": 2025,
+  "accession": "0000320193-25-000079",
+  "title": "How much Net Income for each $100 of Revenue?",
+  "introduction": "Start with the two figures Apple reported, then put their relationship on one simple scale.",
+  "discovery": {
+    "heading": "Notice",
+    "prompt": "Revenue is much larger. How can we compare their relationship on one simple scale?",
+    "support": "Next, FinPath will put Revenue on a $100 comparison scale.",
+    "revealLabel": "Compare them on a $100 Revenue scale"
+  },
+  "formula": {
+    "heading": "FinPath calculation · derived",
+    "expression": "Net Income ÷ Revenue × 100",
+    "resultLabel": "Net Profit Margin"
+  },
+  "ratioBoundary": "This is a comparison ratio. It does not mean this amount of cash moved, was generated, or was retained.",
+  "terminology": "Net Profit Margin uses Net Income. It is not Apple’s ‘Gross margin’ dollar subtotal from the previous lesson.",
+  "question": {
+    "prompt": "If Revenue were $100 and the margin stayed the same, about how much would be Net Income?",
+    "hint": "Choose one. This is practice, not a score.",
+    "supportedChoiceId": "net-income-share",
+    "supportedFeedback": "That uses the Net Profit Margin as the Net Income share of a $100 Revenue scale.",
+    "unsupportedFeedback": "That is the remainder of the $100 comparison scale, not the Net Income share. It is not one Apple-reported expense line."
+  },
+  "verification": {
+    "statementName": "Consolidated Statements of Operations",
+    "location": "Item 8 · page 29",
+    "unitNote": "Apple reports USD millions. FinPath displays the same reported values in USD billions before deriving the ratio.",
+    "roundingNote": "FinPath calculates with the exact reported values, verifies to three decimal places, and displays the learning result to one decimal place."
+  },
+  "limitation": "Net Profit Margin alone does not explain why the margin changed, how much cash Apple generated, whether Apple’s shares are fairly priced, or whether Apple is a good investment.",
+  "sources": [
+    {
+      "id": "apple-2025-10k",
+      "title": "Apple Inc. FY2025 Form 10-K",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+      "location": "Consolidated Statements of Operations · page 29",
+      "supports": [
+        "Apple FY2025 Total net sales",
+        "Apple FY2025 Net income",
+        "period, form and filing provenance"
+      ],
+      "accessedAt": "2026-08-30"
+    },
+    {
+      "id": "sec-financial-statements-guide",
+      "title": "Beginners’ Guide to Financial Statements",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "url": "https://www.sec.gov/about/reports-publications/beginners-guide-financial-statements",
+      "location": "Income Statements",
+      "supports": [
+        "Revenue and Net Income teaching context"
+      ],
+      "accessedAt": "2026-08-30"
+    }
+  ]
+}

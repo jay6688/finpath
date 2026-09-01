@@ -3,19 +3,21 @@
 FinPath is a beginner-first financial learning platform. V0 proves a narrow,
 connected learning loop:
 
-> Open FinPath → explore Apple (AAPL) → understand real SEC Revenue history → follow Apple’s FY2025 reported lines to Net Income → trace every number and explanation to a source.
+> Open FinPath → explore Apple (AAPL) → understand real SEC Revenue history → follow Apple’s FY2025 reported lines to Net Income → derive Net Profit Margin on a $100 Revenue scale → trace every number and explanation to a source.
 
 The product does not tell users what to buy. V0 does not include authentication, an AI tutor, gamification, paper trading, news, trade execution, or PWA behavior.
 
 ## Repository status
 
-This repository is currently at the **guided Apple Profit learning milestone**. It contains:
+This repository is currently at the **guided Apple Profit Margin learning milestone**. It contains:
 
 - a runnable Next.js product shell and real-data Apple company page;
 - a FastAPI company endpoint backed by SEC ticker and Company Facts data;
 - annual Revenue normalization with complete filing provenance;
 - a progressive FY2025 Profit lesson backed by one coherent SEC filing context;
 - exact income-statement reconciliation from Total net sales to Net income;
+- a discovery-first Net Profit Margin lesson derived from validated Revenue and Net Income;
+- a static $100 Revenue ratio visualization, low-pressure application, and explicit rounding evidence;
 - a SQLite cache containing public SEC JSON only;
 - sourced English and Chinese Revenue learning content;
 - deterministic SEC fixtures and an optional live smoke test;

@@ -1680,10 +1680,19 @@ h2 {
   margin-top: 0.2rem;
 }
 
-.profit-next-preview > p:last-child {
+.profit-next-preview > a {
   margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.55rem;
   color: var(--ink);
   font-weight: 700;
+  text-decoration-color: var(--divider-strong);
+  text-underline-offset: 0.2rem;
+}
+
+.profit-next-preview > a:hover {
+  color: var(--trust-dark);
 }
 
 .profit-retrieved-note {
@@ -1694,6 +1703,515 @@ h2 {
 
 .profit-data-empty {
   margin-top: 2rem;
+}
+
+.profit-margin-lesson {
+  max-width: 64rem;
+  margin-top: 2.2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--divider-strong);
+}
+
+.profit-margin-lesson__header {
+  max-width: 50rem;
+}
+
+.profit-margin-lesson__header h2 {
+  max-width: 19ch;
+  margin-bottom: 0.8rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 600;
+}
+
+.profit-margin-lesson__introduction {
+  max-width: 42rem;
+  margin-bottom: 0.75rem;
+  color: var(--ink);
+  font-size: clamp(1rem, 2vw, 1.12rem);
+}
+
+.profit-margin-lesson__period {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.79rem;
+}
+
+.profit-margin-lesson__period a {
+  color: var(--trust-dark);
+  font-weight: 750;
+  text-underline-offset: 0.18rem;
+}
+
+.profit-margin-reported {
+  margin-top: 2rem;
+  background: var(--surface);
+  border-top: 3px solid var(--trust);
+  border-bottom: 1px solid var(--divider-strong);
+}
+
+.profit-margin-section-heading {
+  min-height: 2.8rem;
+  padding: 0.65rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--divider);
+}
+
+.profit-margin-section-heading .eyebrow {
+  margin: 0;
+}
+
+.profit-margin-section-heading > span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.profit-margin-reported dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.profit-margin-reported dl > div {
+  min-width: 0;
+  padding: 1.15rem 1rem;
+}
+
+.profit-margin-reported dl > div + div {
+  border-left: 1px solid var(--divider);
+}
+
+.profit-margin-reported dt,
+.profit-margin-reported dd,
+.profit-margin-reported small {
+  display: block;
+}
+
+.profit-margin-reported dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.profit-margin-reported dd {
+  margin: 0.15rem 0 0;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.profit-margin-reported small {
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.profit-margin-discovery {
+  max-width: 46rem;
+  margin-top: 2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--divider-strong);
+}
+
+.profit-margin-discovery h3 {
+  max-width: 31ch;
+  margin-bottom: 0.55rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.35rem, 3vw, 1.8rem);
+}
+
+.profit-margin-discovery > p:not(.eyebrow) {
+  margin: 0;
+  color: var(--muted);
+}
+
+.profit-margin-discovery button,
+.profit-margin-application form > button {
+  min-height: 3rem;
+  margin-top: 1.1rem;
+  padding: 0.7rem 1rem;
+  color: var(--surface);
+  background: var(--trust);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.profit-margin-discovery button:hover,
+.profit-margin-application form > button:hover:not(:disabled) {
+  background: var(--trust-dark);
+}
+
+.profit-margin-reveal {
+  margin-top: 2rem;
+}
+
+.profit-margin-calculation {
+  border-top: 1px solid var(--divider-strong);
+}
+
+.profit-margin-calculation > .eyebrow {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  color: var(--trace);
+  border-bottom: 1px solid var(--divider);
+}
+
+.profit-margin-formula {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.45fr);
+  background: var(--surface);
+  border-bottom: 1px solid var(--divider-strong);
+}
+
+.profit-margin-formula > div {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.profit-margin-formula > div + div {
+  border-left: 1px solid var(--divider);
+}
+
+.profit-margin-formula span,
+.profit-margin-formula strong {
+  display: block;
+}
+
+.profit-margin-formula span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.profit-margin-formula strong {
+  margin-top: 0.35rem;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: clamp(0.86rem, 2vw, 1rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.profit-margin-result {
+  background: var(--soft-jade);
+}
+
+.profit-margin-result strong {
+  color: var(--trust-dark);
+  font-size: clamp(1.35rem, 4vw, 2rem);
+}
+
+.profit-margin-understanding-grid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(16rem, 0.7fr);
+  align-items: start;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.profit-margin-scale {
+  min-width: 0;
+  margin: 0;
+  padding: 1.2rem 1rem 1rem;
+  background: var(--surface);
+  border-top: 3px solid var(--trust);
+  border-bottom: 1px solid var(--divider-strong);
+}
+
+.profit-margin-scale figcaption {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+}
+
+.profit-margin-scale > strong {
+  margin-top: 1rem;
+  display: block;
+  color: var(--trust-dark);
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.profit-margin-scale__visual {
+  position: relative;
+  height: 0.75rem;
+  margin-top: 0.35rem;
+  overflow: hidden;
+  background: var(--divider);
+  border-bottom: 1px solid var(--divider-strong);
+}
+
+.profit-margin-scale__visual > span {
+  width: var(--net-income-share);
+  height: 100%;
+  display: block;
+  background: var(--trust);
+  border-right: 3px solid var(--trace);
+}
+
+.profit-margin-scale__labels {
+  margin-top: 0.35rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.profit-margin-scale > small {
+  display: block;
+  margin-top: 0.65rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.profit-margin-trace {
+  min-width: 0;
+  padding: 1rem 0 0 1rem;
+  border-top: 3px solid var(--trace);
+  border-left: 1px solid var(--divider);
+}
+
+.profit-margin-trace__label {
+  margin: 0 0 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--trace);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profit-margin-trace__label > span {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: 0 0 auto;
+  background: var(--trace);
+}
+
+.profit-margin-trace h3 {
+  margin-bottom: 0.55rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.2rem;
+}
+
+.profit-margin-trace > p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.profit-margin-terminology {
+  max-width: 48rem;
+  margin: 1.5rem 0 0;
+  padding: 0.85rem 1rem;
+  color: var(--muted);
+  background: var(--soft-peach);
+  border-left: 3px solid var(--trace);
+}
+
+.profit-margin-terminology strong {
+  display: block;
+  color: var(--ink);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.profit-margin-application,
+.profit-margin-evidence,
+.profit-margin-limitation {
+  max-width: 52rem;
+  margin-top: 2rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--divider-strong);
+}
+
+.profit-margin-application fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.profit-margin-application legend {
+  padding: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 750;
+}
+
+.profit-margin-application fieldset > p {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.profit-margin-application__choices {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.profit-margin-application__choices label {
+  min-height: 3rem;
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.profit-margin-application__choices label:has(input:checked) {
+  background: var(--soft-jade);
+  border-color: var(--trust);
+}
+
+.profit-margin-application__choices input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  accent-color: var(--trust);
+}
+
+.profit-margin-application__choices span {
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.profit-margin-application form > button:disabled {
+  color: var(--muted);
+  background: var(--divider);
+  cursor: not-allowed;
+}
+
+.profit-margin-application__feedback {
+  margin: 1rem 0 0;
+  padding: 0.8rem 1rem;
+  color: var(--ink);
+  background: var(--soft-peach);
+  border-radius: var(--radius-sm);
+}
+
+.profit-margin-evidence summary {
+  min-height: 2.5rem;
+  color: var(--trust-dark);
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.profit-margin-evidence summary::marker {
+  color: var(--trace);
+}
+
+.profit-margin-evidence__calculation {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: 1.5fr 0.75fr 0.75fr;
+  background: var(--surface);
+  border-top: 1px solid var(--divider);
+  border-bottom: 1px solid var(--divider);
+}
+
+.profit-margin-evidence__calculation > p {
+  min-width: 0;
+  margin: 0;
+  padding: 0.75rem;
+}
+
+.profit-margin-evidence__calculation > p + p {
+  border-left: 1px solid var(--divider);
+}
+
+.profit-margin-evidence__calculation span,
+.profit-margin-evidence__calculation strong {
+  display: block;
+}
+
+.profit-margin-evidence__calculation span {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.profit-margin-evidence__calculation strong {
+  margin-top: 0.2rem;
+  overflow-wrap: anywhere;
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.profit-margin-evidence dl {
+  margin: 1rem 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.profit-margin-evidence dl > div {
+  min-width: 0;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.profit-margin-evidence dl > div:nth-child(even) {
+  padding-left: 1rem;
+}
+
+.profit-margin-evidence dt,
+.profit-margin-evidence dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
+}
+
+.profit-margin-evidence dt {
+  color: var(--muted);
+}
+
+.profit-margin-evidence dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.profit-margin-evidence > p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.profit-margin-source-links {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+.profit-margin-source-links a {
+  color: var(--trust-dark);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.profit-margin-limitation .eyebrow {
+  margin-bottom: 0.35rem;
+}
+
+.profit-margin-limitation > p:last-child {
+  margin: 0;
+  color: var(--muted);
 }
 
 @media (max-width: 760px) {
@@ -2214,6 +2732,87 @@ h2 {
   .profit-retrieved-note {
     font-size: 0.8rem;
   }
+
+  .profit-margin-lesson {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .profit-margin-lesson__header h2 {
+    max-width: 16ch;
+    font-size: clamp(1.9rem, 9vw, 2.7rem);
+  }
+
+  .profit-margin-reported {
+    margin-top: 1.5rem;
+  }
+
+  .profit-margin-section-heading {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
+  .profit-margin-reported dl {
+    grid-template-columns: 1fr;
+  }
+
+  .profit-margin-reported dl > div {
+    padding: 0.9rem 0.75rem;
+  }
+
+  .profit-margin-reported dl > div + div {
+    border-top: 1px solid var(--divider);
+    border-left: 0;
+  }
+
+  .profit-margin-discovery button,
+  .profit-margin-application form > button {
+    width: 100%;
+  }
+
+  .profit-margin-formula {
+    grid-template-columns: 1fr;
+  }
+
+  .profit-margin-formula > div {
+    padding: 0.85rem 0.75rem;
+  }
+
+  .profit-margin-formula > div + div {
+    border-top: 1px solid var(--divider);
+    border-left: 0;
+  }
+
+  .profit-margin-understanding-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .profit-margin-trace {
+    padding: 0.9rem;
+    background: var(--soft-peach);
+    border-top: 0;
+    border-left: 3px solid var(--trace);
+  }
+
+  .profit-margin-terminology {
+    margin-top: 1rem;
+  }
+
+  .profit-margin-application__choices,
+  .profit-margin-evidence__calculation,
+  .profit-margin-evidence dl {
+    grid-template-columns: 1fr;
+  }
+
+  .profit-margin-evidence__calculation > p + p {
+    border-top: 1px solid var(--divider);
+    border-left: 0;
+  }
+
+  .profit-margin-evidence dl > div:nth-child(even) {
+    padding-left: 0;
+  }
 }
 
 @media (max-width: 360px) {
@@ -2237,6 +2836,21 @@ h2 {
   .profit-line__label strong,
   .profit-line__value {
     font-size: 0.75rem;
+  }
+
+  .profit-margin-section-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .profit-margin-formula strong {
+    font-size: 0.78rem;
+  }
+
+  .profit-margin-scale {
+    padding-right: 0.7rem;
+    padding-left: 0.7rem;
   }
 }
 

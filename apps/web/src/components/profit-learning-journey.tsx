@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 
 import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
 import type {
@@ -342,7 +343,10 @@ export function ProfitLearningJourney({
 
           <aside className="profit-next-preview" aria-label="Next learning preview">
             <p className="eyebrow">Continue</p>
-            <p>{profitContent.nextPreview}</p>
+            <Link href="/company/aapl/profit-margin">
+              {profitContent.nextPreview}
+              <span aria-hidden="true">→</span>
+            </Link>
           </aside>
         </div>
       )}
