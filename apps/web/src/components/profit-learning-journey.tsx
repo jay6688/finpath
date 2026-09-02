@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
+import { EvidenceInspector } from "@/components/evidence-inspector";
 import { LearningUpNext } from "@/components/learning-up-next";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
@@ -10,6 +11,11 @@ import type {
   IncomeStatementLine,
   IncomeStatementLineId,
 } from "@/lib/api";
+import {
+  buildReportedEvidence,
+  buildReviewedPresentation,
+  reportedFactFromStatementLine,
+} from "@/lib/evidence";
 import { incomeStatementLineMap } from "@/lib/profit-learning";
 
 
@@ -34,6 +40,9 @@ type LineCopy = {
 
 const stages = profitContent.stages as StageContent[];
 const lineCopy = profitContent.lines as Record<IncomeStatementLineId, LineCopy>;
+const reviewedLabels = Object.fromEntries(
+  Object.entries(lineCopy).map(([id, copy]) => [id, copy.reportedLabel]),
+) as Partial<Record<IncomeStatementLineId, string>>;
 
 const exactBillions = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -83,6 +92,34 @@ export function ProfitLearningJourney({
   const [reviewedChoice, setReviewedChoice] = useState<string | null>(null);
 
   if (!revenue || !netIncome) return null;
+
+  const reviewedNetIncome = buildReviewedPresentation({
+    statement,
+    content: {
+      fiscalYear: profitContent.fiscalYear,
+      startDate: profitContent.startDate,
+      endDate: profitContent.endDate,
+      form: profitContent.form as "10-K" | "10-K/A",
+      filedAt: profitContent.filedAt,
+      accession: profitContent.accession,
+      statementName: profitContent.verification.statementName,
+      labels: reviewedLabels,
+    },
+    lineId: "net-income",
+    contextLineIds: [
+      "income-before-income-taxes",
+      "income-tax-provision",
+      "net-income",
+    ],
+  });
+  const netIncomeEvidence = buildReportedEvidence({
+    metric: { id: "net-income", label: "Net Income" },
+    company: incomeStatement.company,
+    currency: statement.currency,
+    fact: reportedFactFromStatementLine(statement, "net-income"),
+    dataStatus,
+    reviewedPresentation: reviewedNetIncome,
+  });
 
   const visibleStages = stages.slice(0, furthestRevealedStageIndex + 1);
   const activeStage = stages[activeStageIndex];
@@ -256,6 +293,8 @@ export function ProfitLearningJourney({
         </button>
       ) : (
         <div className="profit-completion">
+          <EvidenceInspector evidence={netIncomeEvidence} id="net-income-evidence" />
+
           <section className="profit-understanding" aria-labelledby="profit-check-title">
             <form onSubmit={reviewUnderstanding}>
               <fieldset>

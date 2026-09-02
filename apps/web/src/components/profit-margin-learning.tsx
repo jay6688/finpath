@@ -2,10 +2,16 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 
+import { EvidenceInspector } from "@/components/evidence-inspector";
 import { LearningUpNext } from "@/components/learning-up-next";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import marginContent from "@/content/profit-margin-lessons/aapl-profit-margin-fy2025.json";
-import type { CompanyIncomeStatement } from "@/lib/api";
+import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
+import type { CompanyIncomeStatement, IncomeStatementLineId } from "@/lib/api";
+import {
+  buildNetProfitMarginEvidence,
+  buildReviewedPresentation,
+} from "@/lib/evidence";
 import type { NetProfitMarginDerivation } from "@/lib/profit-margin";
 
 
@@ -25,6 +31,10 @@ function formatBillions(value: number): string {
   return `${exactBillions.format(value / 1_000_000_000)}B`;
 }
 
+const reviewedLabels = Object.fromEntries(
+  Object.entries(profitContent.lines).map(([id, line]) => [id, line.reportedLabel]),
+) as Partial<Record<IncomeStatementLineId, string>>;
+
 export function ProfitMarginLearning({
   incomeStatement,
   derivation,
@@ -42,6 +52,32 @@ export function ProfitMarginLearning({
   const scaleStyle = {
     "--net-income-share": `${derivation.displayPercent}%`,
   } as CSSProperties;
+  const reviewedContent = {
+    fiscalYear: marginContent.fiscalYear,
+    startDate: marginContent.startDate,
+    endDate: marginContent.endDate,
+    form: marginContent.form as "10-K" | "10-K/A",
+    filedAt: marginContent.filedAt,
+    accession: marginContent.accession,
+    statementName: marginContent.verification.statementName,
+    labels: reviewedLabels,
+  };
+  const marginEvidence = buildNetProfitMarginEvidence({
+    incomeStatement,
+    derivation,
+    reviewedRevenue: buildReviewedPresentation({
+      statement,
+      content: reviewedContent,
+      lineId: "total-net-sales",
+      contextLineIds: ["total-net-sales"],
+    }),
+    reviewedNetIncome: buildReviewedPresentation({
+      statement,
+      content: reviewedContent,
+      lineId: "net-income",
+      contextLineIds: ["net-income"],
+    }),
+  });
 
   function revealCalculation() {
     setIsRevealed(true);
@@ -213,49 +249,7 @@ export function ProfitMarginLearning({
             ) : null}
           </section>
 
-          <details className="profit-margin-evidence">
-            <summary>Verify the calculation and SEC provenance</summary>
-            <div className="profit-margin-evidence__calculation">
-              <p>
-                <span>Apple reported</span>
-                <strong>
-                  {formatBillions(derivation.revenue)} Revenue ·{" "}
-                  {formatBillions(derivation.netIncome)} Net Income
-                </strong>
-              </p>
-              <p>
-                <span>FinPath derived</span>
-                <strong>{derivation.verificationPercent.toFixed(3)}%</strong>
-              </p>
-              <p>
-                <span>Displayed for learning</span>
-                <strong>{percentDisplay}%</strong>
-              </p>
-            </div>
-            <dl>
-              <div><dt>Statement</dt><dd>{marginContent.verification.statementName}</dd></div>
-              <div><dt>Location</dt><dd>{marginContent.verification.location}</dd></div>
-              <div><dt>Period ended</dt><dd>{statement.endDate}</dd></div>
-              <div><dt>Filed</dt><dd>{statement.filedAt}</dd></div>
-              <div><dt>Form</dt><dd>{statement.form}</dd></div>
-              <div><dt>Accession</dt><dd>{statement.accession}</dd></div>
-            </dl>
-            <p>{marginContent.verification.unitNote}</p>
-            <p>{marginContent.verification.roundingNote}</p>
-            <p>
-              The ${perHundredDisplay} wording places the displayed{" "}
-              {percentDisplay}% on a $100 scale; it is not a separate exact
-              calculation.
-            </p>
-            <div className="profit-margin-source-links">
-              <a href={statement.sourceUrl} rel="noreferrer" target="_blank">
-                Open official SEC filing index ↗
-              </a>
-              <a href={marginContent.sources[0].url} rel="noreferrer" target="_blank">
-                Open the filed statement ↗
-              </a>
-            </div>
-          </details>
+          <EvidenceInspector evidence={marginEvidence} id="profit-margin-evidence" />
 
           <aside className="profit-margin-limitation" aria-labelledby="margin-limitation-heading">
             <p className="eyebrow" id="margin-limitation-heading">What this cannot tell you</p>

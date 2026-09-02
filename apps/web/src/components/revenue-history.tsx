@@ -1,15 +1,16 @@
 import { RevenueGrowthExplorer } from "@/components/revenue-growth-explorer";
 import { RevenueHistoryInsight } from "@/components/revenue-history-insight";
 import insightContent from "@/content/history-insights/aapl-revenue-fy2023.json";
-import type { AnnualFinancialFact } from "@/lib/api";
+import type { CompanyOverview } from "@/lib/api";
+import type { ReviewedPresentation } from "@/lib/evidence";
 import {
   orderRevenueSeries,
   selectGuidedRevenueObservation,
 } from "@/lib/history-insight";
 
 type RevenueHistoryProps = {
-  currency: string;
-  series: AnnualFinancialFact[];
+  overview: CompanyOverview;
+  reviewedPresentation?: ReviewedPresentation | null;
 };
 
 const compactCurrency = new Intl.NumberFormat("en-US", {
@@ -25,8 +26,12 @@ const exactCurrency = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
-  const orderedSeries = orderRevenueSeries(series);
+export function RevenueHistory({
+  overview,
+  reviewedPresentation,
+}: RevenueHistoryProps) {
+  const { company, dataStatus, metric } = overview;
+  const orderedSeries = orderRevenueSeries(overview.series);
   const selectedObservation = selectGuidedRevenueObservation(orderedSeries);
   const guidedObservation =
     selectedObservation?.current.fiscalYear === insightContent.selectedFiscalYear &&
@@ -37,8 +42,13 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
   return (
     <div className="revenue-history">
       <RevenueGrowthExplorer
+        company={company}
+        currency={metric.currency}
+        dataStatus={dataStatus}
         defaultFiscalYear={insightContent.selectedFiscalYear}
+        reviewedPresentation={reviewedPresentation}
         series={orderedSeries}
+        taxonomyTag={metric.taxonomyTag}
       />
 
       {guidedObservation ? (
@@ -51,12 +61,12 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
             <p className="eyebrow">Exact record</p>
             <h3 id="exact-record-heading">Reported Revenue history</h3>
           </div>
-          <span>Values in {currency}</span>
+          <span>Values in {metric.currency}</span>
         </div>
 
         <table className="revenue-table">
           <caption className="sr-only">
-            Annual Revenue values in {currency} and source filings
+            Annual Revenue values in {metric.currency} and source filings
           </caption>
           <thead>
             <tr>
@@ -89,7 +99,7 @@ export function RevenueHistory({ currency, series }: RevenueHistoryProps) {
           </tbody>
         </table>
 
-        <div className="mobile-records" aria-label={`Annual Revenue values in ${currency}`}>
+        <div className="mobile-records" aria-label={`Annual Revenue values in ${metric.currency}`}>
           {orderedSeries.toReversed().map((fact, index) => (
             <details
               key={`${fact.fiscalYear}-${fact.accession}-${fact.endDate}-${index}`}

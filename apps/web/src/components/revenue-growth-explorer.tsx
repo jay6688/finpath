@@ -2,8 +2,14 @@
 
 import { useState, type CSSProperties } from "react";
 
+import { EvidenceInspector } from "@/components/evidence-inspector";
 import { useLearningProgress } from "@/components/learning-progress-provider";
-import type { AnnualFinancialFact } from "@/lib/api";
+import type { AnnualFinancialFact, CompanyOverview } from "@/lib/api";
+import {
+  buildRevenueGrowthEvidence,
+  type DerivedEvidence,
+  type ReviewedPresentation,
+} from "@/lib/evidence";
 import {
   buildRevenueGrowthRows,
   formatRevenueGrowthRate,
@@ -12,8 +18,13 @@ import {
 } from "@/lib/history-insight";
 
 type RevenueGrowthExplorerProps = {
+  company: CompanyOverview["company"];
+  currency: string;
+  dataStatus: CompanyOverview["dataStatus"];
   defaultFiscalYear: number;
+  reviewedPresentation?: ReviewedPresentation | null;
   series: AnnualFinancialFact[];
+  taxonomyTag: string;
 };
 
 const compactCurrency = new Intl.NumberFormat("en-US", {
@@ -23,22 +34,11 @@ const compactCurrency = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
-const exactCurrency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  maximumFractionDigits: 0,
-});
-
 const exactBillions = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
   minimumFractionDigits: 3,
   maximumFractionDigits: 3,
-});
-
-const sixDecimals = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 6,
-  maximumFractionDigits: 6,
 });
 
 function formatBillions(value: number): string {
@@ -48,11 +48,6 @@ function formatBillions(value: number): string {
 function formatSignedBillions(value: number): string {
   if (value === 0) return formatBillions(0);
   return `${value > 0 ? "+" : "−"}${formatBillions(Math.abs(value))}`;
-}
-
-function formatDetailedRate(value: number): string {
-  if (value === 0 || Object.is(value, -0)) return "0.000000%";
-  return `${value > 0 ? "+" : "−"}${sixDecimals.format(Math.abs(value))}%`;
 }
 
 function unavailableCopy(reason: RevenueGrowthUnavailableReason): string {
@@ -95,8 +90,13 @@ function accessibleRateCopy(percentageChange: number): string {
 }
 
 export function RevenueGrowthExplorer({
+  company,
+  currency,
+  dataStatus,
   defaultFiscalYear,
+  reviewedPresentation,
   series,
+  taxonomyTag,
 }: RevenueGrowthExplorerProps) {
   const { markExplored } = useLearningProgress();
   const rows = buildRevenueGrowthRows(series);
@@ -118,6 +118,22 @@ export function RevenueGrowthExplorer({
       : [],
   );
   const largestValue = validValues.length > 0 ? Math.max(...validValues) : 0;
+  let growthEvidence: DerivedEvidence | null = null;
+
+  if (selectedRow) {
+    try {
+      growthEvidence = buildRevenueGrowthEvidence({
+        row: selectedRow,
+        company,
+        currency,
+        taxonomyTag,
+        dataStatus,
+        reviewedPresentation,
+      });
+    } catch {
+      // An invalid comparison must not receive a calculation evidence trail.
+    }
+  }
 
   return (
     <section className="growth-explorer" id="revenue-growth" aria-labelledby="growth-explorer-heading">
@@ -249,24 +265,12 @@ export function RevenueGrowthExplorer({
             why Revenue changed.
           </p>
 
-          <details className="growth-formula">
-            <summary>
-              How FinPath calculated {formatRevenueGrowthRate(selectedRow.percentageChange)}
-            </summary>
-            <p className="growth-formula__rule">
-              (Current Revenue − Previous Revenue) ÷ Previous Revenue × 100
-            </p>
-            <p className="growth-formula__numbers">
-              ({exactCurrency.format(selectedRow.current.value)} −{" "}
-              {exactCurrency.format(selectedRow.previous.value)}) ÷{" "}
-              {exactCurrency.format(selectedRow.previous.value)} × 100 ={" "}
-              {formatDetailedRate(selectedRow.percentageChange)}
-            </p>
-            <small>
-              Calculated from the reported values. The history rounds growth to one
-              decimal place; exact source records remain below.
-            </small>
-          </details>
+          {growthEvidence ? (
+            <EvidenceInspector
+              evidence={growthEvidence}
+              id={`revenue-growth-evidence-${selectedRow.current.fiscalYear}`}
+            />
+          ) : null}
         </section>
       ) : (
         <p className="growth-calculation growth-calculation--unavailable" role="status">

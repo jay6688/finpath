@@ -1,11 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { EvidenceInspector } from "@/components/evidence-inspector";
 import { LearningUpNext } from "@/components/learning-up-next";
 import { RevenueHistory } from "@/components/revenue-history";
 import revenueConcept from "@/content/concepts/revenue.json";
-import { FinPathApiError, getCompanyOverview } from "@/lib/api";
+import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
+import {
+  FinPathApiError,
+  getCompanyIncomeStatement,
+  getCompanyOverview,
+  type CompanyIncomeStatement,
+  type CompanyOverview,
+  type IncomeStatementLineId,
+} from "@/lib/api";
+import {
+  buildReportedEvidence,
+  buildReviewedPresentation,
+  type ReportedEvidence,
+  type ReviewedPresentation,
+} from "@/lib/evidence";
 import { orderRevenueSeries } from "@/lib/history-insight";
+import { validateProfitStatementForLesson } from "@/lib/profit-learning";
 
 export const metadata: Metadata = {
   title: "Apple Revenue",
@@ -14,29 +30,88 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const compactCurrency = new Intl.NumberFormat("en-US", {
+const exactBillions = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
+  minimumFractionDigits: 3,
+  maximumFractionDigits: 3,
 });
+
+const reviewedLabels = Object.fromEntries(
+  Object.entries(profitContent.lines).map(([id, line]) => [id, line.reportedLabel]),
+) as Partial<Record<IncomeStatementLineId, string>>;
 
 export default async function AppleCompanyPage() {
   const english = revenueConcept.locales.en;
-  let overview = null;
-  let dataError = null;
+  let overview: CompanyOverview | null = null;
+  let incomeStatement: CompanyIncomeStatement | null = null;
+  let dataError: string | null = null;
 
-  try {
-    overview = await getCompanyOverview("AAPL");
-  } catch (error) {
+  const [overviewResult, statementResult] = await Promise.allSettled([
+    getCompanyOverview("AAPL"),
+    getCompanyIncomeStatement(profitContent.ticker, profitContent.fiscalYear),
+  ]);
+
+  if (overviewResult.status === "fulfilled") {
+    overview = overviewResult.value;
+  } else {
+    const error = overviewResult.reason;
     dataError =
       error instanceof FinPathApiError
         ? error.message
         : "The FinPath API is not available. Start FastAPI and try again.";
   }
 
+  if (statementResult.status === "fulfilled") {
+    try {
+      validateProfitStatementForLesson(statementResult.value.statement, {
+        fiscalYear: profitContent.fiscalYear,
+        accession: profitContent.accession,
+      });
+      incomeStatement = statementResult.value;
+    } catch {
+      // Revenue remains usable; reviewed statement context must degrade quietly.
+    }
+  }
+
   const orderedSeries = overview ? orderRevenueSeries(overview.series) : [];
   const latest = orderedSeries.at(-1);
+  let reviewedRevenue: ReviewedPresentation | null = null;
+  let revenueEvidence: ReportedEvidence | null = null;
+
+  if (incomeStatement) {
+    reviewedRevenue = buildReviewedPresentation({
+      statement: incomeStatement.statement,
+      content: {
+        fiscalYear: profitContent.fiscalYear,
+        startDate: profitContent.startDate,
+        endDate: profitContent.endDate,
+        form: profitContent.form as "10-K" | "10-K/A",
+        filedAt: profitContent.filedAt,
+        accession: profitContent.accession,
+        statementName: profitContent.verification.statementName,
+        labels: reviewedLabels,
+      },
+      lineId: "total-net-sales",
+      contextLineIds: ["total-net-sales", "total-cost-of-sales", "gross-margin"],
+    });
+  }
+
+  if (overview && latest) {
+    try {
+      revenueEvidence = buildReportedEvidence({
+        metric: { id: "revenue", label: "Revenue" },
+        company: overview.company,
+        currency: overview.metric.currency,
+        taxonomyTag: overview.metric.taxonomyTag,
+        fact: latest,
+        dataStatus: overview.dataStatus,
+        reviewedPresentation: reviewedRevenue,
+      });
+    } catch {
+      // The number remains visible; unsafe evidence formatting is withheld.
+    }
+  }
 
   return (
     <div className="company-shell">
@@ -76,7 +151,7 @@ export default async function AppleCompanyPage() {
           {overview && latest ? (
             <>
               <div className="metric-latest">
-                <strong>{compactCurrency.format(latest.value)}</strong>
+                <strong>{exactBillions.format(latest.value / 1_000_000_000)}B</strong>
                 <span>
                   FY{latest.fiscalYear} · {overview.metric.currency} · year ended {latest.endDate}
                 </span>
@@ -84,6 +159,10 @@ export default async function AppleCompanyPage() {
                   SEC {latest.form} ↗
                 </a>
               </div>
+
+              {revenueEvidence ? (
+                <EvidenceInspector evidence={revenueEvidence} id="revenue-evidence" />
+              ) : null}
 
               <div className="learning-trace">
                 <span aria-hidden="true" />
@@ -93,7 +172,10 @@ export default async function AppleCompanyPage() {
                 </p>
               </div>
 
-              <RevenueHistory currency={overview.metric.currency} series={orderedSeries} />
+              <RevenueHistory
+                overview={{ ...overview, series: orderedSeries }}
+                reviewedPresentation={reviewedRevenue}
+              />
 
               <p className="retrieved-note">
                 Retrieved {new Date(overview.dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}

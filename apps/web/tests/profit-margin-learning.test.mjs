@@ -108,9 +108,10 @@ test("reviewed content keeps reported facts, derived calculation, and limitation
   assert.ok(content.sources.every((source) => new URL(source.url).protocol === "https:"));
 });
 
-test("the lesson implements discovery, one low-pressure application, and real provenance", async () => {
-  const [component, page, profitJourney, upNext, content] = await Promise.all([
+test("the lesson implements discovery, one low-pressure application, and reusable evidence", async () => {
+  const [component, evidenceComponent, page, profitJourney, upNext, content] = await Promise.all([
     readSource("components/profit-margin-learning.tsx"),
+    readSource("components/evidence-inspector.tsx"),
     readSource("app/company/aapl/profit-margin/page.tsx"),
     readSource("components/profit-learning-journey.tsx"),
     readSource("components/learning-up-next.tsx"),
@@ -123,8 +124,9 @@ test("the lesson implements discovery, one low-pressure application, and real pr
   assert.match(content.question.hint, /practice, not a score/i);
   assert.match(component, /Static ratio visualization/);
   assert.doesNotMatch(component, /type="range"|role="slider"/);
-  assert.match(component, /href=\{statement\.sourceUrl\}/);
-  assert.match(component, /Open official SEC filing index/);
+  assert.match(component, /<EvidenceInspector evidence=\{marginEvidence\}/);
+  assert.match(evidenceComponent, /href=\{evidence\.filing\.sourceUrl\}/);
+  assert.match(evidenceComponent, /Open SEC filing index/);
   assert.match(component, /aria-live="polite"/);
   assert.match(component, /role="status"/);
   assert.doesNotMatch(component, /SEC source connected/);

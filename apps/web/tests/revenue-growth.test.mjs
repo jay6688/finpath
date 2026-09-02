@@ -153,21 +153,16 @@ test("uses conventional half-up display rounding without changing the raw rate",
 });
 
 test("the component source keeps calculation, uncertainty, interaction, and exact-record boundaries", async () => {
-  const explorer = await readFile(
-    new URL("../src/components/revenue-growth-explorer.tsx", import.meta.url),
-    "utf8",
-  );
-  const history = await readFile(
-    new URL("../src/components/revenue-history.tsx", import.meta.url),
-    "utf8",
-  );
-  const companyPage = await readFile(
-    new URL("../src/app/company/aapl/page.tsx", import.meta.url),
-    "utf8",
-  );
+  const [explorer, evidenceModel, history, companyPage] = await Promise.all([
+    readFile(new URL("../src/components/revenue-growth-explorer.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/lib/evidence.ts", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/revenue-history.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/company/aapl/page.tsx", import.meta.url), "utf8"),
+  ]);
 
   assert.match(explorer, /Year-over-year \(YoY\) Revenue Growth is the percentage change/);
-  assert.match(explorer, /Current Revenue − Previous Revenue/);
+  assert.match(evidenceModel, /Current Revenue − Previous Revenue/);
+  assert.match(explorer, /buildRevenueGrowthEvidence/);
   assert.match(explorer, /It does not show Profit or explain/);
   assert.match(explorer, /aria-pressed/);
   assert.match(explorer, /aria-live="polite"/);
