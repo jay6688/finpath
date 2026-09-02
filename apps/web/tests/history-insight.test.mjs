@@ -59,17 +59,17 @@ test("reviewed content keeps source, uncertainty, and continuation boundaries", 
   assert.equal(new URL(content.sources[0].url).hostname, "www.sec.gov");
 });
 
-test("the interaction gives feedback without a score and continues to the real Profit lesson", async () => {
-  const component = await readFile(
-    new URL("../src/components/revenue-history-insight.tsx", import.meta.url),
-    "utf8",
-  );
+test("the interaction gives feedback without a score and records meaningful use", async () => {
+  const [component, companyPage] = await Promise.all([
+    readFile(new URL("../src/components/revenue-history-insight.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/company/aapl/page.tsx", import.meta.url), "utf8"),
+  ]);
 
   assert.match(component, /This is practice, not a score/);
   assert.match(component, /Observable fact/);
   assert.match(component, /Apple reported/);
   assert.match(component, /FinPath interpretation/);
   assert.match(component, /Still unknown/);
-  assert.match(component, /href="\/company\/aapl\/profit"/);
-  assert.match(component, /Open the Profit lesson/);
+  assert.match(component, /markExplored\(\["revenue", "revenue-growth"\]\)/);
+  assert.match(companyPage, /LearningUpNext currentConceptId="revenue-growth"/);
 });

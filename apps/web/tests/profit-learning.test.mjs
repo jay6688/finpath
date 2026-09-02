@@ -50,7 +50,7 @@ function makeStatement() {
   };
 }
 
-test("the reviewed lesson keeps Apple's exact lines, source boundary, and continuation preview", async () => {
+test("the reviewed lesson keeps Apple's exact lines, source boundary, and reviewed content", async () => {
   const content = JSON.parse(await readFile(contentUrl, "utf8"));
   const labels = Object.values(content.lines).map((line) => line.reportedLabel);
 
@@ -137,9 +137,10 @@ test("the lesson rejects mismatched filing, bad ordering, bad arithmetic, and no
 });
 
 test("the concept check is low-pressure and the component exposes feedback and provenance", async () => {
-  const [content, component] = await Promise.all([
+  const [content, component, upNext] = await Promise.all([
     readFile(contentUrl, "utf8").then(JSON.parse),
     readFile(componentUrl, "utf8"),
+    readFile(new URL("../src/components/learning-up-next.tsx", import.meta.url), "utf8"),
   ]);
 
   assert.equal(content.question.supportedChoiceId, "could-fall");
@@ -153,5 +154,6 @@ test("the concept check is low-pressure and the component exposes feedback and p
   assert.match(component, /role="status"/);
   assert.match(component, /href=\{statement\.sourceUrl\}/);
   assert.match(component, /Open official SEC filing index/);
-  assert.match(component, /profitContent\.nextPreview/);
+  assert.match(component, /LearningUpNext currentConceptId="profit"/);
+  assert.match(upNext, /deriveUpNextModel/);
 });

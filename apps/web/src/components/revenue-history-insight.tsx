@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
+import { useLearningProgress } from "@/components/learning-progress-provider";
 import type { YearOverYearObservation } from "@/lib/history-insight";
 import insightContent from "@/content/history-insights/aapl-revenue-fy2023.json";
 
@@ -18,6 +18,7 @@ const oneDecimal = new Intl.NumberFormat("en-US", {
 export function RevenueHistoryInsight({
   observation,
 }: RevenueHistoryInsightProps) {
+  const { markExplored } = useLearningProgress();
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [reviewedChoice, setReviewedChoice] = useState<string | null>(null);
 
@@ -30,7 +31,10 @@ export function RevenueHistoryInsight({
 
   function reviewObservation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (selectedChoice) setReviewedChoice(selectedChoice);
+    if (selectedChoice) {
+      setReviewedChoice(selectedChoice);
+      markExplored(["revenue", "revenue-growth"]);
+    }
   }
 
   return (
@@ -129,14 +133,6 @@ export function RevenueHistoryInsight({
             </section>
           </div>
 
-          <aside className="next-concept-preview" aria-label="Next learning preview">
-            <span aria-hidden="true" />
-            <div>
-              <p className="eyebrow">Continue</p>
-              <p>{insightContent.nextPreview}</p>
-              <Link href="/company/aapl/profit">Open the Profit lesson →</Link>
-            </div>
-          </aside>
         </div>
       ) : null}
     </section>

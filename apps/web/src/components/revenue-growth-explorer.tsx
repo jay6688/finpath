@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties } from "react";
 
+import { useLearningProgress } from "@/components/learning-progress-provider";
 import type { AnnualFinancialFact } from "@/lib/api";
 import {
   buildRevenueGrowthRows,
@@ -97,6 +98,7 @@ export function RevenueGrowthExplorer({
   defaultFiscalYear,
   series,
 }: RevenueGrowthExplorerProps) {
+  const { markExplored } = useLearningProgress();
   const rows = buildRevenueGrowthRows(series);
   const availableRows = rows.filter(
     (row): row is Extract<RevenueGrowthRow, { state: "available" }> =>
@@ -118,7 +120,7 @@ export function RevenueGrowthExplorer({
   const largestValue = validValues.length > 0 ? Math.max(...validValues) : 0;
 
   return (
-    <section className="growth-explorer" aria-labelledby="growth-explorer-heading">
+    <section className="growth-explorer" id="revenue-growth" aria-labelledby="growth-explorer-heading">
       <header className="revenue-chart__heading">
         <div>
           <h3 id="growth-explorer-heading">Revenue, year by year</h3>
@@ -181,7 +183,10 @@ export function RevenueGrowthExplorer({
               aria-pressed={selectedRow?.fiscalYear === row.fiscalYear}
               className="growth-period growth-period--available"
               key={`${row.fiscalYear}-${index}`}
-              onClick={() => setSelectedFiscalYear(row.fiscalYear)}
+              onClick={() => {
+                setSelectedFiscalYear(row.fiscalYear);
+                markExplored(["revenue", "revenue-growth"]);
+              }}
               type="button"
             >
               {content}

@@ -2,6 +2,8 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 
+import { LearningUpNext } from "@/components/learning-up-next";
+import { useLearningProgress } from "@/components/learning-progress-provider";
 import marginContent from "@/content/profit-margin-lessons/aapl-profit-margin-fy2025.json";
 import type { CompanyIncomeStatement } from "@/lib/api";
 import type { NetProfitMarginDerivation } from "@/lib/profit-margin";
@@ -27,6 +29,7 @@ export function ProfitMarginLearning({
   incomeStatement,
   derivation,
 }: ProfitMarginLearningProps) {
+  const { markExplored } = useLearningProgress();
   const { statement, dataStatus } = incomeStatement;
   const [isRevealed, setIsRevealed] = useState(false);
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
@@ -46,7 +49,10 @@ export function ProfitMarginLearning({
 
   function reviewUnderstanding(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (selectedChoice) setReviewedChoice(selectedChoice);
+    if (selectedChoice) {
+      setReviewedChoice(selectedChoice);
+      markExplored(["net-profit-margin"]);
+    }
   }
 
   function selectChoice(choiceId: string) {
@@ -257,6 +263,8 @@ export function ProfitMarginLearning({
           </aside>
         </div>
       )}
+
+      <LearningUpNext currentConceptId="net-profit-margin" />
 
       <p className="profit-retrieved-note">
         Retrieved{" "}

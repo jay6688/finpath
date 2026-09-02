@@ -6,6 +6,11 @@ import { usePathname } from "next/navigation";
 const destinations = [
   { href: "/", label: "Home", matches: (pathname: string) => pathname === "/" },
   {
+    href: "/learn",
+    label: "Learn",
+    matches: (pathname: string) => pathname.startsWith("/learn"),
+  },
+  {
     href: "/company/aapl",
     label: "Explore",
     matches: (pathname: string) => pathname.startsWith("/company/"),

@@ -109,10 +109,11 @@ test("reviewed content keeps reported facts, derived calculation, and limitation
 });
 
 test("the lesson implements discovery, one low-pressure application, and real provenance", async () => {
-  const [component, page, profitJourney, content] = await Promise.all([
+  const [component, page, profitJourney, upNext, content] = await Promise.all([
     readSource("components/profit-margin-learning.tsx"),
     readSource("app/company/aapl/profit-margin/page.tsx"),
     readSource("components/profit-learning-journey.tsx"),
+    readSource("components/learning-up-next.tsx"),
     readSource("content/profit-margin-lessons/aapl-profit-margin-fy2025.json").then(JSON.parse),
   ]);
 
@@ -128,5 +129,7 @@ test("the lesson implements discovery, one low-pressure application, and real pr
   assert.match(component, /role="status"/);
   assert.doesNotMatch(component, /SEC source connected/);
   assert.match(page, /deriveNetProfitMargin\(incomeStatement\.statement\)/);
-  assert.match(profitJourney, /href="\/company\/aapl\/profit-margin"/);
+  assert.match(profitJourney, /LearningUpNext currentConceptId="profit"/);
+  assert.match(component, /LearningUpNext currentConceptId="net-profit-margin"/);
+  assert.match(upNext, /deriveUpNextModel/);
 });

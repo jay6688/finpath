@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
 
+import { LearningUpNext } from "@/components/learning-up-next";
+import { useLearningProgress } from "@/components/learning-progress-provider";
 import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
 import type {
   CompanyIncomeStatement,
@@ -71,6 +72,7 @@ function operationFor(line: IncomeStatementLine): {
 export function ProfitLearningJourney({
   incomeStatement,
 }: ProfitLearningJourneyProps) {
+  const { markExplored } = useLearningProgress();
   const { statement, dataStatus } = incomeStatement;
   const linesById = incomeStatementLineMap(statement.lines);
   const revenue = linesById.get("total-net-sales");
@@ -92,6 +94,7 @@ export function ProfitLearningJourney({
     if (stageIndex > furthestRevealedStageIndex + 1) return;
     setFurthestRevealedStageIndex((current) => Math.max(current, stageIndex));
     setActiveStageIndex(stageIndex);
+    if (stageIndex === stages.length - 1) markExplored(["profit"]);
   }
 
   function continueJourney() {
@@ -101,6 +104,7 @@ export function ProfitLearningJourney({
     );
     setFurthestRevealedStageIndex(nextIndex);
     setActiveStageIndex(nextIndex);
+    if (nextIndex === stages.length - 1) markExplored(["profit"]);
   }
 
   function reviewUnderstanding(event: FormEvent<HTMLFormElement>) {
@@ -341,15 +345,10 @@ export function ProfitLearningJourney({
             </div>
           </details>
 
-          <aside className="profit-next-preview" aria-label="Next learning preview">
-            <p className="eyebrow">Continue</p>
-            <Link href="/company/aapl/profit-margin">
-              {profitContent.nextPreview}
-              <span aria-hidden="true">→</span>
-            </Link>
-          </aside>
         </div>
       )}
+
+      <LearningUpNext currentConceptId="profit" />
 
       <p className="profit-retrieved-note">
         Retrieved{" "}

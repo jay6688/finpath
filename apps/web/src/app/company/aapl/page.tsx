@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { LearningUpNext } from "@/components/learning-up-next";
 import { RevenueHistory } from "@/components/revenue-history";
 import revenueConcept from "@/content/concepts/revenue.json";
 import { FinPathApiError, getCompanyOverview } from "@/lib/api";
@@ -166,6 +167,8 @@ export default async function AppleCompanyPage() {
           </details>
         </aside>
       </section>
+
+      <LearningUpNext currentConceptId="revenue-growth" />
     </div>
   );
 }

@@ -5,15 +5,18 @@ import test from "node:test";
 const readSource = (relativePath) =>
   readFile(new URL(`../src/${relativePath}`, import.meta.url), "utf8");
 
-test("Home presents the approved FinPath learning sequence without fake destinations", async () => {
-  const home = await readSource("app/page.tsx");
+test("Home presents the approved hybrid path without fake destinations", async () => {
+  const home = await readSource("components/learning-home.tsx");
   const navigation = await readSource("components/app-navigation.tsx");
 
-  assert.match(home, /Learn finance one clear step at a time/);
-  assert.match(home, /See it\. Understand it\. Verify it\./);
+  assert.match(home, /Understand one financial idea at a time/);
   assert.match(home, /Your next step/);
+  assert.match(home, /View full learning path/);
+  assert.match(home, /More concepts coming/);
+  assert.doesNotMatch(home, /APPLE FIRST|About 7 minutes|about 5 min/i);
   assert.doesNotMatch(navigation, /News|Tutor|Practice|Progress/);
   assert.match(navigation, /label: "Home"/);
+  assert.match(navigation, /label: "Learn"/);
   assert.match(navigation, /label: "Explore"/);
 });
 
