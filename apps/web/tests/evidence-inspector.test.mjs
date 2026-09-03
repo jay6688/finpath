@@ -124,6 +124,7 @@ test("builds distinct Revenue and Net Income reported evidence with exact unit f
   assert.equal(revenue.transformation.inputValue, 416_161);
   assert.equal(revenue.transformation.divisor, 1_000);
   assert.equal(revenue.transformation.outputValue, 416.161);
+  assert.equal(revenue.transformation.note, "Formatting only. No financial estimate.");
   assert.equal(netIncome.finPathDisplay.value, 112.01);
   assert.equal(netIncome.reviewedPresentation.reportedLabel, "Net income");
   assert.notEqual(revenue.finPathDisplay.scale, revenue.transformation.inputScale);
@@ -371,20 +372,43 @@ test("reviewed context requires accession-bound content and complete runtime lin
   );
 });
 
-test("the reusable UI uses native closed disclosures and honest Level 3 language", async () => {
+test("the reported inspector teaches the reviewed million-to-billion conversion first", async () => {
   const component = await readFile(
     new URL("../src/components/evidence-inspector.tsx", import.meta.url),
     "utf8",
   );
 
   assert.match(component, /How FinPath got this number/);
+  assert.match(component, /Apple reported/);
+  assert.match(component, /FinPath shows/);
+  assert.match(component, /1 billion = 1,000 million/);
+  assert.match(component, /million ÷/);
+  assert.match(component, /= \{formatBillions\(evidence\.transformation\.outputValue\)\.replace\("B", " billion"\)\}/);
+  assert.match(component, /Same \{evidence\.metric\.label\}\. Different display unit\./);
+  assert.match(component, /evidence\.transformation\.note/);
+  assert.match(component, /See the statement lines FinPath used/);
+  assert.match(component, /Source details/);
+  assert.match(component, /Technical details/);
+  assert.doesNotMatch(component, /Why they match/);
+});
+
+test("the reusable UI keeps source context, fallback, and Level 3 boundaries honest", async () => {
+  const component = await readFile(
+    new URL("../src/components/evidence-inspector.tsx", import.meta.url),
+    "utf8",
+  );
+
   assert.match(component, /How FinPath calculated this/);
   assert.match(component, /data-evidence-kind="reported"/);
   assert.match(component, /data-evidence-kind="derived"/);
   assert.match(component, /FinPath-rendered context from Apple’s reviewed filing/);
   assert.match(component, /Not a filing screenshot or exact HTML locator/);
+  assert.match(component, /reviewed Apple statement presentation is unavailable/);
+  assert.match(component, /does not show an Apple filing label or recreate its statement context/);
+  assert.match(component, /Apple reported the inputs\. FinPath calculated the result\./);
+  assert.match(component, /FinPath uses the selected reported fact currently attached to this fiscal-year record\./);
   assert.match(component, /href=\{evidence\.filing\.sourceUrl\}/);
   assert.doesNotMatch(component, /<details[^>]+open(?:=|\s|>)/);
   assert.doesNotMatch(component, /SEC Verified|Trust score|Certified|Guaranteed accurate/i);
-  assert.doesNotMatch(component, /contextRef|unitRef|source excerpt|exact SEC HTML location/i);
+  assert.doesNotMatch(component, /contextRef|unitRef|source excerpt|exact SEC row|exact SEC HTML location/i);
 });

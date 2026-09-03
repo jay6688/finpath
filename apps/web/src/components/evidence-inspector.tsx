@@ -114,24 +114,12 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
       </summary>
       <div className="evidence-inspector__body">
         <header className="evidence-inspector__intro">
-          <p className="eyebrow">Reported · source trail</p>
           <h3>{evidence.metric.label}</h3>
-          <p>Trace the number from Apple’s filing record to FinPath’s display.</p>
+          <p>See what was reported and how FinPath displays the same number.</p>
         </header>
 
-        {evidence.dataStatus.state === "stale" ? (
-          <p className="evidence-stale" role="status">
-            SEC is temporarily unavailable. This evidence uses FinPath’s last eligible cached public filing data, retrieved {new Date(evidence.dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}.
-          </p>
-        ) : null}
-
-        <div className="evidence-reported-grid">
-          <section aria-labelledby={`${id}-finpath`}>
-            <p className="eyebrow" id={`${id}-finpath`}>FinPath shows</p>
-            <strong>{evidence.metric.label}</strong>
-            <b>{formatBillions(evidence.finPathDisplay.value)}</b>
-          </section>
-          <section aria-labelledby={`${id}-reported`}>
+        <div className="evidence-reported-flow">
+          <section className="evidence-reported-value" aria-labelledby={`${id}-reported`}>
             <p className="eyebrow" id={`${id}-reported`}>
               {presentation ? "Apple reported" : "Reported source fact"}
             </p>
@@ -139,75 +127,92 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
             <b>
               {presentation
                 ? `$${reportedMillions.format(evidence.reportedFact.value / 1_000_000)} million`
-                : exactDollars.format(evidence.reportedFact.value)}
+                : `${exactDollars.format(evidence.reportedFact.value)} USD`}
             </b>
+
+            {presentation && presentation.contextLines.length > 0 ? (
+              <details className="evidence-context">
+                <summary>See the statement lines FinPath used</summary>
+                <div>
+                  <p className="evidence-context__notice">
+                    FinPath-rendered context from Apple’s reviewed filing. Not a filing screenshot or exact HTML locator.
+                  </p>
+                  <p className="evidence-context__statement">{presentation.statementName}</p>
+                  <dl>
+                    {presentation.contextLines.map((line) => (
+                      <div data-current={line.reportedLabel === presentation.reportedLabel} key={line.id}>
+                        <dt>{line.reportedLabel}</dt>
+                        <dd>${reportedMillions.format(Math.abs(line.value) / 1_000_000)} million</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              </details>
+            ) : null}
+          </section>
+
+          <section className="evidence-reported-value" aria-labelledby={`${id}-finpath`}>
+            <p className="eyebrow" id={`${id}-finpath`}>FinPath shows</p>
+            <strong>{evidence.metric.label}</strong>
+            <b>{formatBillions(evidence.finPathDisplay.value)}</b>
           </section>
         </div>
 
-        <section className="evidence-section" aria-labelledby={`${id}-match`}>
-          <p className="eyebrow" id={`${id}-match`}>Why they match</p>
-          <ul className="evidence-match-list">
-            <li>{evidence.company.name} · {evidence.company.ticker}</li>
-            <li>FY{evidence.filing.fiscalYear} · period ended {formatDate(evidence.filing.endDate)}</li>
-            <li>Annual {evidence.filing.form} · filed {formatDate(evidence.filing.filedAt)}</li>
-            {presentation ? <li>Same reviewed {presentation.statementName}</li> : null}
-          </ul>
-          {!presentation ? (
-            <p className="evidence-fallback">
-              FinPath can trace this runtime fact to its filing, but it is not showing an Apple presentation label or reconstructed statement context because the reviewed mapping does not match this record.
+        {presentation ? (
+          <section className="evidence-section evidence-why" aria-labelledby={`${id}-transform`}>
+            <p className="eyebrow" id={`${id}-transform`}>Why?</p>
+            <p className="evidence-unit-rule">1 billion = 1,000 million</p>
+            <p className="evidence-equation evidence-equation--stacked">
+              <span>${reportedMillions.format(inputValue)} million ÷ {reportedMillions.format(evidence.transformation.divisor)}</span>
+              <strong>= {formatBillions(evidence.transformation.outputValue).replace("B", " billion")}</strong>
             </p>
-          ) : null}
-        </section>
+            <p className="evidence-same-number">Same {evidence.metric.label}. Different display unit.</p>
+            <p className="evidence-format-note">{evidence.transformation.note}</p>
+          </section>
+        ) : (
+          <div className="evidence-fallback">
+            <p>
+              FinPath can trace this number to the SEC filing, but the reviewed Apple statement presentation is unavailable for this record. FinPath therefore does not show an Apple filing label or recreate its statement context here.
+            </p>
+            <p className="evidence-format-note">{evidence.transformation.note}</p>
+          </div>
+        )}
 
-        <section className="evidence-section" aria-labelledby={`${id}-transform`}>
-          <p className="eyebrow" id={`${id}-transform`}>What FinPath did</p>
-          <p className="evidence-equation">
-            {evidence.transformation.inputScale === "USD millions"
-              ? `$${reportedMillions.format(inputValue)} million ÷ ${reportedMillions.format(evidence.transformation.divisor)} = ${formatBillions(evidence.transformation.outputValue)}`
-              : `${exactDollars.format(inputValue)} ÷ ${reportedMillions.format(evidence.transformation.divisor)} = ${formatBillions(evidence.transformation.outputValue)}`}
+        {evidence.dataStatus.state === "stale" ? (
+          <p className="evidence-stale" role="status">
+            SEC is temporarily unavailable. This evidence uses FinPath’s last eligible cached public filing data, retrieved {new Date(evidence.dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}.
           </p>
-          <p className="evidence-format-note">{evidence.transformation.note}</p>
-        </section>
-
-        {presentation && presentation.contextLines.length > 0 ? (
-          <details className="evidence-context">
-            <summary>See the statement lines FinPath used</summary>
-            <div>
-              <p className="evidence-context__notice">
-                FinPath-rendered context from Apple’s reviewed filing. Not a filing screenshot or exact HTML locator.
-              </p>
-              <p className="evidence-context__statement">{presentation.statementName}</p>
-              <dl>
-                {presentation.contextLines.map((line) => (
-                  <div data-current={line.reportedLabel === presentation.reportedLabel} key={line.id}>
-                    <dt>{line.reportedLabel}</dt>
-                    <dd>${reportedMillions.format(Math.abs(line.value) / 1_000_000)} million</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          </details>
         ) : null}
 
-        <section className="evidence-section evidence-original" aria-labelledby={`${id}-source`}>
-          <p className="eyebrow" id={`${id}-source`}>Original evidence</p>
-          <p>
-            Apple FY{evidence.filing.fiscalYear} Form {evidence.filing.form}<br />
-            accession {evidence.filing.accession}
-          </p>
-          {evidence.filing.sourceUrl ? (
-            <a
-              aria-label={`Open Apple FY${evidence.filing.fiscalYear} ${evidence.filing.form} filing index on SEC.gov`}
-              href={evidence.filing.sourceUrl}
-              rel="noreferrer"
-              target="_blank"
-            >
-              Open SEC filing index ↗
-            </a>
-          ) : (
-            <p className="evidence-source-unavailable">The source link is currently unavailable. FinPath is keeping the filing metadata visible rather than showing a dead link.</p>
-          )}
-        </section>
+        <p className="evidence-source-summary">
+          Same {evidence.company.name} FY{evidence.filing.fiscalYear} annual filing record.
+        </p>
+
+        <details className="evidence-source-details">
+          <summary>Source details</summary>
+          <div>
+            <dl>
+              <div><dt>Company</dt><dd>{evidence.company.name} · {evidence.company.ticker}</dd></div>
+              <div><dt>Fiscal year</dt><dd>FY{evidence.filing.fiscalYear}</dd></div>
+              <div><dt>Period ended</dt><dd>{formatDate(evidence.filing.endDate)}</dd></div>
+              <div><dt>Filing</dt><dd>Annual Form {evidence.filing.form}</dd></div>
+              <div><dt>Filed</dt><dd>{formatDate(evidence.filing.filedAt)}</dd></div>
+              <div><dt>Accession</dt><dd>{evidence.filing.accession}</dd></div>
+            </dl>
+            {evidence.filing.sourceUrl ? (
+              <a
+                aria-label={`Open ${evidence.company.name} FY${evidence.filing.fiscalYear} ${evidence.filing.form} filing index on SEC.gov`}
+                href={evidence.filing.sourceUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Open SEC filing index ↗
+              </a>
+            ) : (
+              <p className="evidence-source-unavailable">The source link is currently unavailable. FinPath keeps the filing details visible rather than showing a dead link.</p>
+            )}
+          </div>
+        </details>
 
         <details className="evidence-technical">
           <summary>Technical details</summary>
