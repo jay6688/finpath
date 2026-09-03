@@ -384,7 +384,9 @@ test("the reported inspector teaches the reviewed million-to-billion conversion 
   assert.match(component, /1 billion = 1,000 million/);
   assert.match(component, /million ÷/);
   assert.match(component, /= \{formatBillions\(evidence\.transformation\.outputValue\)\.replace\("B", " billion"\)\}/);
-  assert.match(component, /Same \{evidence\.metric\.label\}\. Different display unit\./);
+  assert.match(component, /Why billions\?/);
+  assert.match(component, /large company figures in billions because they’re easier to read and compare/);
+  assert.match(component, /underlying \{evidence\.metric\.label\} value stays the same/);
   assert.match(component, /evidence\.transformation\.note/);
   assert.match(component, /See the statement lines FinPath used/);
   assert.match(component, /Source details/);

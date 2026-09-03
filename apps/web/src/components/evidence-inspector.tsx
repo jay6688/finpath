@@ -160,13 +160,15 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
 
         {presentation ? (
           <section className="evidence-section evidence-why" aria-labelledby={`${id}-transform`}>
-            <p className="eyebrow" id={`${id}-transform`}>Why?</p>
+            <p className="eyebrow" id={`${id}-transform`}>Why billions?</p>
             <p className="evidence-unit-rule">1 billion = 1,000 million</p>
             <p className="evidence-equation evidence-equation--stacked">
               <span>${reportedMillions.format(inputValue)} million ÷ {reportedMillions.format(evidence.transformation.divisor)}</span>
               <strong>= {formatBillions(evidence.transformation.outputValue).replace("B", " billion")}</strong>
             </p>
-            <p className="evidence-same-number">Same {evidence.metric.label}. Different display unit.</p>
+            <p className="evidence-same-number">
+              FinPath shows large company figures in billions because they’re easier to read and compare. The underlying {evidence.metric.label} value stays the same.
+            </p>
             <p className="evidence-format-note">{evidence.transformation.note}</p>
           </section>
         ) : (
