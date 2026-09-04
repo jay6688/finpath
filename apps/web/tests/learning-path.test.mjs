@@ -110,16 +110,16 @@ test("using a future lesson never invents earlier progress", () => {
 });
 
 test("Revenue and Revenue Growth use one defensible completion trigger", async () => {
-  const [explorer, insight] = await Promise.all([
+  const [explorer, context] = await Promise.all([
     readSource("components/revenue-growth-explorer.tsx"),
-    readSource("components/revenue-history-insight.tsx"),
+    readSource("components/revenue-history-context.tsx"),
   ]);
   const progress = markRevenueMilestoneExplored(createDefaultLearningProgress());
 
   assert.deepEqual(progress.exploredConceptIds, ["revenue", "revenue-growth"]);
   assert.match(explorer, /id="revenue-growth"/);
   assert.match(explorer, /markExplored\(\["revenue", "revenue-growth"\]\)/);
-  assert.match(insight, /markExplored\(\["revenue", "revenue-growth"\]\)/);
+  assert.doesNotMatch(context, /markExplored|useLearningProgress/);
   assert.doesNotMatch(explorer, /useEffect\([^]*markExplored/);
 });
 

@@ -1,12 +1,9 @@
 import { RevenueGrowthExplorer } from "@/components/revenue-growth-explorer";
-import { RevenueHistoryInsight } from "@/components/revenue-history-insight";
-import insightContent from "@/content/history-insights/aapl-revenue-fy2023.json";
+import { RevenueHistoryContext } from "@/components/revenue-history-context";
+import contextContent from "@/content/company-context/aapl-revenue-fy2023.json";
 import type { CompanyOverview } from "@/lib/api";
 import type { ReviewedPresentation } from "@/lib/evidence";
-import {
-  orderRevenueSeries,
-  selectGuidedRevenueObservation,
-} from "@/lib/history-insight";
+import { buildRevenueGrowthRows, orderRevenueSeries } from "@/lib/history-insight";
 
 type RevenueHistoryProps = {
   overview: CompanyOverview;
@@ -32,12 +29,13 @@ export function RevenueHistory({
 }: RevenueHistoryProps) {
   const { company, dataStatus, metric } = overview;
   const orderedSeries = orderRevenueSeries(overview.series);
-  const selectedObservation = selectGuidedRevenueObservation(orderedSeries);
-  const guidedObservation =
-    selectedObservation?.current.fiscalYear === insightContent.selectedFiscalYear &&
-    selectedObservation.selectionRule === insightContent.selectionRule
-      ? selectedObservation
-      : null;
+  const hasReviewedContext = buildRevenueGrowthRows(orderedSeries).some(
+    (row) =>
+      row.state === "available" &&
+      row.current.fiscalYear === contextContent.selectedFiscalYear &&
+      row.previous.fiscalYear === contextContent.previousFiscalYear &&
+      row.direction === "decrease",
+  );
 
   return (
     <div className="revenue-history">
@@ -45,15 +43,13 @@ export function RevenueHistory({
         company={company}
         currency={metric.currency}
         dataStatus={dataStatus}
-        defaultFiscalYear={insightContent.selectedFiscalYear}
+        defaultFiscalYear={contextContent.selectedFiscalYear}
         reviewedPresentation={reviewedPresentation}
         series={orderedSeries}
         taxonomyTag={metric.taxonomyTag}
       />
 
-      {guidedObservation ? (
-        <RevenueHistoryInsight observation={guidedObservation} />
-      ) : null}
+      {hasReviewedContext ? <RevenueHistoryContext /> : null}
 
       <section className="exact-record" aria-labelledby="exact-record-heading">
         <div className="exact-record__heading">

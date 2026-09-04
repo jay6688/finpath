@@ -1,0 +1,32 @@
+{
+  "contextId": "aapl-revenue-fy2023",
+  "ticker": "AAPL",
+  "metric": "revenue",
+  "previousFiscalYear": 2022,
+  "selectedFiscalYear": 2023,
+  "trigger": "What did Apple report about the FY2023 decline?",
+  "reportedContext": [
+    "Weaker foreign currencies against the U.S. dollar accounted for more than the full year-over-year decrease in total net sales.",
+    "Apple also reported lower Mac and iPhone net sales, partly offset by higher Services net sales."
+  ],
+  "takeaway": "This was not a one-cause story.",
+  "interpretation": "Currency effects and changes across Apple’s products and services are useful next things to investigate.",
+  "limitation": "These annual Revenue totals alone cannot show exactly how much each factor contributed or what happened to Profit.",
+  "sources": [
+    {
+      "id": "apple-2023-10k",
+      "title": "Apple Inc. FY2023 Form 10-K",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019323000106/aapl-20230930.htm",
+      "filedAt": "2023-11-03",
+      "accession": "0000320193-23-000106",
+      "location": "Fiscal Year Highlights; Products and Services Performance",
+      "supports": [
+        "FY2023 total net sales change",
+        "reported foreign-currency effect",
+        "reported Mac, iPhone and Services context"
+      ],
+      "accessedAt": "2026-08-26"
+    }
+  ]
+}
