@@ -1123,7 +1123,7 @@ h2 {
 .profit-stage-navigation {
   margin-top: 1.7rem;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   border-top: 1px solid var(--divider);
   border-bottom: 1px solid var(--divider);
   background: var(--surface);
@@ -2843,7 +2843,7 @@ h2 {
   .profit-mobile-progress > div {
     margin-top: 0.35rem;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 0.3rem;
   }
 

@@ -75,13 +75,42 @@ test("the reviewed lesson keeps Apple's exact lines, source boundary, and review
 test("progressive reveal keeps every previous income-statement line visible", async () => {
   const content = JSON.parse(await readFile(contentUrl, "utf8"));
 
+  assert.equal(content.stages.length, 5);
   assert.deepEqual(
     content.stages.map((_, index) =>
       visibleProfitLineIds(content.stages, index).length,
     ),
-    [1, 3, 5, 9],
+    [1, 3, 5, 7, 9],
   );
-  assert.deepEqual(visibleProfitLineIds(content.stages, 3), lineValues.map(([id]) => id));
+  assert.deepEqual(
+    visibleProfitLineIds(content.stages, 4),
+    lineValues.map(([id]) => id),
+  );
+});
+
+test("the final reported lines are split into one before-tax and one tax stage", async () => {
+  const content = JSON.parse(await readFile(contentUrl, "utf8"));
+  const beforeTax = content.stages[3];
+  const taxAndFinalLine = content.stages[4];
+
+  assert.equal(beforeTax.id, "before-tax");
+  assert.equal(beforeTax.navigationLabel, "Before tax");
+  assert.deepEqual(beforeTax.lineIds, [
+    "other-income-expense-net",
+    "income-before-income-taxes",
+  ]);
+  assert.match(beforeTax.traceHeading, /not yet income before tax/i);
+  assert.match(beforeTax.traceBody, /signed negative adjustment/i);
+  assert.match(beforeTax.traceBoundary, /tax provision has not been deducted/i);
+
+  assert.equal(taxAndFinalLine.id, "tax-and-final-line");
+  assert.equal(taxAndFinalLine.navigationLabel, "Tax and final line");
+  assert.deepEqual(taxAndFinalLine.lineIds, [
+    "income-tax-provision",
+    "net-income",
+  ]);
+  assert.match(taxAndFinalLine.traceHeading, /final major deduction/i);
+  assert.match(taxAndFinalLine.traceBoundary, /not cash held or cash generated/i);
 });
 
 test("the FY2025 Profit path validates exact arithmetic and signed other expense", () => {
@@ -93,6 +122,7 @@ test("the FY2025 Profit path validates exact arithmetic and signed other expense
       accession: "0000320193-25-000079",
     }),
   );
+  assert.equal(statement.lines[5].role, "signed-adjustment");
   assert.equal(statement.lines[5].value, -321_000_000);
   assert.equal(416_161_000_000 - 220_960_000_000, 195_201_000_000);
   assert.equal(195_201_000_000 - 62_151_000_000, 133_050_000_000);
@@ -156,4 +186,29 @@ test("the concept check is low-pressure and the component exposes feedback and p
   assert.match(component, /Open official SEC filing index/);
   assert.match(component, /LearningUpNext currentConceptId="profit"/);
   assert.match(upNext, /deriveUpNextModel/);
+
+  const evidenceIndex = component.indexOf("<EvidenceInspector evidence={netIncomeEvidence}");
+  const conceptCheckIndex = component.indexOf('className="profit-understanding"');
+  const exactRecordIndex = component.indexOf('className="profit-exact-record"');
+  const upNextIndex = component.indexOf('<LearningUpNext currentConceptId="profit"');
+
+  assert.ok(evidenceIndex > 0);
+  assert.ok(conceptCheckIndex > evidenceIndex);
+  assert.ok(exactRecordIndex > conceptCheckIndex);
+  assert.ok(upNextIndex > exactRecordIndex);
+});
+
+test("Profit progress is marked only when the final stage is revealed", async () => {
+  const component = await readFile(componentUrl, "utf8");
+  const progressCalls = component.match(/markExplored\(\["profit"\]\)/g) ?? [];
+
+  assert.equal(progressCalls.length, 2);
+  assert.match(
+    component,
+    /if \(stageIndex === stages\.length - 1\) markExplored\(\["profit"\]\)/,
+  );
+  assert.match(
+    component,
+    /if \(nextIndex === stages\.length - 1\) markExplored\(\["profit"\]\)/,
+  );
 });

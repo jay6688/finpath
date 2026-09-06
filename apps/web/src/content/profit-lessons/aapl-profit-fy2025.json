@@ -70,24 +70,34 @@
     {
       "id": "operating-expenses",
       "navigationLabel": "Operating expenses",
-      "continueLabel": "Continue to the final reported lines",
+      "continueLabel": "Continue to before tax",
       "lineIds": ["total-operating-expenses", "operating-income"],
       "traceHeading": "Operating income is not the final line.",
       "traceBody": "Apple reported Operating income after cost of sales and operating expenses.",
       "traceBoundary": "Other income or expense and income tax still sit between this subtotal and Net income."
     },
     {
-      "id": "final-lines",
-      "navigationLabel": "Other item, tax and final line",
-      "continueLabel": "",
+      "id": "before-tax",
+      "navigationLabel": "Before tax",
+      "continueLabel": "Continue to tax and Net income",
       "lineIds": [
         "other-income-expense-net",
-        "income-before-income-taxes",
+        "income-before-income-taxes"
+      ],
+      "traceHeading": "Operating income is not yet income before tax.",
+      "traceBody": "Start from Operating income. Apple reported Other income/(expense), net as a negative amount in FY2025. Adding that signed negative adjustment reduces Operating income to Income before provision for income taxes.",
+      "traceBoundary": "Income before tax is still not Net income because the income tax provision has not been deducted yet."
+    },
+    {
+      "id": "tax-and-final-line",
+      "navigationLabel": "Tax and final line",
+      "continueLabel": "",
+      "lineIds": [
         "income-tax-provision",
         "net-income"
       ],
-      "traceHeading": "Net income is the final Profit line used here.",
-      "traceBody": "Other income/(expense), net reduced Apple’s FY2025 income before tax. After its income tax provision, Apple reported Net income.",
+      "traceHeading": "Tax is the final major deduction before Net income.",
+      "traceBody": "Start from Income before provision for income taxes. Subtract Apple’s Provision for income taxes to arrive at Net income.",
       "traceBoundary": "Net income is an accounting result. It is not cash held or cash generated."
     }
   ],
