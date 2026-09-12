@@ -74,6 +74,42 @@ def test_aapl_income_statement_http_contract_from_offline_sec_fixture() -> None:
     }
 
 
+def test_aapl_cash_flow_statement_http_contract_from_offline_sec_fixture() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        response = asyncio.run(_request_aapl_cash_flow_statement())
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["statement"]["fiscalYear"] == 2025
+    assert payload["statement"]["accession"] == "0000320193-25-000079"
+    assert payload["statement"]["sourceUrl"] == (
+        "https://www.sec.gov/Archives/edgar/data/320193/"
+        "000032019325000079/0000320193-25-000079-index.htm"
+    )
+    assert [line["value"] for line in payload["statement"]["lines"]] == [
+        112_010_000_000,
+        11_698_000_000,
+        12_863_000_000,
+        -89_000_000,
+        -6_682_000_000,
+        -347_000_000,
+        1_400_000_000,
+        -9_197_000_000,
+        902_000_000,
+        -11_076_000_000,
+        111_482_000_000,
+    ]
+    assert payload["dataStatus"] == {
+        "state": "cached",
+        "retrievedAt": "2026-08-19T00:00:00Z",
+    }
+
+
 async def _request_aapl_overview() -> httpx.Response:
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(
@@ -90,3 +126,12 @@ async def _request_aapl_income_statement() -> httpx.Response:
         base_url="http://finpath.test",
     ) as client:
         return await client.get("/v1/companies/AAPL/income-statements/2025")
+
+
+async def _request_aapl_cash_flow_statement() -> httpx.Response:
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(
+        transport=transport,
+        base_url="http://finpath.test",
+    ) as client:
+        return await client.get("/v1/companies/AAPL/cash-flow-statements/2025")

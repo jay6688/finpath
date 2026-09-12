@@ -20,6 +20,7 @@ export function LearningHome() {
   const growthState = deriveConceptState("revenue-growth", progress);
   const profitState = deriveConceptState("profit", progress);
   const marginState = deriveConceptState("net-profit-margin", progress);
+  const cashFlowState = deriveConceptState("operating-cash-flow", progress);
 
   return (
     <div className="home-shell learning-home">
@@ -82,9 +83,14 @@ export function LearningHome() {
             <div><strong>Net Profit Margin</strong><small>Put Net Income on a $100 Revenue scale</small></div>
             <StateLabel state={marginState} />
           </li>
+          <li data-state={cashFlowState} aria-current={cashFlowState === "current" ? "step" : undefined}>
+            <span className="home-path-preview__marker" aria-hidden="true" />
+            <div><strong>Operating Cash Flow</strong><small>Connect Net Income to operating cash</small></div>
+            <StateLabel state={cashFlowState} />
+          </li>
           <li data-state="coming-later">
             <span className="home-path-preview__marker" aria-hidden="true" />
-            <div><strong>More concepts coming</strong><small>No unbuilt lesson is being promised yet</small></div>
+            <div><strong>More concepts coming</strong><small>The next concept is still being validated</small></div>
             <span className="learning-state">Coming later</span>
           </li>
         </ol>

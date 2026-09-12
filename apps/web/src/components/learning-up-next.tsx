@@ -6,7 +6,11 @@ import { useLearningProgress } from "@/components/learning-progress-provider";
 import { deriveUpNextModel } from "@/lib/learning-progress";
 
 type LearningUpNextProps = {
-  currentConceptId: "revenue-growth" | "profit" | "net-profit-margin";
+  currentConceptId:
+    | "revenue-growth"
+    | "profit"
+    | "net-profit-margin"
+    | "operating-cash-flow";
 };
 
 export function LearningUpNext({ currentConceptId }: LearningUpNextProps) {

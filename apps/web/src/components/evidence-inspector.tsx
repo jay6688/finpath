@@ -26,6 +26,11 @@ function formatBillions(value: number): string {
   return `${exactBillions.format(value)}B`;
 }
 
+function formatReportedMillions(value: number): string {
+  const formatted = `$${reportedMillions.format(Math.abs(value) / 1_000_000)} million`;
+  return value < 0 ? `(${formatted})` : formatted;
+}
+
 function formatDate(value: string): string {
   const date = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return value;
@@ -142,7 +147,7 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
                     {presentation.contextLines.map((line) => (
                       <div data-current={line.reportedLabel === presentation.reportedLabel} key={line.id}>
                         <dt>{line.reportedLabel}</dt>
-                        <dd>${reportedMillions.format(Math.abs(line.value) / 1_000_000)} million</dd>
+                        <dd>{formatReportedMillions(line.value)}</dd>
                       </div>
                     ))}
                   </dl>

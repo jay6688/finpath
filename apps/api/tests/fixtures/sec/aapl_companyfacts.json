@@ -274,6 +274,46 @@
             }
           ]
         }
+      },
+      "DepreciationDepletionAndAmortization": {
+        "label": "Depreciation, Depletion and Amortization",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 11698000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "ShareBasedCompensation": {
+        "label": "Share-based Payment Arrangement, Noncash Expense",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 12863000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "OtherNoncashIncomeExpense": {
+        "label": "Other Noncash Income (Expense)",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 89000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "IncreaseDecreaseInAccountsReceivable": {
+        "label": "Increase (Decrease) in Accounts Receivable",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 6682000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "IncreaseDecreaseInOtherReceivables": {
+        "label": "Increase (Decrease) in Other Receivables",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 347000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "IncreaseDecreaseInInventories": {
+        "label": "Increase (Decrease) in Inventories",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": -1400000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "IncreaseDecreaseInOtherOperatingAssets": {
+        "label": "Increase (Decrease) in Other Operating Assets",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 9197000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "IncreaseDecreaseInAccountsPayable": {
+        "label": "Increase (Decrease) in Accounts Payable",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 902000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "IncreaseDecreaseInOtherOperatingLiabilities": {
+        "label": "Increase (Decrease) in Other Operating Liabilities",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": -11076000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "NetCashProvidedByUsedInOperatingActivities": {
+        "label": "Net Cash Provided by (Used in) Operating Activities",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 111482000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
       }
     }
   }

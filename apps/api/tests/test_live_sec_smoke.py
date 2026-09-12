@@ -79,3 +79,31 @@ def test_live_aapl_sec_pipeline_when_explicitly_enabled(tmp_path) -> None:
     }
     assert income_response.data_status.state == DataState.CACHED
     assert income_response.data_status.retrieved_at == response.data_status.retrieved_at
+
+    cash_flow_response = asyncio.run(
+        service.get_cash_flow_statement("AAPL", 2025)
+    )
+    cash_flow = cash_flow_response.statement
+    cash_flow_values = {line.id: line.value for line in cash_flow.lines}
+
+    assert cash_flow.start_date.isoformat() == "2024-09-29"
+    assert cash_flow.end_date.isoformat() == "2025-09-27"
+    assert cash_flow.form == "10-K"
+    assert cash_flow.filed_at.isoformat() == "2025-10-31"
+    assert cash_flow.accession == "0000320193-25-000079"
+    assert str(cash_flow.source_url) == str(latest.source_url)
+    assert cash_flow_values == {
+        "net-income": 112_010_000_000,
+        "depreciation-and-amortization": 11_698_000_000,
+        "share-based-compensation-expense": 12_863_000_000,
+        "other": -89_000_000,
+        "accounts-receivable-net": -6_682_000_000,
+        "vendor-non-trade-receivables": -347_000_000,
+        "inventories": 1_400_000_000,
+        "other-current-and-non-current-assets": -9_197_000_000,
+        "accounts-payable": 902_000_000,
+        "other-current-and-non-current-liabilities": -11_076_000_000,
+        "cash-generated-by-operating-activities": 111_482_000_000,
+    }
+    assert cash_flow_response.data_status.state == DataState.CACHED
+    assert cash_flow_response.data_status.retrieved_at == response.data_status.retrieved_at

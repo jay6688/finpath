@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+from app.domain.cash_flow_statement import extract_cash_flow_statement
 from app.domain.income_statement import extract_income_statement
 from app.domain.revenue import extract_annual_revenue
 from app.schemas.company import (
+    CompanyCashFlowStatementResponse,
     CompanyIdentity,
     CompanyIncomeStatementResponse,
     CompanyOverviewResponse,
@@ -79,6 +81,34 @@ class CompanyOverviewService:
         )
 
         return CompanyIncomeStatementResponse(
+            company=CompanyIdentity(
+                ticker=company.ticker,
+                name=company.name,
+                cik=company.cik,
+            ),
+            statement=statement,
+            dataStatus=DataStatus(
+                state=facts_payload.state,
+                retrievedAt=facts_payload.retrieved_at,
+            ),
+        )
+
+    async def get_cash_flow_statement(
+        self,
+        ticker: str,
+        fiscal_year: int,
+    ) -> CompanyCashFlowStatementResponse:
+        normalized_ticker = ticker.strip().upper()
+        ticker_payload = await self.sec.get_ticker_map()
+        company = find_company(ticker_payload.payload, normalized_ticker)
+        facts_payload = await self.sec.get_company_facts(company.cik)
+        statement = extract_cash_flow_statement(
+            facts_payload.payload,
+            cik=company.cik,
+            fiscal_year=fiscal_year,
+        )
+
+        return CompanyCashFlowStatementResponse(
             company=CompanyIdentity(
                 ticker=company.ticker,
                 name=company.name,

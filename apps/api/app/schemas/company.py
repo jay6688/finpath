@@ -105,6 +105,57 @@ class IncomeStatement(ApiModel):
         return value
 
 
+CashFlowStatementLineId = Literal[
+    "net-income",
+    "depreciation-and-amortization",
+    "share-based-compensation-expense",
+    "other",
+    "accounts-receivable-net",
+    "vendor-non-trade-receivables",
+    "inventories",
+    "other-current-and-non-current-assets",
+    "accounts-payable",
+    "other-current-and-non-current-liabilities",
+    "cash-generated-by-operating-activities",
+]
+
+CashFlowStatementLineRole = Literal[
+    "starting-line",
+    "non-cash-adjustment",
+    "operating-timing-adjustment",
+    "final-total",
+]
+
+
+class CashFlowStatementLine(ApiModel):
+    id: CashFlowStatementLineId
+    taxonomy_tag: str = Field(alias="taxonomyTag")
+    taxonomy_label: str = Field(alias="taxonomyLabel")
+    value: int
+    role: CashFlowStatementLineRole
+
+
+class CashFlowStatement(ApiModel):
+    fiscal_year: int = Field(alias="fiscalYear")
+    start_date: date = Field(alias="startDate")
+    end_date: date = Field(alias="endDate")
+    currency: Literal["USD"]
+    form: Literal["10-K", "10-K/A"]
+    filed_at: date = Field(alias="filedAt")
+    accession: str
+    source_url: HttpUrl = Field(alias="sourceUrl")
+    lines: list[CashFlowStatementLine]
+
+    @field_validator("source_url")
+    @classmethod
+    def require_sec_filing_url(cls, value: HttpUrl) -> HttpUrl:
+        if value.host not in {"sec.gov", "www.sec.gov"}:
+            raise ValueError("sourceUrl must point to an SEC host")
+        if "/Archives/edgar/data/" not in value.path:
+            raise ValueError("sourceUrl must point to an EDGAR filing")
+        return value
+
+
 class DataState(StrEnum):
     LIVE = "live"
     CACHED = "cached"
@@ -126,4 +177,10 @@ class CompanyOverviewResponse(ApiModel):
 class CompanyIncomeStatementResponse(ApiModel):
     company: CompanyIdentity
     statement: IncomeStatement
+    data_status: DataStatus = Field(alias="dataStatus")
+
+
+class CompanyCashFlowStatementResponse(ApiModel):
+    company: CompanyIdentity
+    statement: CashFlowStatement
     data_status: DataStatus = Field(alias="dataStatus")

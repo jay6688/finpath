@@ -55,6 +55,30 @@ test("device-local progress writes and reads only versioned concept IDs", () => 
   assert.doesNotMatch(serialized, /416|Revenue value|SEC/i);
 });
 
+test("existing version-1 progress is preserved when Operating Cash Flow is added", () => {
+  const storage = memoryStorage({
+    [LEARNING_PROGRESS_STORAGE_KEY]: JSON.stringify({
+      version: 1,
+      exploredConceptIds: [
+        "revenue",
+        "revenue-growth",
+        "profit",
+        "net-profit-margin",
+      ],
+    }),
+  });
+
+  const progress = readLearningProgress(storage);
+  assert.deepEqual(progress.exploredConceptIds, [
+    "revenue",
+    "revenue-growth",
+    "profit",
+    "net-profit-margin",
+  ]);
+  assert.equal(deriveCurrentConcept(progress), "operating-cash-flow");
+  assert.equal(deriveHomeRecommendation(progress).href, "/company/aapl/operating-cash-flow");
+});
+
 test("malformed, old-version, and unavailable storage fail to the honest default", () => {
   const malformed = memoryStorage({ [LEARNING_PROGRESS_STORAGE_KEY]: "{not-json" });
   const oldVersion = memoryStorage({
@@ -89,10 +113,12 @@ test("malformed, old-version, and unavailable storage fail to the honest default
 test("current is always the first recommended milestone not yet explored", () => {
   const revenue = markRevenueMilestoneExplored(createDefaultLearningProgress());
   const profit = markConceptsExplored(revenue, ["profit"]);
-  const all = markConceptsExplored(profit, ["net-profit-margin"]);
+  const margin = markConceptsExplored(profit, ["net-profit-margin"]);
+  const all = markConceptsExplored(margin, ["operating-cash-flow"]);
 
   assert.equal(deriveCurrentConcept(revenue), "profit");
   assert.equal(deriveCurrentConcept(profit), "net-profit-margin");
+  assert.equal(deriveCurrentConcept(margin), "operating-cash-flow");
   assert.equal(deriveCurrentConcept(all), null);
   assert.equal(deriveHomeRecommendation(all).action, "Review");
 });
@@ -135,22 +161,26 @@ test("Profit and Net Profit Margin record meaningful use without requiring corre
   assert.doesNotMatch(margin, /if \(supportedAnswer\)[^]*markExplored/);
 });
 
-test("Up Next is quiet before use, stronger after use, and never invents a final lesson", () => {
+test("Up Next leads Margin to Operating Cash Flow, then ends honestly", () => {
   const fresh = createDefaultLearningProgress();
   const before = deriveUpNextModel("revenue-growth", fresh);
   const after = deriveUpNextModel(
     "revenue-growth",
     markRevenueMilestoneExplored(fresh),
   );
-  const final = deriveUpNextModel("net-profit-margin", fresh);
+  const cashFlow = deriveUpNextModel("net-profit-margin", fresh);
+  const final = deriveUpNextModel("operating-cash-flow", fresh);
 
   assert.equal(before.emphasis, "quiet");
   assert.equal(before.action, "Open now");
   assert.equal(after.emphasis, "strong");
   assert.equal(after.action, "Continue");
+  assert.equal(cashFlow.kind, "lesson");
+  assert.equal(cashFlow.href, "/company/aapl/operating-cash-flow");
+  assert.match(cashFlow.reason, /accounting result/i);
   assert.equal(final.kind, "coming-later");
   assert.equal(final.href, "/learn");
-  assert.doesNotMatch(JSON.stringify(final), /cash flow|EPS|valuation/i);
+  assert.doesNotMatch(JSON.stringify(final), /free cash flow|EPS|valuation/i);
 });
 
 test("Home and Learn expose derived states, real routes, and no fabricated duration", async () => {
@@ -166,6 +196,8 @@ test("Home and Learn expose derived states, real routes, and no fabricated durat
   assert.match(path, /\/company\/aapl#revenue-growth/);
   assert.match(path, /actionLabel\(revenueState, revenueState === "current"\)/);
   assert.match(path, /More concepts coming/);
+  assert.match(path, /href="\/company\/aapl\/operating-cash-flow"/);
+  assert.match(home, /deriveConceptState\("operating-cash-flow", progress\)/);
   assert.doesNotMatch(path, /href=.*More concepts coming/);
   assert.match(navigation, /href: "\/learn"/);
   assert.match(upNext, /deriveUpNextModel/);

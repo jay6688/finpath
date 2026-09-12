@@ -72,6 +72,49 @@ export type CompanyIncomeStatement = {
   dataStatus: CompanyOverview["dataStatus"];
 };
 
+export type CashFlowStatementLineId =
+  | "net-income"
+  | "depreciation-and-amortization"
+  | "share-based-compensation-expense"
+  | "other"
+  | "accounts-receivable-net"
+  | "vendor-non-trade-receivables"
+  | "inventories"
+  | "other-current-and-non-current-assets"
+  | "accounts-payable"
+  | "other-current-and-non-current-liabilities"
+  | "cash-generated-by-operating-activities";
+
+export type CashFlowStatementLineRole =
+  | "starting-line"
+  | "non-cash-adjustment"
+  | "operating-timing-adjustment"
+  | "final-total";
+
+export type CashFlowStatementLine = {
+  id: CashFlowStatementLineId;
+  taxonomyTag: string;
+  taxonomyLabel: string;
+  value: number;
+  role: CashFlowStatementLineRole;
+};
+
+export type CompanyCashFlowStatement = {
+  company: CompanyOverview["company"];
+  statement: {
+    fiscalYear: number;
+    startDate: string;
+    endDate: string;
+    currency: "USD";
+    form: "10-K" | "10-K/A";
+    filedAt: string;
+    accession: string;
+    sourceUrl: string;
+    lines: CashFlowStatementLine[];
+  };
+  dataStatus: CompanyOverview["dataStatus"];
+};
+
 export class FinPathApiError extends Error {
   constructor(message: string) {
     super(message);
@@ -149,4 +192,28 @@ export async function getCompanyIncomeStatement(
   }
 
   return (await response.json()) as CompanyIncomeStatement;
+}
+
+export async function getCompanyCashFlowStatement(
+  ticker: string,
+  fiscalYear: number,
+): Promise<CompanyCashFlowStatement> {
+  const apiBaseUrl = getApiBaseUrl();
+  const response = await fetch(
+    `${apiBaseUrl}/v1/companies/${encodeURIComponent(ticker)}/cash-flow-statements/${fiscalYear}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    let detail = `FinPath API returned ${response.status}.`;
+    try {
+      const payload = (await response.json()) as { detail?: string };
+      if (payload.detail) detail = payload.detail;
+    } catch {
+      // Keep the status-based message when an upstream proxy returns non-JSON.
+    }
+    throw new FinPathApiError(detail);
+  }
+
+  return (await response.json()) as CompanyCashFlowStatement;
 }

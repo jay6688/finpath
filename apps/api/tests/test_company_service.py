@@ -45,3 +45,20 @@ def test_fixture_pipeline_produces_serializable_aapl_income_statement() -> None:
         "role": "signed-adjustment",
     }
     assert payload["statement"]["lines"][-1]["value"] == 112_010_000_000
+
+
+def test_fixture_pipeline_produces_serializable_aapl_cash_flow_statement() -> None:
+    service = CompanyOverviewService(FixtureSecDataSource())
+
+    response = asyncio.run(service.get_cash_flow_statement("aapl", 2025))
+    payload = response.model_dump(mode="json", by_alias=True)
+
+    assert payload["statement"]["lines"][0]["id"] == "net-income"
+    assert payload["statement"]["lines"][0]["value"] == 112_010_000_000
+    assert payload["statement"]["lines"][-1] == {
+        "id": "cash-generated-by-operating-activities",
+        "taxonomyTag": "NetCashProvidedByUsedInOperatingActivities",
+        "taxonomyLabel": "Net Cash Provided by (Used in) Operating Activities",
+        "value": 111_482_000_000,
+        "role": "final-total",
+    }

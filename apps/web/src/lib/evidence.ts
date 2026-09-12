@@ -1,5 +1,7 @@
 import type {
   AnnualFinancialFact,
+  CashFlowStatementLineId,
+  CompanyCashFlowStatement,
   CompanyIncomeStatement,
   CompanyOverview,
   DataState,
@@ -20,8 +22,16 @@ export type EvidenceDataStatus = {
   retrievedAt: string;
 };
 
+export type FinancialStatementLineId =
+  | IncomeStatementLineId
+  | CashFlowStatementLineId;
+
+type EvidenceStatement =
+  | CompanyIncomeStatement["statement"]
+  | CompanyCashFlowStatement["statement"];
+
 export type ReviewedContextLine = {
-  id: IncomeStatementLineId;
+  id: FinancialStatementLineId;
   reportedLabel: string;
   value: number;
 };
@@ -44,7 +54,7 @@ export type ReviewedPresentation = {
 export type ReportedEvidence = {
   kind: "reported";
   metric: {
-    id: "revenue" | "net-income";
+    id: "revenue" | "net-income" | "operating-cash-flow";
     label: string;
   };
   company: EvidenceCompany;
@@ -114,7 +124,7 @@ type ReviewedStatementContent = {
   filedAt: string;
   accession: string;
   statementName?: string;
-  labels: Partial<Record<IncomeStatementLineId, string>>;
+  labels: Partial<Record<FinancialStatementLineId, string>>;
 };
 
 export function buildReviewedPresentation({
@@ -123,10 +133,10 @@ export function buildReviewedPresentation({
   lineId,
   contextLineIds,
 }: {
-  statement: CompanyIncomeStatement["statement"];
+  statement: EvidenceStatement;
   content: ReviewedStatementContent;
-  lineId: IncomeStatementLineId;
-  contextLineIds: IncomeStatementLineId[];
+  lineId: FinancialStatementLineId;
+  contextLineIds: FinancialStatementLineId[];
 }): ReviewedPresentation | null {
   if (
     statement.fiscalYear !== content.fiscalYear ||
@@ -145,7 +155,9 @@ export function buildReviewedPresentation({
     return null;
   }
 
-  const lines = new Map(statement.lines.map((line) => [line.id, line]));
+  const lines = new Map<string, (typeof statement.lines)[number]>(
+    statement.lines.map((line) => [line.id, line]),
+  );
   const reportedLabel = content.labels[lineId]?.trim();
   const selectedLine = lines.get(lineId);
   if (!reportedLabel || !selectedLine || !Number.isSafeInteger(selectedLine.value)) {
@@ -177,8 +189,8 @@ export function buildReviewedPresentation({
 }
 
 export function reportedFactFromStatementLine(
-  statement: CompanyIncomeStatement["statement"],
-  lineId: IncomeStatementLineId,
+  statement: EvidenceStatement,
+  lineId: FinancialStatementLineId,
 ): ReportedFact {
   const matchingLines = statement.lines.filter((line) => line.id === lineId);
   if (matchingLines.length !== 1) {
