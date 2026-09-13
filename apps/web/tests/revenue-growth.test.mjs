@@ -153,11 +153,12 @@ test("uses conventional half-up display rounding without changing the raw rate",
 });
 
 test("the component source keeps calculation, uncertainty, interaction, and exact-record boundaries", async () => {
-  const [explorer, evidenceModel, history, companyPage] = await Promise.all([
+  const [explorer, evidenceModel, history, exactRecords, dataLoader] = await Promise.all([
     readFile(new URL("../src/components/revenue-growth-explorer.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/lib/evidence.ts", import.meta.url), "utf8"),
     readFile(new URL("../src/components/revenue-history.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../src/app/company/aapl/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/revenue-exact-records.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/lib/apple-revenue-data.ts", import.meta.url), "utf8"),
   ]);
 
   assert.match(explorer, /Year-over-year \(YoY\) Revenue Growth is the percentage change/);
@@ -166,8 +167,9 @@ test("the component source keeps calculation, uncertainty, interaction, and exac
   assert.match(explorer, /It does not show Profit or explain/);
   assert.match(explorer, /aria-pressed/);
   assert.match(explorer, /aria-live="polite"/);
-  assert.match(history, /Exact record/);
-  assert.match(history, /sourceUrl/);
-  assert.match(companyPage, /const orderedSeries = overview \? orderRevenueSeries/);
-  assert.match(companyPage, /const latest = orderedSeries\.at\(-1\)/);
+  assert.match(history, /RevenueExactRecords/);
+  assert.match(exactRecords, /Exact record/);
+  assert.match(exactRecords, /sourceUrl/);
+  assert.match(dataLoader, /series: orderRevenueSeries/);
+  assert.match(dataLoader, /const latest = overview\?\.series\.at\(-1\)/);
 });

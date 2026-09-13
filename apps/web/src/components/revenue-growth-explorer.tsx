@@ -201,7 +201,7 @@ export function RevenueGrowthExplorer({
               key={`${row.fiscalYear}-${index}`}
               onClick={() => {
                 setSelectedFiscalYear(row.fiscalYear);
-                markExplored(["revenue", "revenue-growth"]);
+                markExplored(["revenue-growth"]);
               }}
               type="button"
             >

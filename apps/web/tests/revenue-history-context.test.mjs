@@ -26,9 +26,10 @@ test("FY2023 company context preserves reviewed Apple reporting and boundaries",
 });
 
 test("the old mandatory History Insight interaction is retired", async () => {
-  const [context, history] = await Promise.all([
+  const [context, history, exactRecords] = await Promise.all([
     readSource("components/revenue-history-context.tsx"),
     readSource("components/revenue-history.tsx"),
+    readSource("components/revenue-exact-records.tsx"),
   ]);
 
   assert.doesNotMatch(context, /useState|<form|type="radio"|markExplored/);
@@ -36,7 +37,8 @@ test("the old mandatory History Insight interaction is retired", async () => {
   assert.doesNotMatch(context, /Next: Profit|LearningUpNext/);
   assert.match(history, /<RevenueGrowthExplorer/);
   assert.match(history, /<RevenueHistoryContext/);
-  assert.match(history, /Exact record/);
+  assert.match(history, /RevenueExactRecords/);
+  assert.match(exactRecords, /Exact record/);
 });
 
 test("optional context is a collapsed native disclosure with an accessible source", async () => {

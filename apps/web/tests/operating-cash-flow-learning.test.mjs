@@ -142,7 +142,6 @@ test("lesson uses four progressive sections and marks progress only after the fi
     1,
   );
   assert.match(component, /<EvidenceInspector[^]*evidence=\{operatingCashEvidence\}/);
-  assert.match(component, /LearningUpNext currentConceptId="operating-cash-flow"/);
   assert.doesNotMatch(component, /free cash flow|cash available to spend/i);
 });
 

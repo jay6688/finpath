@@ -3,7 +3,6 @@
 import { useState, type FormEvent } from "react";
 
 import { EvidenceInspector } from "@/components/evidence-inspector";
-import { LearningUpNext } from "@/components/learning-up-next";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
 import type {
@@ -387,7 +386,6 @@ export function ProfitLearningJourney({
         </div>
       )}
 
-      <LearningUpNext currentConceptId="profit" />
 
       <p className="profit-retrieved-note">
         Retrieved{" "}

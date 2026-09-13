@@ -109,12 +109,10 @@ test("reviewed content keeps reported facts, derived calculation, and limitation
 });
 
 test("the lesson implements discovery, one low-pressure application, and reusable evidence", async () => {
-  const [component, evidenceComponent, page, profitJourney, upNext, content] = await Promise.all([
+  const [component, evidenceComponent, page, content] = await Promise.all([
     readSource("components/profit-margin-learning.tsx"),
     readSource("components/evidence-inspector.tsx"),
-    readSource("app/company/aapl/profit-margin/page.tsx"),
-    readSource("components/profit-learning-journey.tsx"),
-    readSource("components/learning-up-next.tsx"),
+    readSource("app/learn/company-analysis/net-profit-margin/page.tsx"),
     readSource("content/profit-margin-lessons/aapl-profit-margin-fy2025.json").then(JSON.parse),
   ]);
 
@@ -131,7 +129,4 @@ test("the lesson implements discovery, one low-pressure application, and reusabl
   assert.match(component, /role="status"/);
   assert.doesNotMatch(component, /SEC source connected/);
   assert.match(page, /deriveNetProfitMargin\(incomeStatement\.statement\)/);
-  assert.match(profitJourney, /LearningUpNext currentConceptId="profit"/);
-  assert.match(component, /LearningUpNext currentConceptId="net-profit-margin"/);
-  assert.match(upNext, /deriveUpNextModel/);
 });

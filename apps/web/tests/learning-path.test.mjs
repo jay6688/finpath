@@ -7,10 +7,8 @@ import {
   deriveConceptState,
   deriveCurrentConcept,
   deriveHomeRecommendation,
-  deriveUpNextModel,
   LEARNING_PROGRESS_STORAGE_KEY,
   markConceptsExplored,
-  markRevenueMilestoneExplored,
   readLearningProgress,
   writeLearningProgress,
 } from "../src/lib/learning-progress.ts";
@@ -30,25 +28,29 @@ function memoryStorage(initial = {}) {
   };
 }
 
-test("a fresh browser starts honestly at the grouped Revenue milestone", () => {
+test("a fresh browser starts at Revenue with Revenue Growth available separately", () => {
   const progress = readLearningProgress(memoryStorage());
 
   assert.deepEqual(progress, createDefaultLearningProgress());
   assert.equal(deriveCurrentConcept(progress), "revenue");
   assert.equal(deriveConceptState("revenue", progress), "current");
-  assert.equal(deriveConceptState("revenue-growth", progress), "current");
+  assert.equal(deriveConceptState("revenue-growth", progress), "available");
   assert.equal(deriveConceptState("profit", progress), "available");
   assert.equal(deriveHomeRecommendation(progress).action, "Start");
+  assert.equal(
+    deriveHomeRecommendation(progress).href,
+    "/learn/company-analysis/revenue",
+  );
 });
 
 test("device-local progress writes and reads only versioned concept IDs", () => {
   const storage = memoryStorage();
-  const progress = markRevenueMilestoneExplored(createDefaultLearningProgress());
+  const progress = markConceptsExplored(createDefaultLearningProgress(), ["revenue"]);
 
   assert.equal(writeLearningProgress(storage, progress), true);
   assert.deepEqual(readLearningProgress(storage), {
     version: 1,
-    exploredConceptIds: ["revenue", "revenue-growth"],
+    exploredConceptIds: ["revenue"],
   });
 
   const serialized = storage.getItem(LEARNING_PROGRESS_STORAGE_KEY);
@@ -76,7 +78,10 @@ test("existing version-1 progress is preserved when Operating Cash Flow is added
     "net-profit-margin",
   ]);
   assert.equal(deriveCurrentConcept(progress), "operating-cash-flow");
-  assert.equal(deriveHomeRecommendation(progress).href, "/company/aapl/operating-cash-flow");
+  assert.equal(
+    deriveHomeRecommendation(progress).href,
+    "/learn/company-analysis/operating-cash-flow",
+  );
 });
 
 test("malformed, old-version, and unavailable storage fail to the honest default", () => {
@@ -107,16 +112,21 @@ test("malformed, old-version, and unavailable storage fail to the honest default
       exploredConceptIds: ["revenue", "unknown-concept"],
     }),
   });
-  assert.deepEqual(readLearningProgress(incompleteRevenue), createDefaultLearningProgress());
+  assert.deepEqual(readLearningProgress(incompleteRevenue), {
+    version: 1,
+    exploredConceptIds: ["revenue"],
+  });
 });
 
 test("current is always the first recommended milestone not yet explored", () => {
-  const revenue = markRevenueMilestoneExplored(createDefaultLearningProgress());
-  const profit = markConceptsExplored(revenue, ["profit"]);
+  const revenue = markConceptsExplored(createDefaultLearningProgress(), ["revenue"]);
+  const growth = markConceptsExplored(revenue, ["revenue-growth"]);
+  const profit = markConceptsExplored(growth, ["profit"]);
   const margin = markConceptsExplored(profit, ["net-profit-margin"]);
   const all = markConceptsExplored(margin, ["operating-cash-flow"]);
 
-  assert.equal(deriveCurrentConcept(revenue), "profit");
+  assert.equal(deriveCurrentConcept(revenue), "revenue-growth");
+  assert.equal(deriveCurrentConcept(growth), "profit");
   assert.equal(deriveCurrentConcept(profit), "net-profit-margin");
   assert.equal(deriveCurrentConcept(margin), "operating-cash-flow");
   assert.equal(deriveCurrentConcept(all), null);
@@ -135,16 +145,18 @@ test("using a future lesson never invents earlier progress", () => {
   assert.equal(deriveConceptState("net-profit-margin", futureFirst), "explored");
 });
 
-test("Revenue and Revenue Growth use one defensible completion trigger", async () => {
-  const [explorer, context] = await Promise.all([
+test("Revenue and Revenue Growth keep independent meaningful completion triggers", async () => {
+  const [explorer, context, sequence] = await Promise.all([
     readSource("components/revenue-growth-explorer.tsx"),
     readSource("components/revenue-history-context.tsx"),
+    readSource("components/lesson-sequence-navigation.tsx"),
   ]);
-  const progress = markRevenueMilestoneExplored(createDefaultLearningProgress());
+  const progress = markConceptsExplored(createDefaultLearningProgress(), ["revenue"]);
 
-  assert.deepEqual(progress.exploredConceptIds, ["revenue", "revenue-growth"]);
+  assert.deepEqual(progress.exploredConceptIds, ["revenue"]);
   assert.match(explorer, /id="revenue-growth"/);
-  assert.match(explorer, /markExplored\(\["revenue", "revenue-growth"\]\)/);
+  assert.match(explorer, /markExplored\(\["revenue-growth"\]\)/);
+  assert.match(sequence, /completeCurrentOnNext[^]*markExplored\(\[currentConceptId\]\)/);
   assert.doesNotMatch(context, /markExplored|useLearningProgress/);
   assert.doesNotMatch(explorer, /useEffect\([^]*markExplored/);
 });
@@ -161,45 +173,41 @@ test("Profit and Net Profit Margin record meaningful use without requiring corre
   assert.doesNotMatch(margin, /if \(supportedAnswer\)[^]*markExplored/);
 });
 
-test("Up Next leads Margin to Operating Cash Flow, then ends honestly", () => {
-  const fresh = createDefaultLearningProgress();
-  const before = deriveUpNextModel("revenue-growth", fresh);
-  const after = deriveUpNextModel(
-    "revenue-growth",
-    markRevenueMilestoneExplored(fresh),
-  );
-  const cashFlow = deriveUpNextModel("net-profit-margin", fresh);
-  const final = deriveUpNextModel("operating-cash-flow", fresh);
-
-  assert.equal(before.emphasis, "quiet");
-  assert.equal(before.action, "Open now");
-  assert.equal(after.emphasis, "strong");
-  assert.equal(after.action, "Continue");
-  assert.equal(cashFlow.kind, "lesson");
-  assert.equal(cashFlow.href, "/company/aapl/operating-cash-flow");
-  assert.match(cashFlow.reason, /accounting result/i);
-  assert.equal(final.kind, "coming-later");
-  assert.equal(final.href, "/learn");
-  assert.doesNotMatch(JSON.stringify(final), /free cash flow|EPS|valuation/i);
-});
-
 test("Home and Learn expose derived states, real routes, and no fabricated duration", async () => {
-  const [home, path, navigation, upNext] = await Promise.all([
+  const [home, path, navigation, catalog] = await Promise.all([
     readSource("components/learning-home.tsx"),
     readSource("components/learning-path-view.tsx"),
     readSource("components/app-navigation.tsx"),
-    readSource("components/learning-up-next.tsx"),
+    readSource("lib/lesson-catalog.ts"),
   ]);
 
   assert.match(home, /deriveHomeRecommendation\(progress\)/);
-  assert.match(path, /aria-current=\{revenueState === "current" \? "step"/);
-  assert.match(path, /\/company\/aapl#revenue-growth/);
-  assert.match(path, /actionLabel\(revenueState, revenueState === "current"\)/);
+  assert.match(home, /concepts explored/);
+  assert.doesNotMatch(home, /home-path-preview/);
+  assert.match(path, /aria-current=\{state === "current" \? "step"/);
+  assert.match(path, /lessonCatalog\.map/);
+  assert.match(path, /actionLabel\(state, lesson\.id === "revenue"\)/);
   assert.match(path, /More concepts coming/);
-  assert.match(path, /href="\/company\/aapl\/operating-cash-flow"/);
-  assert.match(home, /deriveConceptState\("operating-cash-flow", progress\)/);
+  assert.match(catalog, /href: "\/learn\/company-analysis\/operating-cash-flow"/);
   assert.doesNotMatch(path, /href=.*More concepts coming/);
   assert.match(navigation, /href: "\/learn"/);
-  assert.match(upNext, /deriveUpNextModel/);
-  assert.doesNotMatch(`${home}${path}${upNext}`, /\b(?:minute|minutes|min)\b/i);
+  assert.doesNotMatch(`${home}${path}`, /\b(?:minute|minutes|min)\b/i);
+});
+
+test("every progress state recommends its canonical Learn route", () => {
+  let progress = createDefaultLearningProgress();
+  const expected = [
+    ["revenue", "/learn/company-analysis/revenue"],
+    ["revenue-growth", "/learn/company-analysis/revenue-growth"],
+    ["profit", "/learn/company-analysis/profit"],
+    ["net-profit-margin", "/learn/company-analysis/net-profit-margin"],
+    ["operating-cash-flow", "/learn/company-analysis/operating-cash-flow"],
+  ];
+
+  for (const [conceptId, href] of expected) {
+    const recommendation = deriveHomeRecommendation(progress);
+    assert.equal(recommendation.conceptId, conceptId);
+    assert.equal(recommendation.href, href);
+    progress = markConceptsExplored(progress, [conceptId]);
+  }
 });

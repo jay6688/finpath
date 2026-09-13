@@ -3,24 +3,13 @@
 import Link from "next/link";
 
 import { useLearningProgress } from "@/components/learning-progress-provider";
-import {
-  deriveConceptState,
-  deriveHomeRecommendation,
-  type ConceptProgressState,
-} from "@/lib/learning-progress";
-
-function StateLabel({ state }: { state: ConceptProgressState }) {
-  return <span className="learning-state">{state}</span>;
-}
+import { deriveHomeRecommendation } from "@/lib/learning-progress";
+import { lessonCatalog } from "@/lib/lesson-catalog";
 
 export function LearningHome() {
   const { progress } = useLearningProgress();
   const recommendation = deriveHomeRecommendation(progress);
-  const revenueState = deriveConceptState("revenue", progress);
-  const growthState = deriveConceptState("revenue-growth", progress);
-  const profitState = deriveConceptState("profit", progress);
-  const marginState = deriveConceptState("net-profit-margin", progress);
-  const cashFlowState = deriveConceptState("operating-cash-flow", progress);
+  const exploredCount = progress.exploredConceptIds.length;
 
   return (
     <div className="home-shell learning-home">
@@ -28,8 +17,8 @@ export function LearningHome() {
         <p className="eyebrow">Learn with real company data</p>
         <h1 id="home-heading">Understand one financial idea at a time.</h1>
         <p className="home-intro__copy">
-          Follow a recommended path, or explore Apple&apos;s real financial records
-          whenever curiosity takes you elsewhere.
+          Follow a guided learning path, or inspect Apple&apos;s real financial
+          record when you want to explore.
         </p>
       </section>
 
@@ -39,69 +28,24 @@ export function LearningHome() {
           <h2 id="next-step-heading">{recommendation.title}</h2>
           <p>{recommendation.goal}</p>
           <Link className="primary-action" href={recommendation.href}>
-            {recommendation.action}
+            {recommendation.action} lesson
             <span aria-hidden="true">→</span>
           </Link>
         </div>
         <aside className="home-learning-next__context" aria-label="Learning path context">
-          <span>Path</span>
-          <strong>Company Analysis Basics</strong>
-          <span>Approach</span>
-          <p>Recommended order. Existing lessons remain open.</p>
+          <span>Company Analysis Basics</span>
+          <strong>
+            {exploredCount} of {lessonCatalog.length} concepts explored
+          </strong>
+          <Link href="/learn">View learning path →</Link>
         </aside>
       </section>
 
-      <section className="home-path-preview" aria-labelledby="home-path-heading">
-        <header>
-          <div>
-            <p className="eyebrow">Learning path</p>
-            <h2 id="home-path-heading">See where this leads</h2>
-          </div>
-          <Link href="/learn">View full learning path →</Link>
-        </header>
-
-        <ol>
-          <li data-state={revenueState} aria-current={revenueState === "current" ? "step" : undefined}>
-            <span className="home-path-preview__marker" aria-hidden="true" />
-            <div>
-              <strong>Revenue</strong>
-              <small>Understand Apple&apos;s top line</small>
-              <div className="home-path-preview__substep">
-                <span>Revenue Growth</span>
-                <StateLabel state={growthState} />
-              </div>
-            </div>
-            <StateLabel state={revenueState} />
-          </li>
-          <li data-state={profitState} aria-current={profitState === "current" ? "step" : undefined}>
-            <span className="home-path-preview__marker" aria-hidden="true" />
-            <div><strong>Profit / Net Income</strong><small>Follow reported costs and expenses</small></div>
-            <StateLabel state={profitState} />
-          </li>
-          <li data-state={marginState} aria-current={marginState === "current" ? "step" : undefined}>
-            <span className="home-path-preview__marker" aria-hidden="true" />
-            <div><strong>Net Profit Margin</strong><small>Put Net Income on a $100 Revenue scale</small></div>
-            <StateLabel state={marginState} />
-          </li>
-          <li data-state={cashFlowState} aria-current={cashFlowState === "current" ? "step" : undefined}>
-            <span className="home-path-preview__marker" aria-hidden="true" />
-            <div><strong>Operating Cash Flow</strong><small>Connect Net Income to operating cash</small></div>
-            <StateLabel state={cashFlowState} />
-          </li>
-          <li data-state="coming-later">
-            <span className="home-path-preview__marker" aria-hidden="true" />
-            <div><strong>More concepts coming</strong><small>The next concept is still being validated</small></div>
-            <span className="learning-state">Coming later</span>
-          </li>
-        </ol>
-
-      </section>
-
-      <section className="home-explore" aria-labelledby="home-explore-heading">
+      <section className="home-explore home-explore--clear" aria-labelledby="home-explore-heading">
         <div>
-          <p className="eyebrow">Explore freely</p>
-          <h2 id="home-explore-heading">The path guides. It does not lock.</h2>
-          <p>Inspect Apple&apos;s Revenue and SEC provenance at any time.</p>
+          <p className="eyebrow">Explore real companies</p>
+          <h2 id="home-explore-heading">Apple Inc.</h2>
+          <p>View real financial records, exact reporting periods, and SEC evidence.</p>
         </div>
         <Link href="/company/aapl">Explore Apple →</Link>
       </section>

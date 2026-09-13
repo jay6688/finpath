@@ -3,7 +3,6 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 
 import { EvidenceInspector } from "@/components/evidence-inspector";
-import { LearningUpNext } from "@/components/learning-up-next";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import marginContent from "@/content/profit-margin-lessons/aapl-profit-margin-fy2025.json";
 import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
@@ -258,7 +257,6 @@ export function ProfitMarginLearning({
         </div>
       )}
 
-      <LearningUpNext currentConceptId="net-profit-margin" />
 
       <p className="profit-retrieved-note">
         Retrieved{" "}

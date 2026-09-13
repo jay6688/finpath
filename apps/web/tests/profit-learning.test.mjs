@@ -167,10 +167,9 @@ test("the lesson rejects mismatched filing, bad ordering, bad arithmetic, and no
 });
 
 test("the concept check is low-pressure and the component exposes feedback and provenance", async () => {
-  const [content, component, upNext] = await Promise.all([
+  const [content, component] = await Promise.all([
     readFile(contentUrl, "utf8").then(JSON.parse),
     readFile(componentUrl, "utf8"),
-    readFile(new URL("../src/components/learning-up-next.tsx", import.meta.url), "utf8"),
   ]);
 
   assert.equal(content.question.supportedChoiceId, "could-fall");
@@ -184,18 +183,14 @@ test("the concept check is low-pressure and the component exposes feedback and p
   assert.match(component, /role="status"/);
   assert.match(component, /href=\{statement\.sourceUrl\}/);
   assert.match(component, /Open official SEC filing index/);
-  assert.match(component, /LearningUpNext currentConceptId="profit"/);
-  assert.match(upNext, /deriveUpNextModel/);
 
   const evidenceIndex = component.indexOf("<EvidenceInspector evidence={netIncomeEvidence}");
   const conceptCheckIndex = component.indexOf('className="profit-understanding"');
   const exactRecordIndex = component.indexOf('className="profit-exact-record"');
-  const upNextIndex = component.indexOf('<LearningUpNext currentConceptId="profit"');
 
   assert.ok(evidenceIndex > 0);
   assert.ok(conceptCheckIndex > evidenceIndex);
   assert.ok(exactRecordIndex > conceptCheckIndex);
-  assert.ok(upNextIndex > exactRecordIndex);
 });
 
 test("Profit progress is marked only when the final stage is revealed", async () => {

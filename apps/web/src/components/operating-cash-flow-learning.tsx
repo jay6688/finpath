@@ -4,7 +4,6 @@ import { useState, type FormEvent } from "react";
 
 import { EvidenceInspector } from "@/components/evidence-inspector";
 import { useLearningProgress } from "@/components/learning-progress-provider";
-import { LearningUpNext } from "@/components/learning-up-next";
 import cashFlowContent from "@/content/cash-flow-lessons/aapl-operating-cash-flow-fy2025.json";
 import type {
   CashFlowStatementLineId,
@@ -352,7 +351,6 @@ export function OperatingCashFlowLearning({
         </section>
       ) : null}
 
-      <LearningUpNext currentConceptId="operating-cash-flow" />
 
       <p className="profit-retrieved-note">
         Retrieved {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", {
