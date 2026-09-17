@@ -80,6 +80,18 @@ def test_extracts_one_complete_fy2025_cash_flow_statement_context() -> None:
     assert section_values(statement) == EXPECTED_SECTION_VALUES
 
 
+def test_rejects_an_unreviewed_company_instead_of_reusing_apples_profile() -> None:
+    with pytest.raises(
+        CashFlowStatementUnavailableError,
+        match="profile for CIK 0000789019 FY2025 is unavailable",
+    ):
+        extract_cash_flow_statement(
+            load_sec_fixture("aapl_companyfacts.json"),
+            cik="0000789019",
+            fiscal_year=2025,
+        )
+
+
 def test_reconciles_each_section_and_the_top_level_cash_change() -> None:
     statement = extract_fixture_statement()
 

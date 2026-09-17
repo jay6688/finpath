@@ -39,10 +39,17 @@ class SectionSpec:
     lines: tuple[LineSpec, ...]
 
 
+@dataclass(frozen=True)
+class CashFlowStatementSpec:
+    sections: tuple[SectionSpec, ...]
+    net_change: LineSpec
+    cash_balance_tag: str
+
+
 # Company Facts sometimes exposes a positive payment magnitude even when the
 # filed cash-flow statement presents that payment as a cash outflow. Explicit
 # multipliers keep every normalization visible and testable.
-SECTION_SPECS = (
+APPLE_FY2025_SECTION_SPECS = (
     SectionSpec(
         "operating",
         (
@@ -195,6 +202,17 @@ NET_CHANGE_SPEC = LineSpec(
 )
 CASH_BALANCE_TAG = "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"
 
+# A statement profile records one reviewed company's filing presentation and
+# taxonomy choices. The response model is reusable, but an unreviewed company
+# must fail honestly instead of inheriting Apple's required rows or signs.
+STATEMENT_SPECS = {
+    ("0000320193", 2025): CashFlowStatementSpec(
+        sections=APPLE_FY2025_SECTION_SPECS,
+        net_change=NET_CHANGE_SPEC,
+        cash_balance_tag=CASH_BALANCE_TAG,
+    ),
+}
+
 
 @dataclass(frozen=True)
 class FactContext:
@@ -215,38 +233,42 @@ class NormalizedFact:
 def extract_cash_flow_statement(
     company_facts: dict[str, Any], *, cik: str, fiscal_year: int
 ) -> CashFlowStatement:
-    operating_total_spec = SECTION_SPECS[0].lines[-1]
+    statement_spec = _statement_spec_for(cik=cik, fiscal_year=fiscal_year)
+    operating_total_spec = statement_spec.sections[0].lines[-1]
     anchor_facts, _ = _facts_for_tag(company_facts, operating_total_spec.taxonomy_tag)
     anchor = _select_anchor(anchor_facts, fiscal_year=fiscal_year)
 
     sections = [
         _extract_section(company_facts, section_spec, anchor.context)
-        for section_spec in SECTION_SPECS
+        for section_spec in statement_spec.sections
     ]
-    net_change = _extract_line(company_facts, NET_CHANGE_SPEC, anchor.context)
-    balance_facts, balance_label = _facts_for_tag(company_facts, CASH_BALANCE_TAG)
+    net_change = _extract_line(company_facts, statement_spec.net_change, anchor.context)
+    balance_facts, balance_label = _facts_for_tag(
+        company_facts,
+        statement_spec.cash_balance_tag,
+    )
     beginning_date = anchor.context.start_date - timedelta(days=1)
     beginning_cash = CashBalanceFact(
         id="beginning-cash",
-        taxonomyTag=CASH_BALANCE_TAG,
+        taxonomyTag=statement_spec.cash_balance_tag,
         taxonomyLabel=balance_label,
         value=_instant_value_for_context(
             balance_facts,
             expected_context=anchor.context,
             expected_date=beginning_date,
-            taxonomy_tag=CASH_BALANCE_TAG,
+            taxonomy_tag=statement_spec.cash_balance_tag,
         ),
         asOfDate=beginning_date,
     )
     ending_cash = CashBalanceFact(
         id="ending-cash",
-        taxonomyTag=CASH_BALANCE_TAG,
+        taxonomyTag=statement_spec.cash_balance_tag,
         taxonomyLabel=balance_label,
         value=_instant_value_for_context(
             balance_facts,
             expected_context=anchor.context,
             expected_date=anchor.context.end_date,
-            taxonomy_tag=CASH_BALANCE_TAG,
+            taxonomy_tag=statement_spec.cash_balance_tag,
         ),
         asOfDate=anchor.context.end_date,
     )
@@ -269,6 +291,17 @@ def extract_cash_flow_statement(
         sections=sections,
         cashMovement=cash_movement,
     )
+
+
+def _statement_spec_for(*, cik: str, fiscal_year: int) -> CashFlowStatementSpec:
+    normalized_cik = cik.zfill(10)
+    try:
+        return STATEMENT_SPECS[(normalized_cik, fiscal_year)]
+    except KeyError:
+        raise CashFlowStatementUnavailableError(
+            "Cash flow statement profile for "
+            f"CIK {normalized_cik} FY{fiscal_year} is unavailable."
+        ) from None
 
 
 def _extract_section(
