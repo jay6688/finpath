@@ -37,13 +37,21 @@ function makeStatement() {
     accession: "0000320193-25-000079",
     sourceUrl:
       "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/0000320193-25-000079-index.htm",
-    lines: lineValues.map(([id, role, value]) => ({
-      id,
-      role,
-      value,
-      taxonomyTag: `fixture-${id}`,
-      taxonomyLabel: `Fixture ${id}`,
-    })),
+    sections: [
+      {
+        id: "operating",
+        lines: lineValues.map(([id, role, value]) => ({
+          id,
+          role,
+          value,
+          taxonomyTag: `fixture-${id}`,
+          taxonomyLabel: `Fixture ${id}`,
+        })),
+      },
+      { id: "investing", lines: [] },
+      { id: "financing", lines: [] },
+    ],
+    cashMovement: {},
   };
 }
 
@@ -56,25 +64,29 @@ test("validates the exact FY2025 operating cash reconciliation", () => {
       accession: "0000320193-25-000079",
     }),
   );
-  const lines = cashFlowLineMap(statement.lines);
+  const lines = cashFlowLineMap(statement.sections[0].lines);
   assert.equal(lines.get("net-income").value, 112_010_000_000);
   assert.equal(
     lines.get("cash-generated-by-operating-activities").value,
     111_482_000_000,
   );
   assert.equal(
-    statement.lines.slice(0, -1).reduce((sum, line) => sum + line.value, 0),
-    statement.lines.at(-1).value,
+    statement.sections[0].lines.slice(0, -1).reduce((sum, line) => sum + line.value, 0),
+    statement.sections[0].lines.at(-1).value,
   );
 });
 
 test("rejects wrong filing identity, order, arithmetic, and provenance", () => {
   const cases = [
     () => ({ ...makeStatement(), accession: "0000320193-24-000123" }),
-    () => ({ ...makeStatement(), lines: makeStatement().lines.reverse() }),
     () => {
       const statement = makeStatement();
-      statement.lines[1].value -= 1;
+      statement.sections[0].lines.reverse();
+      return statement;
+    },
+    () => {
+      const statement = makeStatement();
+      statement.sections[0].lines[1].value -= 1;
       return statement;
     },
     () => ({ ...makeStatement(), sourceUrl: "https://example.com/filing" }),

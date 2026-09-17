@@ -83,12 +83,32 @@ export type CashFlowStatementLineId =
   | "other-current-and-non-current-assets"
   | "accounts-payable"
   | "other-current-and-non-current-liabilities"
-  | "cash-generated-by-operating-activities";
+  | "cash-generated-by-operating-activities"
+  | "purchases-of-marketable-securities"
+  | "maturities-of-marketable-securities"
+  | "sales-of-marketable-securities"
+  | "payments-for-property-plant-and-equipment"
+  | "other-investing-activities"
+  | "cash-generated-by-investing-activities"
+  | "taxes-related-to-net-share-settlement"
+  | "dividends-and-dividend-equivalents"
+  | "common-stock-repurchases"
+  | "term-debt-issuance-net"
+  | "term-debt-repayment"
+  | "commercial-paper-net"
+  | "other-financing-activities"
+  | "cash-used-in-financing-activities"
+  | "net-change-in-cash";
 
 export type CashFlowStatementLineRole =
   | "starting-line"
   | "non-cash-adjustment"
   | "operating-timing-adjustment"
+  | "cash-inflow"
+  | "cash-outflow"
+  | "signed-cash-flow"
+  | "section-total"
+  | "cash-change"
   | "final-total";
 
 export type CashFlowStatementLine = {
@@ -97,6 +117,21 @@ export type CashFlowStatementLine = {
   taxonomyLabel: string;
   value: number;
   role: CashFlowStatementLineRole;
+};
+
+export type CashFlowSectionId = "operating" | "investing" | "financing";
+
+export type CashFlowSection = {
+  id: CashFlowSectionId;
+  lines: CashFlowStatementLine[];
+};
+
+export type CashBalanceFact = {
+  id: "beginning-cash" | "ending-cash";
+  taxonomyTag: string;
+  taxonomyLabel: string;
+  value: number;
+  asOfDate: string;
 };
 
 export type CompanyCashFlowStatement = {
@@ -110,7 +145,12 @@ export type CompanyCashFlowStatement = {
     filedAt: string;
     accession: string;
     sourceUrl: string;
-    lines: CashFlowStatementLine[];
+    sections: CashFlowSection[];
+    cashMovement: {
+      beginningCash: CashBalanceFact;
+      netChange: CashFlowStatementLine;
+      endingCash: CashBalanceFact;
+    };
   };
   dataStatus: CompanyOverview["dataStatus"];
 };

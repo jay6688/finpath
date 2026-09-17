@@ -53,7 +53,10 @@ export function OperatingCashFlowLearning({
 }: OperatingCashFlowLearningProps) {
   const { markExplored } = useLearningProgress();
   const { statement, dataStatus } = cashFlowStatement;
-  const lines = cashFlowLineMap(statement.lines);
+  const operatingLines = statement.sections.find(
+    (section) => section.id === "operating",
+  )?.lines ?? [];
+  const lines = cashFlowLineMap(operatingLines);
   const netIncome = lines.get("net-income");
   const depreciation = lines.get("depreciation-and-amortization");
   const accountsReceivable = lines.get("accounts-receivable-net");
@@ -81,7 +84,7 @@ export function OperatingCashFlowLearning({
       labels: reviewedLabels,
     },
     lineId: "cash-generated-by-operating-activities",
-    contextLineIds: statement.lines.map((line) => line.id),
+    contextLineIds: operatingLines.map((line) => line.id),
   });
   const operatingCashEvidence = buildReportedEvidence({
     metric: { id: "operating-cash-flow", label: "Operating Cash Flow" },
@@ -273,7 +276,7 @@ export function OperatingCashFlowLearning({
                 are not all cash payments.
               </p>
               <dl>
-                {statement.lines.map((line) => (
+                {operatingLines.map((line) => (
                   <div data-role={line.role} key={line.id}>
                     <dt>
                       <strong>{lineCopy[line.id].reportedLabel}</strong>

@@ -36,7 +36,11 @@ export function validateCashFlowStatementForLesson(
   statement: CompanyCashFlowStatement["statement"],
   expected: { fiscalYear: number; accession: string },
 ): void {
-  const actualLineIds = statement.lines.map((line) => line.id);
+  const operatingSections = statement.sections.filter(
+    (section) => section.id === "operating",
+  );
+  const operatingLines = operatingSections[0]?.lines ?? [];
+  const actualLineIds = operatingLines.map((line) => line.id);
   const uniqueIds = new Set(actualLineIds);
   const sourceUrl = safeSecFilingIndexUrl(statement.sourceUrl, statement.accession);
 
@@ -52,17 +56,18 @@ export function validateCashFlowStatementForLesson(
     actualLineIds.length !== expectedLineIds.length ||
     uniqueIds.size !== expectedLineIds.length ||
     actualLineIds.some((lineId, index) => lineId !== expectedLineIds[index]) ||
-    statement.lines.some((line) => !Number.isSafeInteger(line.value))
+    operatingSections.length !== 1 ||
+    operatingLines.some((line) => !Number.isSafeInteger(line.value))
   ) {
     throw new OperatingCashFlowDataError(
       "Operating Cash Flow lesson requires one complete validated Apple annual filing record.",
     );
   }
 
-  const total = statement.lines
+  const total = operatingLines
     .slice(0, -1)
     .reduce((sum, line) => sum + line.value, 0);
-  if (total !== statement.lines.at(-1)?.value) {
+  if (total !== operatingLines.at(-1)?.value) {
     throw new OperatingCashFlowDataError(
       "Operating cash-flow adjustments do not reconcile to the reported total.",
     );

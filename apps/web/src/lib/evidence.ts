@@ -30,6 +30,16 @@ type EvidenceStatement =
   | CompanyIncomeStatement["statement"]
   | CompanyCashFlowStatement["statement"];
 
+type FinancialStatementLine =
+  | CompanyIncomeStatement["statement"]["lines"][number]
+  | CompanyCashFlowStatement["statement"]["sections"][number]["lines"][number];
+
+function statementLines(statement: EvidenceStatement): FinancialStatementLine[] {
+  return "sections" in statement
+    ? statement.sections.flatMap((section) => section.lines)
+    : statement.lines;
+}
+
 export type ReviewedContextLine = {
   id: FinancialStatementLineId;
   reportedLabel: string;
@@ -155,8 +165,8 @@ export function buildReviewedPresentation({
     return null;
   }
 
-  const lines = new Map<string, (typeof statement.lines)[number]>(
-    statement.lines.map((line) => [line.id, line]),
+  const lines = new Map<string, FinancialStatementLine>(
+    statementLines(statement).map((line) => [line.id, line]),
   );
   const reportedLabel = content.labels[lineId]?.trim();
   const selectedLine = lines.get(lineId);
@@ -192,7 +202,7 @@ export function reportedFactFromStatementLine(
   statement: EvidenceStatement,
   lineId: FinancialStatementLineId,
 ): ReportedFact {
-  const matchingLines = statement.lines.filter((line) => line.id === lineId);
+  const matchingLines = statementLines(statement).filter((line) => line.id === lineId);
   if (matchingLines.length !== 1) {
     throw new EvidenceDataError(`Evidence requires exactly one ${lineId} line.`);
   }
