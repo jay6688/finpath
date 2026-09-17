@@ -28,7 +28,7 @@ export function LearningPathView() {
         <p className="eyebrow">Learning path</p>
         <h1>Company Analysis Basics</h1>
         <p>
-          Five concepts, one real company example. Follow the recommended order
+          Seven concepts, one real company example. Follow the recommended order
           or revisit any lesson you have explored.
         </p>
       </header>

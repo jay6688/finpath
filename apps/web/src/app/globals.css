@@ -4359,6 +4359,241 @@ h2 {
   }
 }
 
+/* Complete Cash Flow module: the existing light record language, not a new theme. */
+.cash-job-grid,
+.cash-example-grid {
+  margin-top: 1.4rem;
+  display: grid;
+  gap: clamp(1rem, 3vw, 2rem);
+}
+
+.cash-job-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cash-example-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cash-job-grid article,
+.cash-example-grid article,
+.fcf-inputs article {
+  padding: 1rem 0;
+  border-top: 3px solid var(--trust);
+  border-bottom: 1px solid var(--divider);
+}
+
+.cash-job-grid span,
+.cash-example-grid span,
+.fcf-inputs span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.cash-job-grid strong,
+.cash-example-grid strong,
+.fcf-inputs strong {
+  margin-top: 0.4rem;
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  font-weight: 500;
+}
+
+.cash-job-grid p,
+.cash-example-grid p {
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.cash-module .cash-learning-trace {
+  max-width: 52rem;
+  margin-top: 1.6rem;
+}
+
+.cash-boundary-notes {
+  max-width: 52rem;
+  margin-top: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--divider-strong);
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.cash-boundary-notes p {
+  margin: 0.45rem 0;
+}
+
+.cash-module .cash-full-reconciliation dl {
+  margin: 0;
+}
+
+.cash-module .cash-full-reconciliation [data-role="section-total"] {
+  border-top: 2px solid var(--trust);
+  font-weight: 750;
+}
+
+.cash-statement-equation {
+  width: min(38rem, 100%);
+  margin: 0;
+  border-top: 3px solid var(--trust);
+}
+
+.cash-statement-equation > div {
+  padding: 0.8rem 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  border-bottom: 1px solid var(--divider);
+}
+
+.cash-statement-equation dd {
+  margin: 0;
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  white-space: nowrap;
+}
+
+.cash-statement-equation__result {
+  margin-top: 0.25rem;
+  font-weight: 800;
+}
+
+.cash-balance-bridge {
+  max-width: 52rem;
+  margin: 1.8rem 0 2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.cash-balance-bridge > div {
+  min-width: 0;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--divider-strong);
+  border-bottom: 1px solid var(--divider);
+}
+
+.cash-balance-bridge span,
+.cash-balance-bridge strong {
+  display: block;
+}
+
+.cash-balance-bridge span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.cash-balance-bridge > span {
+  color: var(--trust-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.5rem;
+}
+
+.cash-balance-bridge strong {
+  margin-top: 0.3rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  font-weight: 500;
+}
+
+.fcf-inputs {
+  max-width: 48rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.2rem, 4vw, 3rem);
+}
+
+.fcf-inputs small {
+  margin-top: 0.25rem;
+  display: block;
+  color: var(--muted);
+}
+
+.fcf-definition {
+  max-width: 52rem;
+  margin: 1.5rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--trace);
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.fcf-equation {
+  max-width: 56rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.2fr);
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.fcf-equation > div {
+  min-width: 0;
+  padding: 1rem 0;
+  border-top: 1px solid var(--divider-strong);
+  border-bottom: 1px solid var(--divider);
+}
+
+.fcf-equation > span {
+  align-self: center;
+  color: var(--trust-dark);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.6rem;
+}
+
+.fcf-equation span,
+.fcf-equation strong {
+  display: block;
+}
+
+.fcf-equation div > span {
+  min-height: 2.2rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.fcf-equation strong {
+  margin-top: 0.35rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 500;
+}
+
+.fcf-equation__result {
+  border-top: 3px solid var(--trust) !important;
+}
+
+@media (max-width: 760px) {
+  .cash-job-grid,
+  .cash-example-grid,
+  .fcf-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .cash-balance-bridge,
+  .fcf-equation {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .cash-balance-bridge > span,
+  .fcf-equation > span {
+    justify-self: start;
+  }
+
+  .cash-balance-bridge > div,
+  .fcf-equation > div {
+    width: 100%;
+  }
+}
+
 /* Learn / Explore information architecture -------------------------------- */
 
 .lesson-context-header {

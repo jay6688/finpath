@@ -9,6 +9,7 @@ import type {
 } from "@/lib/api";
 import type { RevenueGrowthRow } from "@/lib/history-insight";
 import type { NetProfitMarginDerivation } from "@/lib/profit-margin";
+import type { SimpleFreeCashFlowDerivation } from "@/lib/cash-flow-learning";
 
 export type EvidenceCompany = CompanyOverview["company"];
 
@@ -36,7 +37,10 @@ type FinancialStatementLine =
 
 function statementLines(statement: EvidenceStatement): FinancialStatementLine[] {
   return "sections" in statement
-    ? statement.sections.flatMap((section) => section.lines)
+    ? [
+        ...statement.sections.flatMap((section) => section.lines),
+        statement.cashMovement.netChange,
+      ]
     : statement.lines;
 }
 
@@ -64,7 +68,14 @@ export type ReviewedPresentation = {
 export type ReportedEvidence = {
   kind: "reported";
   metric: {
-    id: "revenue" | "net-income" | "operating-cash-flow";
+    id:
+      | "revenue"
+      | "net-income"
+      | "operating-cash-flow"
+      | "investing-cash-flow"
+      | "financing-cash-flow"
+      | "net-change-in-cash"
+      | "pp-and-e-purchases";
     label: string;
   };
   company: EvidenceCompany;
@@ -104,18 +115,28 @@ export type ReportedEvidence = {
 export type DerivedEvidence = {
   kind: "derived";
   metric: {
-    id: "net-profit-margin" | "revenue-growth";
+    id: "net-profit-margin" | "revenue-growth" | "free-cash-flow";
     label: string;
   };
   inputs: ReportedEvidence[];
-  calculation: {
-    type: "ratio-percent" | "year-over-year-percent";
-    formula: string;
-    exactResult: number;
-    displayedResult: number;
-    decimalPlaces: 1;
-    roundingNote: string;
-  };
+  calculation:
+    | {
+        type: "ratio-percent" | "year-over-year-percent";
+        formula: string;
+        exactResult: number;
+        displayedResult: number;
+        decimalPlaces: 1;
+        roundingNote: string;
+      }
+    | {
+        type: "difference-amount";
+        formula: string;
+        exactResult: number;
+        displayedResult: number;
+        decimalPlaces: 3;
+        roundingNote: string;
+        definitionNote: string;
+      };
   limitation: string;
 };
 
@@ -455,6 +476,81 @@ export function buildRevenueGrowthEvidence({
     },
     limitation:
       "This calculation shows the percentage change between two reported annual Revenue facts. It does not explain why Revenue changed or show Profit.",
+  };
+}
+
+export function buildFreeCashFlowEvidence({
+  cashFlowStatement,
+  derivation,
+  reviewedOperatingCashFlow,
+  reviewedPropertyPlantEquipment,
+}: {
+  cashFlowStatement: CompanyCashFlowStatement;
+  derivation: SimpleFreeCashFlowDerivation;
+  reviewedOperatingCashFlow?: ReviewedPresentation | null;
+  reviewedPropertyPlantEquipment?: ReviewedPresentation | null;
+}): DerivedEvidence {
+  const { company, statement, dataStatus } = cashFlowStatement;
+  const operatingFact = reportedFactFromStatementLine(
+    statement,
+    "cash-generated-by-operating-activities",
+  );
+  const ppAndEFact = reportedFactFromStatementLine(
+    statement,
+    "payments-for-property-plant-and-equipment",
+  );
+  const exactResult = operatingFact.value - Math.abs(ppAndEFact.value);
+
+  if (
+    operatingFact.value !== derivation.operatingCashFlow ||
+    Math.abs(ppAndEFact.value) !== derivation.propertyPlantEquipmentPurchases ||
+    ppAndEFact.value >= 0 ||
+    exactResult !== derivation.exactValue ||
+    derivation.displayBillions !== exactResult / 1_000_000_000 ||
+    operatingFact.accession !== ppAndEFact.accession ||
+    operatingFact.startDate !== ppAndEFact.startDate ||
+    operatingFact.endDate !== ppAndEFact.endDate ||
+    statement.currency !== "USD"
+  ) {
+    throw new EvidenceDataError(
+      "Free Cash Flow evidence requires matching validated Operating Cash Flow and PP&E inputs.",
+    );
+  }
+
+  return {
+    kind: "derived",
+    metric: { id: "free-cash-flow", label: "Free Cash Flow" },
+    inputs: [
+      buildReportedEvidence({
+        metric: { id: "operating-cash-flow", label: "Operating Cash Flow" },
+        company,
+        currency: statement.currency,
+        fact: operatingFact,
+        dataStatus,
+        reviewedPresentation: reviewedOperatingCashFlow,
+      }),
+      buildReportedEvidence({
+        metric: { id: "pp-and-e-purchases", label: "PP&E purchases" },
+        company,
+        currency: statement.currency,
+        fact: ppAndEFact,
+        dataStatus,
+        reviewedPresentation: reviewedPropertyPlantEquipment,
+      }),
+    ],
+    calculation: {
+      type: "difference-amount",
+      formula: "Operating Cash Flow − PP&E purchases",
+      exactResult,
+      displayedResult: derivation.displayBillions,
+      decimalPlaces: 3,
+      roundingNote:
+        "FinPath calculates with exact reported USD values, then changes the display from millions to billions.",
+      definitionNote:
+        "FinPath uses a simple educational convention: Operating Cash Flow minus PP&E purchases.",
+    },
+    limitation:
+      "Free Cash Flow is an analytical measure, not an Apple-reported GAAP metric. Definitions can vary, and this result is not ending cash, Net Income, valuation, or cash guaranteed to shareholders.",
   };
 }
 

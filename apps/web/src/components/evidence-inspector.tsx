@@ -79,7 +79,7 @@ function ReportedInputEvidence({
         <p>
           <strong>{presentation ? "Apple reported: " : "Reported fact used by FinPath: "}</strong>
           {presentation
-            ? `${presentation.reportedLabel} · $${reportedMillions.format(evidence.reportedFact.value / 1_000_000)} million`
+            ? `${presentation.reportedLabel} · ${formatReportedMillions(evidence.reportedFact.value)}`
             : `${evidence.metric.label} · ${exactDollars.format(evidence.reportedFact.value)} USD`}
         </p>
         <p>
@@ -241,9 +241,16 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
 function DerivedInspector({ evidence, id }: { evidence: DerivedEvidence; id: string }) {
   const [first, second] = evidence.inputs;
   const isGrowth = evidence.calculation.type === "year-over-year-percent";
-  const substitutedFormula = isGrowth
-    ? `(${formatBillions(second.finPathDisplay.value)} − ${formatBillions(first.finPathDisplay.value)}) ÷ ${formatBillions(first.finPathDisplay.value)} × 100`
-    : `${formatBillions(second.finPathDisplay.value)} ÷ ${formatBillions(first.finPathDisplay.value)} × 100`;
+  const isAmount = evidence.calculation.type === "difference-amount";
+  const definitionNote =
+    evidence.calculation.type === "difference-amount"
+      ? evidence.calculation.definitionNote
+      : null;
+  const substitutedFormula = isAmount
+    ? `${formatBillions(first.finPathDisplay.value)} − ${formatBillions(Math.abs(second.finPathDisplay.value))}`
+    : isGrowth
+      ? `(${formatBillions(second.finPathDisplay.value)} − ${formatBillions(first.finPathDisplay.value)}) ÷ ${formatBillions(first.finPathDisplay.value)} × 100`
+      : `${formatBillions(second.finPathDisplay.value)} ÷ ${formatBillions(first.finPathDisplay.value)} × 100`;
 
   return (
     <details className="evidence-inspector" data-evidence-kind="derived" id={id}>
@@ -285,14 +292,25 @@ function DerivedInspector({ evidence, id }: { evidence: DerivedEvidence; id: str
           <dl className="evidence-result-grid">
             <div>
               <dt>Exact result</dt>
-              <dd>{formatExactPercent(evidence.calculation.exactResult, isGrowth)}</dd>
+              <dd>
+                {isAmount
+                  ? formatReportedMillions(evidence.calculation.exactResult)
+                  : formatExactPercent(evidence.calculation.exactResult, isGrowth)}
+              </dd>
             </div>
             <div>
               <dt>Displayed</dt>
-              <dd>{formatPercent(evidence.calculation.displayedResult, evidence.calculation.decimalPlaces, isGrowth)}</dd>
+              <dd>
+                {isAmount
+                  ? formatBillions(evidence.calculation.displayedResult)
+                  : formatPercent(evidence.calculation.displayedResult, evidence.calculation.decimalPlaces, isGrowth)}
+              </dd>
             </div>
           </dl>
           <p className="evidence-format-note">{evidence.calculation.roundingNote}</p>
+          {definitionNote ? (
+            <p className="evidence-format-note">{definitionNote}</p>
+          ) : null}
         </section>
 
         <section className="evidence-section evidence-limitation" aria-labelledby={`${id}-limit`}>

@@ -1,6 +1,6 @@
 # V0 Architecture
 
-**Status:** Implemented through the guided Apple Profit learning slice
+**Status:** Implemented through the Apple Cash Flow learning module
 **Decision date:** 2026-08-19
 
 ## Outcome
@@ -8,7 +8,7 @@
 V0 is one company, one authoritative financial-data source, and a controlled
 set of connected learning slices:
 
-> Apple/AAPL → Revenue history → guided observation → FY2025 Profit path → limitation → original SEC filing.
+> Apple/AAPL → Revenue and Profit → FY2025 Operating, Investing, and Financing Cash Flow → simple Free Cash Flow derivation → limitation → original SEC filing.
 
 ## System boundary
 
@@ -36,8 +36,10 @@ The browser does not call `data.sec.gov` directly because SEC does not support C
 - Curated, reviewed concept content.
 - No financial values hard-coded as live data.
 - V0 UI explicitly offers Apple/AAPL rather than pretending to search the full market.
-- A progressive FY2025 Profit lesson that keeps Apple-reported statement lines
-  primary and treats Profit Margin as a preview only.
+- A seven-concept learning path through Net Profit Margin, Operating Cash Flow,
+  Investing and Financing Cash Flow, and a simple Free Cash Flow derivation.
+- Progressive lessons that keep Apple-reported statement lines distinct from
+  FinPath-derived analytical metrics.
 
 ### `apps/api`
 
@@ -46,6 +48,10 @@ The browser does not call `data.sec.gov` directly because SEC does not support C
 - Revenue fact selection and deduplication.
 - Coherent annual income-statement extraction anchored to one filing context,
   with explicit reconciliation failures instead of mixed or missing values.
+- Coherent annual cash-flow extraction with three sections, reported net cash
+  change, cash balances, and strict section/top-level/bridge reconciliation.
+- An explicit reviewed company/fiscal-year cash-flow profile boundary, so a
+  future company cannot silently inherit Apple's taxonomy and sign mapping.
 - SQLite cache for public upstream data only.
 - A normalized API contract independent of SEC's raw JSON shape.
 

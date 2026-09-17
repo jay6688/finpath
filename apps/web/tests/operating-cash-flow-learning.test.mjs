@@ -164,7 +164,9 @@ test("OCF evidence is reported and uses the reusable million-to-billion inspecto
   ]);
 
   assert.match(component, /id: "operating-cash-flow", label: "Operating Cash Flow"/);
-  assert.match(evidence, /"revenue" \| "net-income" \| "operating-cash-flow"/);
+  assert.match(evidence, /\| "revenue"/);
+  assert.match(evidence, /\| "net-income"/);
+  assert.match(evidence, /\| "operating-cash-flow"/);
   assert.match(component, /buildReportedEvidence/);
   assert.doesNotMatch(component, /build.*DerivedEvidence/);
 });
