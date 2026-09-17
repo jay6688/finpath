@@ -117,14 +117,36 @@ CashFlowStatementLineId = Literal[
     "accounts-payable",
     "other-current-and-non-current-liabilities",
     "cash-generated-by-operating-activities",
+    "purchases-of-marketable-securities",
+    "maturities-of-marketable-securities",
+    "sales-of-marketable-securities",
+    "payments-for-property-plant-and-equipment",
+    "other-investing-activities",
+    "cash-generated-by-investing-activities",
+    "taxes-related-to-net-share-settlement",
+    "dividends-and-dividend-equivalents",
+    "common-stock-repurchases",
+    "term-debt-issuance-net",
+    "term-debt-repayment",
+    "commercial-paper-net",
+    "other-financing-activities",
+    "cash-used-in-financing-activities",
+    "net-change-in-cash",
 ]
 
 CashFlowStatementLineRole = Literal[
     "starting-line",
     "non-cash-adjustment",
     "operating-timing-adjustment",
+    "cash-inflow",
+    "cash-outflow",
+    "signed-cash-flow",
+    "section-total",
+    "cash-change",
     "final-total",
 ]
+
+CashFlowSectionId = Literal["operating", "investing", "financing"]
 
 
 class CashFlowStatementLine(ApiModel):
@@ -133,6 +155,25 @@ class CashFlowStatementLine(ApiModel):
     taxonomy_label: str = Field(alias="taxonomyLabel")
     value: int
     role: CashFlowStatementLineRole
+
+
+class CashFlowSection(ApiModel):
+    id: CashFlowSectionId
+    lines: list[CashFlowStatementLine]
+
+
+class CashBalanceFact(ApiModel):
+    id: Literal["beginning-cash", "ending-cash"]
+    taxonomy_tag: str = Field(alias="taxonomyTag")
+    taxonomy_label: str = Field(alias="taxonomyLabel")
+    value: int
+    as_of_date: date = Field(alias="asOfDate")
+
+
+class CashMovement(ApiModel):
+    beginning_cash: CashBalanceFact = Field(alias="beginningCash")
+    net_change: CashFlowStatementLine = Field(alias="netChange")
+    ending_cash: CashBalanceFact = Field(alias="endingCash")
 
 
 class CashFlowStatement(ApiModel):
@@ -144,7 +185,8 @@ class CashFlowStatement(ApiModel):
     filed_at: date = Field(alias="filedAt")
     accession: str
     source_url: HttpUrl = Field(alias="sourceUrl")
-    lines: list[CashFlowStatementLine]
+    sections: list[CashFlowSection]
+    cash_movement: CashMovement = Field(alias="cashMovement")
 
     @field_validator("source_url")
     @classmethod

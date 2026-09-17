@@ -1,13 +1,17 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 import math
 from typing import Any
 
 from app.schemas.company import (
+    CashBalanceFact,
+    CashFlowSection,
+    CashFlowSectionId,
     CashFlowStatement,
     CashFlowStatementLine,
     CashFlowStatementLineId,
     CashFlowStatementLineRole,
+    CashMovement,
 )
 from app.services.sec.provenance import build_filing_index_url
 
@@ -29,63 +33,167 @@ class LineSpec:
     cash_effect_multiplier: int = 1
 
 
-# Company Facts exposes economic increases/decreases for several XBRL concepts,
-# while Apple's cash-flow statement displays their effect on operating cash.
-# Asset increases reduce cash; asset decreases increase cash. The explicit
-# multipliers keep that source-to-statement normalization reviewable.
-LINE_SPECS = (
-    LineSpec("net-income", "NetIncomeLoss", "starting-line"),
-    LineSpec(
-        "depreciation-and-amortization",
-        "DepreciationDepletionAndAmortization",
-        "non-cash-adjustment",
+@dataclass(frozen=True)
+class SectionSpec:
+    id: CashFlowSectionId
+    lines: tuple[LineSpec, ...]
+
+
+# Company Facts sometimes exposes a positive payment magnitude even when the
+# filed cash-flow statement presents that payment as a cash outflow. Explicit
+# multipliers keep every normalization visible and testable.
+SECTION_SPECS = (
+    SectionSpec(
+        "operating",
+        (
+            LineSpec("net-income", "NetIncomeLoss", "starting-line"),
+            LineSpec(
+                "depreciation-and-amortization",
+                "DepreciationDepletionAndAmortization",
+                "non-cash-adjustment",
+            ),
+            LineSpec(
+                "share-based-compensation-expense",
+                "ShareBasedCompensation",
+                "non-cash-adjustment",
+            ),
+            LineSpec("other", "OtherNoncashIncomeExpense", "non-cash-adjustment", -1),
+            LineSpec(
+                "accounts-receivable-net",
+                "IncreaseDecreaseInAccountsReceivable",
+                "operating-timing-adjustment",
+                -1,
+            ),
+            LineSpec(
+                "vendor-non-trade-receivables",
+                "IncreaseDecreaseInOtherReceivables",
+                "operating-timing-adjustment",
+                -1,
+            ),
+            LineSpec(
+                "inventories",
+                "IncreaseDecreaseInInventories",
+                "operating-timing-adjustment",
+                -1,
+            ),
+            LineSpec(
+                "other-current-and-non-current-assets",
+                "IncreaseDecreaseInOtherOperatingAssets",
+                "operating-timing-adjustment",
+                -1,
+            ),
+            LineSpec(
+                "accounts-payable",
+                "IncreaseDecreaseInAccountsPayable",
+                "operating-timing-adjustment",
+            ),
+            LineSpec(
+                "other-current-and-non-current-liabilities",
+                "IncreaseDecreaseInOtherOperatingLiabilities",
+                "operating-timing-adjustment",
+            ),
+            LineSpec(
+                "cash-generated-by-operating-activities",
+                "NetCashProvidedByUsedInOperatingActivities",
+                "final-total",
+            ),
+        ),
     ),
-    LineSpec(
-        "share-based-compensation-expense",
-        "ShareBasedCompensation",
-        "non-cash-adjustment",
+    SectionSpec(
+        "investing",
+        (
+            LineSpec(
+                "purchases-of-marketable-securities",
+                "PaymentsToAcquireAvailableForSaleSecuritiesDebt",
+                "cash-outflow",
+                -1,
+            ),
+            LineSpec(
+                "maturities-of-marketable-securities",
+                "ProceedsFromMaturitiesPrepaymentsAndCallsOfAvailableForSaleSecurities",
+                "cash-inflow",
+            ),
+            LineSpec(
+                "sales-of-marketable-securities",
+                "ProceedsFromSaleOfAvailableForSaleSecuritiesDebt",
+                "cash-inflow",
+            ),
+            LineSpec(
+                "payments-for-property-plant-and-equipment",
+                "PaymentsToAcquirePropertyPlantAndEquipment",
+                "cash-outflow",
+                -1,
+            ),
+            LineSpec(
+                "other-investing-activities",
+                "PaymentsForProceedsFromOtherInvestingActivities",
+                "cash-outflow",
+                -1,
+            ),
+            LineSpec(
+                "cash-generated-by-investing-activities",
+                "NetCashProvidedByUsedInInvestingActivities",
+                "section-total",
+            ),
+        ),
     ),
-    LineSpec("other", "OtherNoncashIncomeExpense", "non-cash-adjustment", -1),
-    LineSpec(
-        "accounts-receivable-net",
-        "IncreaseDecreaseInAccountsReceivable",
-        "operating-timing-adjustment",
-        -1,
-    ),
-    LineSpec(
-        "vendor-non-trade-receivables",
-        "IncreaseDecreaseInOtherReceivables",
-        "operating-timing-adjustment",
-        -1,
-    ),
-    LineSpec(
-        "inventories",
-        "IncreaseDecreaseInInventories",
-        "operating-timing-adjustment",
-        -1,
-    ),
-    LineSpec(
-        "other-current-and-non-current-assets",
-        "IncreaseDecreaseInOtherOperatingAssets",
-        "operating-timing-adjustment",
-        -1,
-    ),
-    LineSpec(
-        "accounts-payable",
-        "IncreaseDecreaseInAccountsPayable",
-        "operating-timing-adjustment",
-    ),
-    LineSpec(
-        "other-current-and-non-current-liabilities",
-        "IncreaseDecreaseInOtherOperatingLiabilities",
-        "operating-timing-adjustment",
-    ),
-    LineSpec(
-        "cash-generated-by-operating-activities",
-        "NetCashProvidedByUsedInOperatingActivities",
-        "final-total",
+    SectionSpec(
+        "financing",
+        (
+            LineSpec(
+                "taxes-related-to-net-share-settlement",
+                "PaymentsRelatedToTaxWithholdingForShareBasedCompensation",
+                "cash-outflow",
+                -1,
+            ),
+            LineSpec(
+                "dividends-and-dividend-equivalents",
+                "PaymentsOfDividends",
+                "cash-outflow",
+                -1,
+            ),
+            LineSpec(
+                "common-stock-repurchases",
+                "PaymentsForRepurchaseOfCommonStock",
+                "cash-outflow",
+                -1,
+            ),
+            LineSpec(
+                "term-debt-issuance-net",
+                "ProceedsFromIssuanceOfLongTermDebt",
+                "cash-inflow",
+            ),
+            LineSpec(
+                "term-debt-repayment",
+                "RepaymentsOfLongTermDebt",
+                "cash-outflow",
+                -1,
+            ),
+            LineSpec(
+                "commercial-paper-net",
+                "ProceedsFromRepaymentsOfCommercialPaper",
+                "signed-cash-flow",
+            ),
+            LineSpec(
+                "other-financing-activities",
+                "ProceedsFromPaymentsForOtherFinancingActivities",
+                "signed-cash-flow",
+            ),
+            LineSpec(
+                "cash-used-in-financing-activities",
+                "NetCashProvidedByUsedInFinancingActivities",
+                "section-total",
+            ),
+        ),
     ),
 )
+
+NET_CHANGE_SPEC = LineSpec(
+    "net-change-in-cash",
+    "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect",
+    "cash-change",
+)
+CASH_BALANCE_TAG = "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"
 
 
 @dataclass(frozen=True)
@@ -107,29 +215,48 @@ class NormalizedFact:
 def extract_cash_flow_statement(
     company_facts: dict[str, Any], *, cik: str, fiscal_year: int
 ) -> CashFlowStatement:
-    anchor_spec = LINE_SPECS[-1]
-    anchor_facts, _ = _facts_for_tag(company_facts, anchor_spec.taxonomy_tag)
+    operating_total_spec = SECTION_SPECS[0].lines[-1]
+    anchor_facts, _ = _facts_for_tag(company_facts, operating_total_spec.taxonomy_tag)
     anchor = _select_anchor(anchor_facts, fiscal_year=fiscal_year)
 
-    lines: list[CashFlowStatementLine] = []
-    for spec in LINE_SPECS:
-        raw_facts, taxonomy_label = _facts_for_tag(company_facts, spec.taxonomy_tag)
-        source_value = _value_for_context(
-            raw_facts,
+    sections = [
+        _extract_section(company_facts, section_spec, anchor.context)
+        for section_spec in SECTION_SPECS
+    ]
+    net_change = _extract_line(company_facts, NET_CHANGE_SPEC, anchor.context)
+    balance_facts, balance_label = _facts_for_tag(company_facts, CASH_BALANCE_TAG)
+    beginning_date = anchor.context.start_date - timedelta(days=1)
+    beginning_cash = CashBalanceFact(
+        id="beginning-cash",
+        taxonomyTag=CASH_BALANCE_TAG,
+        taxonomyLabel=balance_label,
+        value=_instant_value_for_context(
+            balance_facts,
             expected_context=anchor.context,
-            taxonomy_tag=spec.taxonomy_tag,
-        )
-        lines.append(
-            CashFlowStatementLine(
-                id=spec.id,
-                taxonomyTag=spec.taxonomy_tag,
-                taxonomyLabel=taxonomy_label,
-                value=source_value * spec.cash_effect_multiplier,
-                role=spec.role,
-            )
-        )
+            expected_date=beginning_date,
+            taxonomy_tag=CASH_BALANCE_TAG,
+        ),
+        asOfDate=beginning_date,
+    )
+    ending_cash = CashBalanceFact(
+        id="ending-cash",
+        taxonomyTag=CASH_BALANCE_TAG,
+        taxonomyLabel=balance_label,
+        value=_instant_value_for_context(
+            balance_facts,
+            expected_context=anchor.context,
+            expected_date=anchor.context.end_date,
+            taxonomy_tag=CASH_BALANCE_TAG,
+        ),
+        asOfDate=anchor.context.end_date,
+    )
+    cash_movement = CashMovement(
+        beginningCash=beginning_cash,
+        netChange=net_change,
+        endingCash=ending_cash,
+    )
+    _validate_statement(sections, cash_movement)
 
-    _validate_reconciliation(lines)
     return CashFlowStatement(
         fiscalYear=fiscal_year,
         startDate=anchor.context.start_date,
@@ -139,7 +266,39 @@ def extract_cash_flow_statement(
         filedAt=anchor.context.filed_at,
         accession=anchor.context.accession,
         sourceUrl=build_filing_index_url(cik, anchor.context.accession),
-        lines=lines,
+        sections=sections,
+        cashMovement=cash_movement,
+    )
+
+
+def _extract_section(
+    company_facts: dict[str, Any],
+    section_spec: SectionSpec,
+    context: FactContext,
+) -> CashFlowSection:
+    return CashFlowSection(
+        id=section_spec.id,
+        lines=[_extract_line(company_facts, spec, context) for spec in section_spec.lines],
+    )
+
+
+def _extract_line(
+    company_facts: dict[str, Any],
+    spec: LineSpec,
+    context: FactContext,
+) -> CashFlowStatementLine:
+    raw_facts, taxonomy_label = _facts_for_tag(company_facts, spec.taxonomy_tag)
+    source_value = _value_for_context(
+        raw_facts,
+        expected_context=context,
+        taxonomy_tag=spec.taxonomy_tag,
+    )
+    return CashFlowStatementLine(
+        id=spec.id,
+        taxonomyTag=spec.taxonomy_tag,
+        taxonomyLabel=taxonomy_label,
+        value=source_value * spec.cash_effect_multiplier,
+        role=spec.role,
     )
 
 
@@ -166,7 +325,7 @@ def _select_anchor(
 ) -> NormalizedFact:
     by_context: dict[FactContext, set[int]] = {}
     for raw in raw_facts:
-        candidate = _normalize_fact(raw)
+        candidate = _normalize_annual_fact(raw)
         if candidate is None or candidate.context.fiscal_year != fiscal_year:
             continue
         by_context.setdefault(candidate.context, set()).add(candidate.value)
@@ -180,7 +339,7 @@ def _select_anchor(
     ]
     if not candidates:
         raise CashFlowStatementUnavailableError(
-            f"No complete FY{fiscal_year} annual operating cash flow context was found."
+            f"No complete FY{fiscal_year} annual cash flow context was found."
         )
     return max(
         candidates,
@@ -202,12 +361,12 @@ def _value_for_context(
     values = {
         candidate.value
         for raw in raw_facts
-        if (candidate := _normalize_fact(raw)) is not None
+        if (candidate := _normalize_annual_fact(raw)) is not None
         and candidate.context == expected_context
     }
     if not values:
         raise CashFlowStatementUnavailableError(
-            f"{taxonomy_tag} does not match the selected operating cash flow filing context."
+            f"{taxonomy_tag} does not match the selected cash flow filing context."
         )
     if len(values) > 1:
         raise CashFlowStatementUnavailableError(
@@ -216,7 +375,51 @@ def _value_for_context(
     return next(iter(values))
 
 
-def _normalize_fact(raw: dict[str, Any]) -> NormalizedFact | None:
+def _instant_value_for_context(
+    raw_facts: list[dict[str, Any]],
+    *,
+    expected_context: FactContext,
+    expected_date: date,
+    taxonomy_tag: str,
+) -> int:
+    values: set[int] = set()
+    for raw in raw_facts:
+        if (
+            raw.get("form") not in ANNUAL_FORMS
+            or raw.get("fp") != "FY"
+            or raw.get("accn") != expected_context.accession
+            or raw.get("form") != expected_context.form
+            or raw.get("filed") != expected_context.filed_at.isoformat()
+        ):
+            continue
+        try:
+            fiscal_year = int(raw["fy"])
+            fact_date = date.fromisoformat(raw["end"])
+            value = raw["val"]
+        except (KeyError, TypeError, ValueError):
+            continue
+        if (
+            fiscal_year != expected_context.fiscal_year
+            or fact_date != expected_date
+            or isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+        ):
+            continue
+        values.add(round(value))
+
+    if not values:
+        raise CashFlowStatementUnavailableError(
+            f"{taxonomy_tag} does not match the selected cash flow filing context."
+        )
+    if len(values) > 1:
+        raise CashFlowStatementUnavailableError(
+            f"{taxonomy_tag} contains conflicting values for the selected SEC context."
+        )
+    return next(iter(values))
+
+
+def _normalize_annual_fact(raw: dict[str, Any]) -> NormalizedFact | None:
     if raw.get("form") not in ANNUAL_FORMS or raw.get("fp") != "FY":
         return None
     try:
@@ -240,8 +443,23 @@ def _normalize_fact(raw: dict[str, Any]) -> NormalizedFact | None:
     return NormalizedFact(context=context, value=round(value))
 
 
-def _validate_reconciliation(lines: list[CashFlowStatementLine]) -> None:
-    if sum(line.value for line in lines[:-1]) != lines[-1].value:
+def _validate_statement(
+    sections: list[CashFlowSection], cash_movement: CashMovement
+) -> None:
+    for section in sections:
+        if sum(line.value for line in section.lines[:-1]) != section.lines[-1].value:
+            raise CashFlowStatementUnavailableError(
+                f"{section.id.title()} section lines must reconcile exactly to the reported total."
+            )
+
+    if sum(section.lines[-1].value for section in sections) != cash_movement.net_change.value:
         raise CashFlowStatementUnavailableError(
-            "Operating cash flow adjustments must reconcile exactly to the reported total."
+            "Cash flow activity totals must reconcile exactly to the reported net change in cash."
+        )
+    if (
+        cash_movement.beginning_cash.value + cash_movement.net_change.value
+        != cash_movement.ending_cash.value
+    ):
+        raise CashFlowStatementUnavailableError(
+            "Reported beginning cash plus net change must reconcile exactly to ending cash."
         )

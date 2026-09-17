@@ -314,6 +314,73 @@
       "NetCashProvidedByUsedInOperatingActivities": {
         "label": "Net Cash Provided by (Used in) Operating Activities",
         "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 111482000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "PaymentsToAcquireAvailableForSaleSecuritiesDebt": {
+        "label": "Payments to Acquire Debt Securities, Available-for-sale",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 24407000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "ProceedsFromMaturitiesPrepaymentsAndCallsOfAvailableForSaleSecurities": {
+        "label": "Proceeds from Maturities, Prepayments and Calls of Debt Securities, Available-for-sale",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 40907000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "ProceedsFromSaleOfAvailableForSaleSecuritiesDebt": {
+        "label": "Proceeds from Sale of Debt Securities, Available-for-sale",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 12890000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "PaymentsToAcquirePropertyPlantAndEquipment": {
+        "label": "Payments to Acquire Property, Plant, and Equipment",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 12715000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "PaymentsForProceedsFromOtherInvestingActivities": {
+        "label": "Payments for (Proceeds from) Other Investing Activities",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 1480000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "NetCashProvidedByUsedInInvestingActivities": {
+        "label": "Net Cash Provided by (Used in) Investing Activities",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 15195000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "PaymentsRelatedToTaxWithholdingForShareBasedCompensation": {
+        "label": "Payment, Tax Withholding, Share-based Payment Arrangement",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 5960000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "PaymentsOfDividends": {
+        "label": "Payments of Dividends",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 15421000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "PaymentsForRepurchaseOfCommonStock": {
+        "label": "Payments for Repurchase of Common Stock",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 90711000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "ProceedsFromIssuanceOfLongTermDebt": {
+        "label": "Proceeds from Issuance of Long-term Debt",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 4481000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "RepaymentsOfLongTermDebt": {
+        "label": "Repayments of Long-term Debt",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 10932000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "ProceedsFromRepaymentsOfCommercialPaper": {
+        "label": "Proceeds from (Repayments of) Commercial Paper",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": -2032000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "ProceedsFromPaymentsForOtherFinancingActivities": {
+        "label": "Proceeds from (Payments for) Other Financing Activities",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": -111000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "NetCashProvidedByUsedInFinancingActivities": {
+        "label": "Net Cash Provided by (Used in) Financing Activities",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": -120686000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect": {
+        "label": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents, Period Increase (Decrease), Including Exchange Rate Effect",
+        "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 5991000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}
+      },
+      "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents": {
+        "label": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents",
+        "units": {"USD": [
+          {"end": "2024-09-28", "val": 29943000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"},
+          {"end": "2025-09-27", "val": 35934000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
       }
     }
   }

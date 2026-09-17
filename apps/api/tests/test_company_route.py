@@ -91,19 +91,38 @@ def test_aapl_cash_flow_statement_http_contract_from_offline_sec_fixture() -> No
         "https://www.sec.gov/Archives/edgar/data/320193/"
         "000032019325000079/0000320193-25-000079-index.htm"
     )
-    assert [line["value"] for line in payload["statement"]["lines"]] == [
-        112_010_000_000,
-        11_698_000_000,
-        12_863_000_000,
-        -89_000_000,
-        -6_682_000_000,
-        -347_000_000,
-        1_400_000_000,
-        -9_197_000_000,
-        902_000_000,
-        -11_076_000_000,
-        111_482_000_000,
+    assert [section["id"] for section in payload["statement"]["sections"]] == [
+        "operating",
+        "investing",
+        "financing",
     ]
+    assert [
+        section["lines"][-1]["value"]
+        for section in payload["statement"]["sections"]
+    ] == [111_482_000_000, 15_195_000_000, -120_686_000_000]
+    assert payload["statement"]["cashMovement"] == {
+        "beginningCash": {
+            "id": "beginning-cash",
+            "taxonomyTag": "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+            "taxonomyLabel": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents",
+            "value": 29_943_000_000,
+            "asOfDate": "2024-09-28",
+        },
+        "netChange": {
+            "id": "net-change-in-cash",
+            "taxonomyTag": "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect",
+            "taxonomyLabel": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents, Period Increase (Decrease), Including Exchange Rate Effect",
+            "value": 5_991_000_000,
+            "role": "cash-change",
+        },
+        "endingCash": {
+            "id": "ending-cash",
+            "taxonomyTag": "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+            "taxonomyLabel": "Cash, Cash Equivalents, Restricted Cash and Restricted Cash Equivalents",
+            "value": 35_934_000_000,
+            "asOfDate": "2025-09-27",
+        },
+    }
     assert payload["dataStatus"] == {
         "state": "cached",
         "retrievedAt": "2026-08-19T00:00:00Z",
