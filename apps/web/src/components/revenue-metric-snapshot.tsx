@@ -1,7 +1,7 @@
 import { EvidenceInspector } from "@/components/evidence-inspector";
-import type { AppleRevenueData } from "@/lib/apple-revenue-data";
+import type { CompanyRevenueData } from "@/lib/company-revenue-data";
 
-type RevenueMetricSnapshotProps = AppleRevenueData & {
+type RevenueMetricSnapshotProps = CompanyRevenueData & {
   headingId: string;
 };
 

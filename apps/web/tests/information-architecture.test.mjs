@@ -42,8 +42,8 @@ test("lesson shell expresses Learn hierarchy, ordered navigation, and Explore cr
   assert.match(shell, /Lesson \{lesson\.number\} of \{lessonCatalog\.length\}/);
   assert.match(sequence, /Previous lesson/);
   assert.match(sequence, /Next lesson/);
-  assert.match(sequence, /href="\/company\/aapl"/);
-  assert.match(sequence, /Explore Apple/);
+  assert.match(sequence, /selectedCompany\?\.slug \?\? "aapl"/);
+  assert.match(sequence, /Explore \{selectedCompany\?\.ticker \?\? "AAPL"\}/);
   assert.match(sequence, /More concepts coming/);
   assert.doesNotMatch(sequence, /Balance Sheet|EPS|P\/E/);
 
@@ -72,6 +72,7 @@ test("previous and next lesson ordering follows the approved seven-concept seque
 });
 
 test("former company lesson routes permanently redirect to canonical Learn routes", async () => {
+  const config = await readFile(new URL("../next.config.ts", import.meta.url), "utf8");
   const redirects = [
     ["profit", "profit"],
     ["profit-margin", "net-profit-margin"],
@@ -79,21 +80,19 @@ test("former company lesson routes permanently redirect to canonical Learn route
   ];
 
   for (const [oldSlug, newSlug] of redirects) {
-    const page = await readSource(`app/company/aapl/${oldSlug}/page.tsx`);
-    assert.match(page, /permanentRedirect/);
-    assert.match(page, new RegExp(`/learn/company-analysis/${newSlug}`));
-    assert.doesNotMatch(page, /getCompany|LearningJourney|LearningShell/);
+    assert.match(config, new RegExp(`/company/aapl/${oldSlug}`));
+    assert.match(config, new RegExp(`/learn/company-analysis/${newSlug}`));
   }
 });
 
 test("Explore remains company research and provides deliberate Learn links", async () => {
-  const company = await readSource("app/company/aapl/page.tsx");
+  const company = await readSource("app/company/[ticker]/page.tsx");
 
   assert.match(company, /Home/);
   assert.match(company, /Explore/);
   assert.match(company, /Company research/);
-  assert.match(company, /href="\/learn\/company-analysis\/revenue"/);
-  assert.match(company, /href="\/learn\/company-analysis\/revenue-growth"/);
+  assert.match(company, /\/learn\/company-analysis\/revenue\$\{selectedQuery\}/);
+  assert.match(company, /\/learn\/company-analysis\/revenue-growth\$\{selectedQuery\}/);
   assert.doesNotMatch(company, /LearningUpNext/);
   assert.doesNotMatch(company, /id="revenue-growth"/);
 });
@@ -102,6 +101,7 @@ test("desktop and mobile navigation share semantic route identity", async () => 
   const navigation = await readSource("components/app-navigation.tsx");
 
   assert.match(navigation, /pathname\.startsWith\("\/learn"\)/);
+  assert.match(navigation, /pathname === "\/explore"/);
   assert.match(navigation, /pathname\.startsWith\("\/company\/"\)/);
   assert.match(navigation, /variant: "desktop" \| "mobile"/);
   assert.match(navigation, /aria-current=\{isCurrent \? "page"/);

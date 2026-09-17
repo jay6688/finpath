@@ -7,6 +7,7 @@ import {
   type CompanyIncomeStatement,
   type CompanyOverview,
   type IncomeStatementLineId,
+  type SupportedCompany,
 } from "@/lib/api";
 import {
   buildReportedEvidence,
@@ -17,7 +18,8 @@ import {
 import { orderRevenueSeries } from "@/lib/history-insight";
 import { validateProfitStatementForLesson } from "@/lib/profit-learning";
 
-export type AppleRevenueData = {
+export type CompanyRevenueData = {
+  company: SupportedCompany;
   dataError: string | null;
   latest: AnnualFinancialFact | null;
   overview: CompanyOverview | null;
@@ -25,41 +27,49 @@ export type AppleRevenueData = {
   reviewedRevenue: ReviewedPresentation | null;
 };
 
-const reviewedLabels = Object.fromEntries(
+const appleReviewedLabels = Object.fromEntries(
   Object.entries(profitContent.lines).map(([id, line]) => [id, line.reportedLabel]),
 ) as Partial<Record<IncomeStatementLineId, string>>;
 
-export async function getAppleRevenueData(): Promise<AppleRevenueData> {
+export async function getCompanyRevenueData(
+  company: SupportedCompany,
+): Promise<CompanyRevenueData> {
   let overview: CompanyOverview | null = null;
   let incomeStatement: CompanyIncomeStatement | null = null;
   let dataError: string | null = null;
 
-  const [overviewResult, statementResult] = await Promise.allSettled([
-    getCompanyOverview("AAPL"),
-    getCompanyIncomeStatement(profitContent.ticker, profitContent.fiscalYear),
+  const overviewResult = await Promise.allSettled([
+    getCompanyOverview(company.ticker),
   ]);
-
-  if (overviewResult.status === "fulfilled") {
+  const selectedOverview = overviewResult[0];
+  if (selectedOverview.status === "fulfilled") {
     overview = {
-      ...overviewResult.value,
-      series: orderRevenueSeries(overviewResult.value.series),
+      ...selectedOverview.value,
+      series: orderRevenueSeries(selectedOverview.value.series),
     };
   } else {
     dataError =
-      overviewResult.reason instanceof FinPathApiError
-        ? overviewResult.reason.message
+      selectedOverview.reason instanceof FinPathApiError
+        ? selectedOverview.reason.message
         : "The FinPath API is not available. Start FastAPI and try again.";
   }
 
-  if (statementResult.status === "fulfilled") {
+  // Apple is the only company whose filing presentation copy is currently
+  // reviewed in the Web layer. Other companies retain exact SEC fact evidence
+  // without borrowing Apple's labels or statement context.
+  if (company.ticker === "AAPL") {
     try {
-      validateProfitStatementForLesson(statementResult.value.statement, {
+      const statement = await getCompanyIncomeStatement(
+        company.ticker,
+        company.reviewedFiscalYear,
+      );
+      validateProfitStatementForLesson(statement.statement, {
         fiscalYear: profitContent.fiscalYear,
         accession: profitContent.accession,
       });
-      incomeStatement = statementResult.value;
+      incomeStatement = statement;
     } catch {
-      // Revenue remains usable; reviewed statement context must degrade quietly.
+      // Revenue remains usable; reviewed statement context degrades honestly.
     }
   }
 
@@ -78,7 +88,7 @@ export async function getAppleRevenueData(): Promise<AppleRevenueData> {
         filedAt: profitContent.filedAt,
         accession: profitContent.accession,
         statementName: profitContent.verification.statementName,
-        labels: reviewedLabels,
+        labels: appleReviewedLabels,
       },
       lineId: "total-net-sales",
       contextLineIds: ["total-net-sales", "total-cost-of-sales", "gross-margin"],
@@ -101,5 +111,12 @@ export async function getAppleRevenueData(): Promise<AppleRevenueData> {
     }
   }
 
-  return { dataError, latest, overview, revenueEvidence, reviewedRevenue };
+  return {
+    company,
+    dataError,
+    latest,
+    overview,
+    revenueEvidence,
+    reviewedRevenue,
+  };
 }

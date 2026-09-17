@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useLearningProgress } from "@/components/learning-progress-provider";
+import type { SupportedCompany } from "@/lib/api";
 import {
   getAdjacentLessons,
   type ConceptId,
@@ -11,20 +12,27 @@ import {
 type LessonSequenceNavigationProps = {
   completeCurrentOnNext?: boolean;
   currentConceptId: ConceptId;
+  selectedCompany?: Pick<SupportedCompany, "name" | "slug" | "ticker">;
 };
 
 export function LessonSequenceNavigation({
   completeCurrentOnNext = false,
   currentConceptId,
+  selectedCompany,
 }: LessonSequenceNavigationProps) {
   const { markExplored } = useLearningProgress();
   const { previous, next } = getAdjacentLessons(currentConceptId);
+  const companyQuery = selectedCompany ? `?company=${selectedCompany.slug}` : "";
+  const previousHref =
+    previous?.id === "revenue" ? `${previous.href}${companyQuery}` : previous?.href;
+  const nextHref =
+    next?.id === "revenue-growth" ? `${next.href}${companyQuery}` : next?.href;
 
   return (
     <footer className="lesson-sequence">
       <nav aria-label="Lesson sequence">
         {previous ? (
-          <Link className="lesson-sequence__previous" href={previous.href}>
+          <Link className="lesson-sequence__previous" href={previousHref ?? previous.href}>
             <span>Previous lesson</span>
             <strong>← {previous.title}</strong>
           </Link>
@@ -35,7 +43,7 @@ export function LessonSequenceNavigation({
         {next ? (
           <Link
             className="lesson-sequence__next"
-            href={next.href}
+            href={nextHref ?? next.href}
             onClick={() => {
               if (completeCurrentOnNext) markExplored([currentConceptId]);
             }}
@@ -54,9 +62,13 @@ export function LessonSequenceNavigation({
       <div className="lesson-explore-link">
         <div>
           <span>Explore this company</span>
-          <strong>Inspect Apple’s real financial record.</strong>
+          <strong>
+            Inspect {selectedCompany?.name ?? "Apple Inc."}&apos;s real financial record.
+          </strong>
         </div>
-        <Link href="/company/aapl">Explore Apple →</Link>
+        <Link href={`/company/${selectedCompany?.slug ?? "aapl"}`}>
+          Explore {selectedCompany?.ticker ?? "AAPL"} →
+        </Link>
       </div>
     </footer>
   );

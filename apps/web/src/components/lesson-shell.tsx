@@ -7,12 +7,15 @@ import {
   lessonCatalog,
   type ConceptId,
 } from "@/lib/lesson-catalog";
+import type { SupportedCompany } from "@/lib/api";
 
 type LessonShellProps = {
   children: ReactNode;
   completeCurrentOnNext?: boolean;
   conceptId: ConceptId;
   example: string;
+  exampleSelector?: ReactNode;
+  selectedCompany?: Pick<SupportedCompany, "name" | "slug" | "ticker">;
 };
 
 export function LessonShell({
@@ -20,6 +23,8 @@ export function LessonShell({
   completeCurrentOnNext = false,
   conceptId,
   example,
+  exampleSelector,
+  selectedCompany,
 }: LessonShellProps) {
   const lesson = getLesson(conceptId);
 
@@ -46,6 +51,7 @@ export function LessonShell({
         <p className="lesson-context-header__example">
           <span>Real example</span>
           <strong>{example}</strong>
+          {exampleSelector}
         </p>
       </header>
 
@@ -54,6 +60,7 @@ export function LessonShell({
       <LessonSequenceNavigation
         completeCurrentOnNext={completeCurrentOnNext}
         currentConceptId={conceptId}
+        selectedCompany={selectedCompany}
       />
     </div>
   );

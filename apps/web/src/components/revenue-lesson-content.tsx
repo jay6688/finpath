@@ -1,8 +1,8 @@
 import { RevenueMetricSnapshot } from "@/components/revenue-metric-snapshot";
 import revenueConcept from "@/content/concepts/revenue.json";
-import type { AppleRevenueData } from "@/lib/apple-revenue-data";
+import type { CompanyRevenueData } from "@/lib/company-revenue-data";
 
-export function RevenueLessonContent(props: AppleRevenueData) {
+export function RevenueLessonContent(props: CompanyRevenueData) {
   const english = revenueConcept.locales.en;
 
   return (

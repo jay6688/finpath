@@ -11,9 +11,10 @@ const destinations = [
     matches: (pathname: string) => pathname.startsWith("/learn"),
   },
   {
-    href: "/company/aapl",
+    href: "/explore",
     label: "Explore",
-    matches: (pathname: string) => pathname.startsWith("/company/"),
+    matches: (pathname: string) =>
+      pathname === "/explore" || pathname.startsWith("/company/"),
   },
 ];
 

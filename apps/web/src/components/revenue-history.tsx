@@ -17,7 +17,7 @@ export function RevenueHistory({
 }: RevenueHistoryProps) {
   const { company, dataStatus, metric } = overview;
   const orderedSeries = orderRevenueSeries(overview.series);
-  const hasReviewedContext = buildRevenueGrowthRows(orderedSeries).some(
+  const hasReviewedContext = company.ticker === "AAPL" && buildRevenueGrowthRows(orderedSeries).some(
     (row) =>
       row.state === "available" &&
       row.current.fiscalYear === contextContent.selectedFiscalYear &&
@@ -31,7 +31,11 @@ export function RevenueHistory({
         company={company}
         currency={metric.currency}
         dataStatus={dataStatus}
-        defaultFiscalYear={contextContent.selectedFiscalYear}
+        defaultFiscalYear={
+          company.ticker === "AAPL"
+            ? contextContent.selectedFiscalYear
+            : (orderedSeries.at(-1)?.fiscalYear ?? 0)
+        }
         reviewedPresentation={reviewedPresentation}
         series={orderedSeries}
         taxonomyTag={metric.taxonomyTag}

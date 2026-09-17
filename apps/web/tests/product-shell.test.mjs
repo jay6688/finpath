@@ -27,7 +27,7 @@ test("Home presents the approved hybrid path without fake destinations", async (
 });
 
 test("Company research keeps provenance and mobile-native exact records", async () => {
-  const company = await readSource("app/company/aapl/page.tsx");
+  const company = await readSource("app/company/[ticker]/page.tsx");
   const snapshot = await readSource("components/revenue-metric-snapshot.tsx");
   const exactRecords = await readSource("components/revenue-exact-records.tsx");
 

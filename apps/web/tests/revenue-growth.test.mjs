@@ -158,7 +158,7 @@ test("the component source keeps calculation, uncertainty, interaction, and exac
     readFile(new URL("../src/lib/evidence.ts", import.meta.url), "utf8"),
     readFile(new URL("../src/components/revenue-history.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/revenue-exact-records.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../src/lib/apple-revenue-data.ts", import.meta.url), "utf8"),
+    readFile(new URL("../src/lib/company-revenue-data.ts", import.meta.url), "utf8"),
   ]);
 
   assert.match(explorer, /Year-over-year \(YoY\) Revenue Growth is the percentage change/);

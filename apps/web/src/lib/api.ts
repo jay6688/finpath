@@ -30,6 +30,20 @@ export type CompanyOverview = {
   };
 };
 
+export type SupportedCompany = {
+  slug: string;
+  ticker: string;
+  name: string;
+  cik: string;
+  reviewedFiscalYear: number;
+  capabilities: {
+    revenue: boolean;
+    revenueGrowth: boolean;
+    incomeStatement: boolean;
+    cashFlow: boolean;
+  };
+};
+
 export type IncomeStatementLineId =
   | "total-net-sales"
   | "total-cost-of-sales"
@@ -156,10 +170,31 @@ export type CompanyCashFlowStatement = {
 };
 
 export class FinPathApiError extends Error {
-  constructor(message: string) {
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
     super(message);
     this.name = "FinPathApiError";
+    this.status = status;
   }
+}
+
+export async function getSupportedCompanies(): Promise<SupportedCompany[]> {
+  const apiBaseUrl = getApiBaseUrl();
+  const response = await fetch(`${apiBaseUrl}/v1/companies`, { cache: "no-store" });
+
+  if (!response.ok) {
+    throw new FinPathApiError(
+      `FinPath API returned ${response.status}.`,
+      response.status,
+    );
+  }
+
+  const payload = (await response.json()) as { companies?: SupportedCompany[] };
+  if (!Array.isArray(payload.companies)) {
+    throw new FinPathApiError("FinPath API returned an invalid company registry.");
+  }
+  return payload.companies;
 }
 
 function getApiBaseUrl(): string {
@@ -204,7 +239,7 @@ export async function getCompanyOverview(ticker: string): Promise<CompanyOvervie
     } catch {
       // Keep the status-based message when an upstream proxy returns non-JSON.
     }
-    throw new FinPathApiError(detail);
+    throw new FinPathApiError(detail, response.status);
   }
 
   return (await response.json()) as CompanyOverview;
@@ -228,7 +263,7 @@ export async function getCompanyIncomeStatement(
     } catch {
       // Keep the status-based message when an upstream proxy returns non-JSON.
     }
-    throw new FinPathApiError(detail);
+    throw new FinPathApiError(detail, response.status);
   }
 
   return (await response.json()) as CompanyIncomeStatement;
@@ -252,7 +287,7 @@ export async function getCompanyCashFlowStatement(
     } catch {
       // Keep the status-based message when an upstream proxy returns non-JSON.
     }
-    throw new FinPathApiError(detail);
+    throw new FinPathApiError(detail, response.status);
   }
 
   return (await response.json()) as CompanyCashFlowStatement;

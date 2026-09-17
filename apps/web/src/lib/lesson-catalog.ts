@@ -3,7 +3,7 @@ export const lessonCatalog = [
     id: "revenue",
     number: 1,
     title: "Revenue",
-    shortGoal: "Understand Apple’s top line before costs and expenses.",
+    shortGoal: "Understand a company’s top line before costs and expenses.",
     href: "/learn/company-analysis/revenue",
   },
   {
