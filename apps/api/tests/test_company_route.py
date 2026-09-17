@@ -35,6 +35,60 @@ def test_aapl_overview_http_contract_from_offline_sec_fixture() -> None:
     }
 
 
+def test_supported_company_list_is_a_stable_non_financial_contract() -> None:
+    response = asyncio.run(_request("/v1/companies"))
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert [company["ticker"] for company in payload["companies"]] == [
+        "AAPL",
+        "MSFT",
+        "WMT",
+    ]
+    assert payload["companies"][1]["capabilities"] == {
+        "revenue": True,
+        "revenueGrowth": True,
+        "incomeStatement": True,
+        "cashFlow": False,
+    }
+    assert "value" not in str(payload)
+
+
+def test_microsoft_and_walmart_overview_contracts_preserve_exact_provenance() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        microsoft = asyncio.run(_request("/v1/companies/MSFT/overview"))
+        walmart = asyncio.run(_request("/v1/companies/WMT/overview"))
+    finally:
+        app.dependency_overrides.clear()
+
+    assert microsoft.status_code == 200
+    assert microsoft.json()["series"][-1]["sourceUrl"].endswith(
+        "/000119312526323660/0001193125-26-323660-index.htm"
+    )
+    assert walmart.status_code == 200
+    assert walmart.json()["metric"]["taxonomyTag"] == "Revenues"
+    assert walmart.json()["series"][-1]["value"] == 713_163_000_000
+    assert walmart.json()["series"][-1]["sourceUrl"].endswith(
+        "/000010416926000055/0000104169-26-000055-index.htm"
+    )
+
+
+def test_unreviewed_company_is_not_exposed_as_arbitrary_search() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        response = asyncio.run(_request("/v1/companies/NVDA/overview"))
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 404
+    assert "not a reviewed FinPath company" in response.json()["detail"]
+
+
 def test_aapl_income_statement_http_contract_from_offline_sec_fixture() -> None:
     app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
         FixtureSecDataSource()
@@ -130,12 +184,16 @@ def test_aapl_cash_flow_statement_http_contract_from_offline_sec_fixture() -> No
 
 
 async def _request_aapl_overview() -> httpx.Response:
+    return await _request("/v1/companies/AAPL/overview")
+
+
+async def _request(path: str) -> httpx.Response:
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(
         transport=transport,
         base_url="http://finpath.test",
     ) as client:
-        return await client.get("/v1/companies/AAPL/overview")
+        return await client.get(path)
 
 
 async def _request_aapl_income_statement() -> httpx.Response:

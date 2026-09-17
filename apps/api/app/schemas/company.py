@@ -28,6 +28,26 @@ class CompanyIdentity(ApiModel):
         return normalized
 
 
+class CompanyCapabilities(ApiModel):
+    revenue: bool
+    revenue_growth: bool = Field(alias="revenueGrowth")
+    income_statement: bool = Field(alias="incomeStatement")
+    cash_flow: bool = Field(alias="cashFlow")
+
+
+class SupportedCompanySummary(ApiModel):
+    slug: str
+    ticker: str
+    name: str
+    cik: str
+    reviewed_fiscal_year: int = Field(alias="reviewedFiscalYear")
+    capabilities: CompanyCapabilities
+
+
+class SupportedCompaniesResponse(ApiModel):
+    companies: list[SupportedCompanySummary]
+
+
 class MetricMetadata(ApiModel):
     id: Literal["revenue"]
     label: Literal["Revenue"]

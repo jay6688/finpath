@@ -28,7 +28,10 @@ class LineSpec:
     role: IncomeStatementLineRole
 
 
-LINE_SPECS = (
+# These semantic lines are shared only by filings that were reviewed and found
+# to use the same taxonomy/reconciliation shape. The profile key below, not the
+# tuple itself, decides whether a company is supported.
+NINE_LINE_SPECS = (
     LineSpec(
         id="total-net-sales",
         taxonomy_tag="RevenueFromContractWithCustomerExcludingAssessedTax",
@@ -80,6 +83,12 @@ LINE_SPECS = (
 )
 
 
+INCOME_STATEMENT_SPECS = {
+    ("0000320193", 2025): NINE_LINE_SPECS,
+    ("0000789019", 2026): NINE_LINE_SPECS,
+}
+
+
 @dataclass(frozen=True)
 class FactContext:
     fiscal_year: int
@@ -102,12 +111,13 @@ def extract_income_statement(
     cik: str,
     fiscal_year: int,
 ) -> IncomeStatement:
-    anchor_spec = LINE_SPECS[0]
+    line_specs = _line_specs_for(cik=cik, fiscal_year=fiscal_year)
+    anchor_spec = line_specs[0]
     anchor_facts, _ = _facts_for_tag(company_facts, anchor_spec.taxonomy_tag)
     anchor = _select_anchor(anchor_facts, fiscal_year=fiscal_year)
 
     lines: list[IncomeStatementLine] = []
-    for spec in LINE_SPECS:
+    for spec in line_specs:
         raw_facts, taxonomy_label = _facts_for_tag(
             company_facts,
             spec.taxonomy_tag,
@@ -140,6 +150,17 @@ def extract_income_statement(
         sourceUrl=build_filing_index_url(cik, anchor.context.accession),
         lines=lines,
     )
+
+
+def _line_specs_for(*, cik: str, fiscal_year: int) -> tuple[LineSpec, ...]:
+    normalized_cik = cik.zfill(10)
+    try:
+        return INCOME_STATEMENT_SPECS[(normalized_cik, fiscal_year)]
+    except KeyError:
+        raise IncomeStatementUnavailableError(
+            "Income statement profile for "
+            f"CIK {normalized_cik} FY{fiscal_year} is unavailable."
+        ) from None
 
 
 def _facts_for_tag(

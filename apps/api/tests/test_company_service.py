@@ -1,6 +1,7 @@
 import asyncio
 
 from app.domain.company_service import CompanyOverviewService, find_company
+from app.domain.income_statement import IncomeStatementUnavailableError
 from tests.fixture_loader import FixtureSecDataSource, load_sec_fixture
 
 
@@ -63,3 +64,38 @@ def test_fixture_pipeline_produces_serializable_aapl_cash_flow_statement() -> No
         "value": 111_482_000_000,
         "role": "final-total",
     }
+
+
+def test_fixture_pipeline_returns_reviewed_microsoft_and_walmart_revenue() -> None:
+    service = CompanyOverviewService(FixtureSecDataSource())
+
+    microsoft = asyncio.run(service.get_overview("msft"))
+    walmart = asyncio.run(service.get_overview("wmt"))
+
+    assert microsoft.company.name == "Microsoft Corporation"
+    assert microsoft.series[-1].value == 331_839_000_000
+    assert microsoft.series[-1].accession == "0001193125-26-323660"
+    assert walmart.company.name == "Walmart Inc."
+    assert walmart.metric.taxonomy_tag == "Revenues"
+    assert walmart.series[-1].value == 713_163_000_000
+
+
+def test_microsoft_income_statement_uses_an_explicit_reviewed_profile() -> None:
+    service = CompanyOverviewService(FixtureSecDataSource())
+
+    response = asyncio.run(service.get_income_statement("MSFT", 2026))
+
+    assert response.statement.accession == "0001193125-26-323660"
+    assert response.statement.lines[0].value == 331_839_000_000
+    assert response.statement.lines[-1].value == 133_749_000_000
+
+
+def test_walmart_income_statement_fails_as_unreviewed() -> None:
+    service = CompanyOverviewService(FixtureSecDataSource())
+
+    try:
+        asyncio.run(service.get_income_statement("WMT", 2026))
+    except IncomeStatementUnavailableError as error:
+        assert "profile" in str(error).lower()
+    else:
+        raise AssertionError("Walmart must not inherit Apple income-statement rules")

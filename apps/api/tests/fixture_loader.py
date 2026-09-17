@@ -25,9 +25,14 @@ class FixtureSecDataSource:
         )
 
     async def get_company_facts(self, cik: str) -> SecPayload:
-        assert cik == "0000320193"
+        fixtures = {
+            "0000320193": "aapl_companyfacts.json",
+            "0000789019": "msft_companyfacts.json",
+            "0000104169": "wmt_companyfacts.json",
+        }
+        assert cik in fixtures
         return SecPayload(
-            payload=load_sec_fixture("aapl_companyfacts.json"),
+            payload=load_sec_fixture(fixtures[cik]),
             state=DataState.CACHED,
             retrieved_at=FIXED_RETRIEVED_AT,
         )

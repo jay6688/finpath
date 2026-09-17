@@ -3,14 +3,10 @@ from datetime import date
 from typing import Any
 
 from app.schemas.company import AnnualFinancialFact
+from app.domain.company_registry import RevenueProfile
 from app.services.sec.provenance import build_filing_index_url
 
 
-REVENUE_TAGS = (
-    "RevenueFromContractWithCustomerExcludingAssessedTax",
-    "Revenues",
-    "SalesRevenueNet",
-)
 ANNUAL_FORMS = {"10-K", "10-K/A"}
 MIN_ANNUAL_DAYS = 300
 MAX_ANNUAL_DAYS = 430
@@ -30,19 +26,37 @@ def extract_annual_revenue(
     company_facts: dict[str, Any],
     *,
     cik: str,
+    profile: RevenueProfile,
     years: int = 5,
 ) -> RevenueSeries:
-    for taxonomy_tag in REVENUE_TAGS:
-        raw_facts = _facts_for_tag(company_facts, taxonomy_tag)
-        normalized = _normalize_facts(raw_facts, cik=cik)
-        if normalized:
-            return RevenueSeries(
-                taxonomy_tag=taxonomy_tag,
-                facts=normalized[-years:],
-            )
+    if cik.zfill(10) == "0000000000":
+        raise RevenueUnavailableError("Revenue profile has an invalid CIK context.")
+
+    raw_facts = _facts_for_tag(company_facts, profile.taxonomy_tag)
+    normalized = _normalize_facts(raw_facts, cik=cik)
+    selected = normalized[-years:]
+    if selected and _matches_reviewed_profile(selected[-1], profile):
+        return RevenueSeries(
+            taxonomy_tag=profile.taxonomy_tag,
+            facts=selected,
+        )
 
     raise RevenueUnavailableError(
-        "No supported annual USD Revenue facts were found for this company."
+        "The reviewed annual USD Revenue record is unavailable for this company."
+    )
+
+
+def _matches_reviewed_profile(
+    fact: AnnualFinancialFact,
+    profile: RevenueProfile,
+) -> bool:
+    return (
+        fact.fiscal_year == profile.fiscal_year
+        and fact.start_date == profile.start_date
+        and fact.end_date == profile.end_date
+        and fact.form == profile.form
+        and fact.filed_at == profile.filed_at
+        and fact.accession == profile.accession
     )
 
 

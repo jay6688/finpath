@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_company_service
 from app.domain.cash_flow_statement import CashFlowStatementUnavailableError
+from app.domain.company_registry import list_supported_companies
 from app.domain.company_service import CompanyNotFoundError, CompanyOverviewService
 from app.domain.income_statement import IncomeStatementUnavailableError
 from app.domain.revenue import RevenueUnavailableError
@@ -9,11 +10,36 @@ from app.schemas.company import (
     CompanyCashFlowStatementResponse,
     CompanyIncomeStatementResponse,
     CompanyOverviewResponse,
+    CompanyCapabilities,
+    SupportedCompaniesResponse,
+    SupportedCompanySummary,
 )
 from app.services.sec.client import SecConfigurationError, SecUpstreamError
 
 
 router = APIRouter(prefix="/v1/companies", tags=["companies"])
+
+
+@router.get("", response_model=SupportedCompaniesResponse)
+async def supported_companies() -> SupportedCompaniesResponse:
+    return SupportedCompaniesResponse(
+        companies=[
+            SupportedCompanySummary(
+                slug=company.slug,
+                ticker=company.ticker,
+                name=company.display_name,
+                cik=company.cik,
+                reviewedFiscalYear=company.reviewed_fiscal_year,
+                capabilities=CompanyCapabilities(
+                    revenue=company.capabilities.revenue,
+                    revenueGrowth=company.capabilities.revenue_growth,
+                    incomeStatement=company.capabilities.income_statement,
+                    cashFlow=company.capabilities.cash_flow,
+                ),
+            )
+            for company in list_supported_companies()
+        ]
+    )
 
 
 @router.get("/{ticker}/overview", response_model=CompanyOverviewResponse)

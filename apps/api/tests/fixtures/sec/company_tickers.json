@@ -8,5 +8,10 @@
     "cik_str": 789019,
     "ticker": "MSFT",
     "title": "Microsoft Corporation"
+  },
+  "2": {
+    "cik_str": 104169,
+    "ticker": "WMT",
+    "title": "Walmart Inc."
   }
 }

@@ -1,0 +1,28 @@
+{
+  "cik": 789019,
+  "entityName": "MICROSOFT CORPORATION",
+  "facts": {
+    "us-gaap": {
+      "RevenueFromContractWithCustomerExcludingAssessedTax": {
+        "label": "Revenue from Contract with Customer, Excluding Assessed Tax",
+        "units": {
+          "USD": [
+            {"start":"2021-07-01","end":"2022-06-30","val":198270000000,"accn":"0000950170-24-087843","fy":2024,"fp":"FY","form":"10-K","filed":"2024-07-30"},
+            {"start":"2022-07-01","end":"2023-06-30","val":211915000000,"accn":"0000950170-25-100235","fy":2025,"fp":"FY","form":"10-K","filed":"2025-07-30"},
+            {"start":"2023-07-01","end":"2024-06-30","val":245122000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"},
+            {"start":"2024-07-01","end":"2025-06-30","val":281724000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"},
+            {"start":"2025-07-01","end":"2026-06-30","val":331839000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}
+          ]
+        }
+      },
+      "CostOfGoodsAndServicesSold": {"label":"Cost of Goods and Services Sold","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":106374000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "GrossProfit": {"label":"Gross Profit","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":225465000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "OperatingExpenses": {"label":"Operating Expenses","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":70228000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "OperatingIncomeLoss": {"label":"Operating Income (Loss)","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":155237000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "NonoperatingIncomeExpense": {"label":"Nonoperating Income (Expense)","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":10697000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest": {"label":"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":165934000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "IncomeTaxExpenseBenefit": {"label":"Income Tax Expense (Benefit)","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":32185000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "NetIncomeLoss": {"label":"Net Income (Loss) Attributable to Parent","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":133749000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}}
+    }
+  }
+}
