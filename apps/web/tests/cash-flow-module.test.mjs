@@ -30,6 +30,21 @@ test("validates one complete FY2025 statement and derives simple FCF exactly", (
   });
 });
 
+test("derivation permits negative Operating Cash Flow instead of assuming Apple is universal", () => {
+  const statement = makeCashFlowStatement();
+  const operatingTotal = statement.sections[0].lines.find(
+    (line) => line.id === "cash-generated-by-operating-activities",
+  );
+  operatingTotal.value = -1_000_000_000;
+
+  assert.deepEqual(deriveSimpleFreeCashFlow(statement), {
+    operatingCashFlow: -1_000_000_000,
+    propertyPlantEquipmentPurchases: 12_715_000_000,
+    exactValue: -13_715_000_000,
+    displayBillions: -13.715,
+  });
+});
+
 test("rejects bad section order, reconciliation, provenance, and PP&E sign", () => {
   const cases = [
     () => {

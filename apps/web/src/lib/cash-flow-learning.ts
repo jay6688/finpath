@@ -155,9 +155,9 @@ export function deriveSimpleFreeCashFlow(
     lines,
     "payments-for-property-plant-and-equipment",
   );
-  if (operatingCashFlow <= 0 || ppAndECashEffect >= 0) {
+  if (ppAndECashEffect >= 0) {
     throw new CashFlowLearningDataError(
-      "Simple Free Cash Flow requires positive Operating Cash Flow and a PP&E cash outflow.",
+      "Simple Free Cash Flow requires PP&E purchases to be a cash outflow.",
     );
   }
 
