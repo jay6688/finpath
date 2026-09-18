@@ -125,9 +125,56 @@ test("builds distinct Revenue and Net Income reported evidence with exact unit f
   assert.equal(revenue.transformation.divisor, 1_000);
   assert.equal(revenue.transformation.outputValue, 416.161);
   assert.equal(revenue.transformation.note, "Formatting only. No financial estimate.");
+  assert.deepEqual(revenue.filing.reportingContext, {
+    kind: "duration",
+    startDate: "2024-09-29",
+    endDate: "2025-09-27",
+  });
   assert.equal(netIncome.finPathDisplay.value, 112.01);
   assert.equal(netIncome.reviewedPresentation.reportedLabel, "Net income");
   assert.notEqual(revenue.finPathDisplay.scale, revenue.transformation.inputScale);
+});
+
+test("models Balance Sheet evidence as an instant rather than a zero-day duration", () => {
+  const evidence = buildReportedEvidence({
+    metric: { id: "total-assets", label: "Assets" },
+    company,
+    currency: "USD",
+    fact: {
+      fiscalYear: 2025,
+      asOfDate: "2025-09-27",
+      value: 359_241_000_000,
+      form: "10-K",
+      filedAt: "2025-10-31",
+      accession: "0000320193-25-000079",
+      sourceUrl: filingUrl,
+      taxonomyTag: "Assets",
+    },
+    dataStatus,
+    reviewedPresentation: {
+      binding: {
+        fiscalYear: 2025,
+        reportingContext: { kind: "instant", asOfDate: "2025-09-27" },
+        form: "10-K",
+        filedAt: "2025-10-31",
+        accession: "0000320193-25-000079",
+      },
+      statementName: "Consolidated Balance Sheets",
+      reportedLabel: "Total assets",
+      taxonomyTag: "Assets",
+      contextLines: [
+        { id: "total-assets", reportedLabel: "Total assets", value: 359_241_000_000 },
+      ],
+    },
+  });
+
+  assert.deepEqual(evidence.filing.reportingContext, {
+    kind: "instant",
+    asOfDate: "2025-09-27",
+  });
+  assert.equal("startDate" in evidence.filing, false);
+  assert.equal("endDate" in evidence.filing, false);
+  assert.equal(evidence.reviewedPresentation.reportedLabel, "Total assets");
 });
 
 test("classifies Operating Cash Flow as reported and only transforms its display unit", () => {
@@ -431,7 +478,7 @@ test("the reported inspector teaches the reviewed million-to-billion conversion 
   );
 
   assert.match(component, /How FinPath got this number/);
-  assert.match(component, /Apple reported/);
+  assert.match(component, /evidence\.company\.name.*reported/s);
   assert.match(component, /FinPath shows/);
   assert.match(component, /1 billion = 1,000 million/);
   assert.match(component, /million ÷/);
@@ -445,6 +492,9 @@ test("the reported inspector teaches the reviewed million-to-billion conversion 
   assert.doesNotMatch(component, /Math\.abs\(line\.value\)/);
   assert.match(component, /Source details/);
   assert.match(component, /Technical details/);
+  assert.match(component, /reportingContext\.kind === "instant"/);
+  assert.match(component, /<dt>As of<\/dt>/);
+  assert.match(component, /<dt>Period ended<\/dt>/);
   assert.doesNotMatch(component, /Why they match/);
 });
 
@@ -457,11 +507,11 @@ test("the reusable UI keeps source context, fallback, and Level 3 boundaries hon
   assert.match(component, /How FinPath calculated this/);
   assert.match(component, /data-evidence-kind="reported"/);
   assert.match(component, /data-evidence-kind="derived"/);
-  assert.match(component, /FinPath-rendered context from Apple’s reviewed filing/);
+  assert.match(component, /FinPath-rendered context from \{evidence\.company\.name\}/);
   assert.match(component, /Not a filing screenshot or exact HTML locator/);
   assert.match(component, /reviewed\s+statement presentation for this company is unavailable/);
   assert.match(component, /does not show a company-specific filing\s+label or recreate its statement context/);
-  assert.match(component, /Apple reported the inputs\. FinPath calculated the result\./);
+  assert.match(component, /\{first\.company\.name\} reported the inputs\. FinPath calculated the result\./);
   assert.match(component, /FinPath uses the selected reported fact currently attached to this fiscal-year record\./);
   assert.match(component, /href=\{evidence\.filing\.sourceUrl\}/);
   assert.doesNotMatch(component, /<details[^>]+open(?:=|\s|>)/);

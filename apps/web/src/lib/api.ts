@@ -41,6 +41,7 @@ export type SupportedCompany = {
     revenueGrowth: boolean;
     incomeStatement: boolean;
     cashFlow: boolean;
+    balanceSheet: boolean;
   };
 };
 
@@ -169,6 +170,66 @@ export type CompanyCashFlowStatement = {
   dataStatus: CompanyOverview["dataStatus"];
 };
 
+export type BalanceSheetLineId =
+  | "total-assets"
+  | "total-liabilities"
+  | "current-liabilities"
+  | "long-term-debt"
+  | "long-term-operating-lease-obligations"
+  | "long-term-finance-lease-obligations"
+  | "deferred-income-taxes-and-other"
+  | "redeemable-noncontrolling-interest"
+  | "shareholders-equity"
+  | "cash-and-cash-equivalents";
+
+export type BalanceSheetLineRole =
+  | "assets"
+  | "liabilities"
+  | "liability-component"
+  | "other-claim"
+  | "equity"
+  | "supporting-fact";
+
+export type ReportedBalanceSheetLine = {
+  evidenceKind: "reported";
+  id: BalanceSheetLineId;
+  taxonomyTag: string;
+  taxonomyLabel: string;
+  reportedLabel: string;
+  value: number;
+  role: BalanceSheetLineRole;
+};
+
+export type DerivedBalanceSheetLine = {
+  evidenceKind: "derived";
+  id: "total-liabilities";
+  label: "Liabilities";
+  value: number;
+  role: "liabilities";
+  formula: string;
+  inputs: ReportedBalanceSheetLine[];
+};
+
+export type CompanyBalanceSheet = {
+  company: CompanyOverview["company"];
+  statement: {
+    fiscalYear: number;
+    asOfDate: string;
+    currency: "USD";
+    form: "10-K" | "10-K/A";
+    filedAt: string;
+    accession: string;
+    sourceUrl: string;
+    statementName: string;
+    assets: ReportedBalanceSheetLine;
+    liabilities: ReportedBalanceSheetLine | DerivedBalanceSheetLine;
+    otherClaims: ReportedBalanceSheetLine[];
+    equity: ReportedBalanceSheetLine;
+    cashAndCashEquivalents: ReportedBalanceSheetLine;
+  };
+  dataStatus: CompanyOverview["dataStatus"];
+};
+
 export class FinPathApiError extends Error {
   readonly status?: number;
 
@@ -291,4 +352,28 @@ export async function getCompanyCashFlowStatement(
   }
 
   return (await response.json()) as CompanyCashFlowStatement;
+}
+
+export async function getCompanyBalanceSheet(
+  ticker: string,
+  fiscalYear: number,
+): Promise<CompanyBalanceSheet> {
+  const apiBaseUrl = getApiBaseUrl();
+  const response = await fetch(
+    `${apiBaseUrl}/v1/companies/${encodeURIComponent(ticker)}/balance-sheets/${fiscalYear}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    let detail = `FinPath API returned ${response.status}.`;
+    try {
+      const payload = (await response.json()) as { detail?: string };
+      if (payload.detail) detail = payload.detail;
+    } catch {
+      // Keep the status-based message when an upstream proxy returns non-JSON.
+    }
+    throw new FinPathApiError(detail, response.status);
+  }
+
+  return (await response.json()) as CompanyBalanceSheet;
 }

@@ -68,6 +68,7 @@ function ReportedInputEvidence({
   showSelectionPolicy: boolean;
 }) {
   const presentation = evidence.reviewedPresentation;
+  const reportingContext = evidence.filing.reportingContext;
 
   return (
     <details className="evidence-input">
@@ -77,13 +78,17 @@ function ReportedInputEvidence({
       </summary>
       <div className="evidence-input__body">
         <p>
-          <strong>{presentation ? "Apple reported: " : "Reported fact used by FinPath: "}</strong>
+          <strong>
+            {presentation
+              ? `${evidence.company.name} reported: `
+              : "Reported fact used by FinPath: "}
+          </strong>
           {presentation
             ? `${presentation.reportedLabel} · ${formatReportedMillions(evidence.reportedFact.value)}`
             : `${evidence.metric.label} · ${exactDollars.format(evidence.reportedFact.value)} USD`}
         </p>
         <p>
-          FY{evidence.filing.fiscalYear} · period ended {formatDate(evidence.filing.endDate)} · {evidence.filing.form} · accession {evidence.filing.accession}
+          FY{evidence.filing.fiscalYear} · {reportingContext.kind === "instant" ? "as of" : "period ended"} {formatDate(reportingContext.kind === "instant" ? reportingContext.asOfDate : reportingContext.endDate)} · {evidence.filing.form} · accession {evidence.filing.accession}
         </p>
         {showSelectionPolicy ? (
           <p className="evidence-input__policy">
@@ -110,6 +115,7 @@ function ReportedInputEvidence({
 function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: string }) {
   const presentation = evidence.reviewedPresentation;
   const inputValue = evidence.transformation.inputValue;
+  const reportingContext = evidence.filing.reportingContext;
 
   return (
     <details className="evidence-inspector" data-evidence-kind="reported" id={id}>
@@ -126,7 +132,7 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
         <div className="evidence-reported-flow">
           <section className="evidence-reported-value" aria-labelledby={`${id}-reported`}>
             <p className="eyebrow" id={`${id}-reported`}>
-              {presentation ? "Apple reported" : "Reported source fact"}
+              {presentation ? `${evidence.company.name} reported` : "Reported source fact"}
             </p>
             <strong>{presentation?.reportedLabel ?? evidence.metric.label}</strong>
             <b>
@@ -140,7 +146,7 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
                 <summary>See the statement lines FinPath used</summary>
                 <div>
                   <p className="evidence-context__notice">
-                    FinPath-rendered context from Apple’s reviewed filing. Not a filing screenshot or exact HTML locator.
+                    FinPath-rendered context from {evidence.company.name}&apos;s reviewed filing. Not a filing screenshot or exact HTML locator.
                   </p>
                   <p className="evidence-context__statement">{presentation.statementName}</p>
                   <dl>
@@ -204,7 +210,11 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
             <dl>
               <div><dt>Company</dt><dd>{evidence.company.name} · {evidence.company.ticker}</dd></div>
               <div><dt>Fiscal year</dt><dd>FY{evidence.filing.fiscalYear}</dd></div>
-              <div><dt>Period ended</dt><dd>{formatDate(evidence.filing.endDate)}</dd></div>
+              {reportingContext.kind === "instant" ? (
+                <div><dt>As of</dt><dd>{formatDate(reportingContext.asOfDate)}</dd></div>
+              ) : (
+                <div><dt>Period ended</dt><dd>{formatDate(reportingContext.endDate)}</dd></div>
+              )}
               <div><dt>Filing</dt><dd>Annual Form {evidence.filing.form}</dd></div>
               <div><dt>Filed</dt><dd>{formatDate(evidence.filing.filedAt)}</dd></div>
               <div><dt>Accession</dt><dd>{evidence.filing.accession}</dd></div>
@@ -265,7 +275,7 @@ function DerivedInspector({ evidence, id }: { evidence: DerivedEvidence; id: str
         <header className="evidence-inspector__intro">
           <p className="eyebrow">Derived · calculation trail</p>
           <h3>{evidence.metric.label}</h3>
-          <p>Apple reported the inputs. FinPath calculated the result.</p>
+          <p>{first.company.name} reported the inputs. FinPath calculated the result.</p>
         </header>
 
         {evidence.inputs.some((input) => input.dataStatus.state === "stale") ? (

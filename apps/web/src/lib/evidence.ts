@@ -1,5 +1,6 @@
 import type {
   AnnualFinancialFact,
+  BalanceSheetLineId,
   CashFlowStatementLineId,
   CompanyCashFlowStatement,
   CompanyIncomeStatement,
@@ -13,10 +14,44 @@ import type { SimpleFreeCashFlowDerivation } from "@/lib/cash-flow-learning";
 
 export type EvidenceCompany = CompanyOverview["company"];
 
-export type ReportedFact = AnnualFinancialFact & {
+export type DurationReportingContext = {
+  kind: "duration";
+  startDate: string;
+  endDate: string;
+};
+
+export type InstantReportingContext = {
+  kind: "instant";
+  asOfDate: string;
+};
+
+export type ReportingContext =
+  | DurationReportingContext
+  | InstantReportingContext;
+
+type InstantFinancialFact = {
+  fiscalYear: number;
+  asOfDate: string;
+  value: number;
+  form: "10-K" | "10-K/A";
+  filedAt: string;
+  accession: string;
   sourceUrl?: string | null;
+};
+
+type DurationFinancialFact = Omit<AnnualFinancialFact, "sourceUrl"> & {
+  sourceUrl?: string | null;
+};
+
+export type DurationReportedFact = DurationFinancialFact & {
   taxonomyTag: string;
 };
+
+export type InstantReportedFact = InstantFinancialFact & {
+  taxonomyTag: string;
+};
+
+export type ReportedFact = DurationReportedFact | InstantReportedFact;
 
 export type EvidenceDataStatus = {
   state: DataState;
@@ -25,7 +60,8 @@ export type EvidenceDataStatus = {
 
 export type FinancialStatementLineId =
   | IncomeStatementLineId
-  | CashFlowStatementLineId;
+  | CashFlowStatementLineId
+  | BalanceSheetLineId;
 
 type EvidenceStatement =
   | CompanyIncomeStatement["statement"]
@@ -53,8 +89,7 @@ export type ReviewedContextLine = {
 export type ReviewedPresentation = {
   binding: {
     fiscalYear: number;
-    startDate: string;
-    endDate: string;
+    reportingContext: ReportingContext;
     form: "10-K" | "10-K/A";
     filedAt: string;
     accession: string;
@@ -75,7 +110,12 @@ export type ReportedEvidence = {
       | "investing-cash-flow"
       | "financing-cash-flow"
       | "net-change-in-cash"
-      | "pp-and-e-purchases";
+      | "pp-and-e-purchases"
+      | "total-assets"
+      | "total-liabilities"
+      | "redeemable-noncontrolling-interest"
+      | "shareholders-equity"
+      | "cash-and-cash-equivalents";
     label: string;
   };
   company: EvidenceCompany;
@@ -88,8 +128,7 @@ export type ReportedEvidence = {
   reportedFact: ReportedFact;
   filing: {
     fiscalYear: number;
-    startDate: string;
-    endDate: string;
+    reportingContext: ReportingContext;
     form: "10-K" | "10-K/A";
     filedAt: string;
     accession: string;
@@ -206,8 +245,11 @@ export function buildReviewedPresentation({
   return {
     binding: {
       fiscalYear: statement.fiscalYear,
-      startDate: statement.startDate,
-      endDate: statement.endDate,
+      reportingContext: {
+        kind: "duration",
+        startDate: statement.startDate,
+        endDate: statement.endDate,
+      },
       form: statement.form,
       filedAt: statement.filedAt,
       accession: statement.accession,
@@ -222,7 +264,7 @@ export function buildReviewedPresentation({
 export function reportedFactFromStatementLine(
   statement: EvidenceStatement,
   lineId: FinancialStatementLineId,
-): ReportedFact {
+): DurationReportedFact {
   const matchingLines = statementLines(statement).filter((line) => line.id === lineId);
   if (matchingLines.length !== 1) {
     throw new EvidenceDataError(`Evidence requires exactly one ${lineId} line.`);
@@ -255,7 +297,10 @@ export function buildReportedEvidence({
   company: EvidenceCompany;
   currency: string;
   taxonomyTag?: string;
-  fact: AnnualFinancialFact & { sourceUrl?: string | null; taxonomyTag?: string };
+  fact: (DurationFinancialFact | InstantFinancialFact) & {
+    sourceUrl?: string | null;
+    taxonomyTag?: string;
+  };
   dataStatus: EvidenceDataStatus;
   reviewedPresentation?: ReviewedPresentation | null;
 }): ReportedEvidence {
@@ -305,8 +350,7 @@ export function buildReportedEvidence({
     reportedFact,
     filing: {
       fiscalYear: fact.fiscalYear,
-      startDate: fact.startDate,
-      endDate: fact.endDate,
+      reportingContext: reportingContextFromFact(fact),
       form: fact.form,
       filedAt: fact.filedAt,
       accession: fact.accession,
@@ -556,29 +600,68 @@ export function buildFreeCashFlowEvidence({
 
 function presentationMatchesFact(
   presentation: ReviewedPresentation,
-  fact: AnnualFinancialFact,
+  fact: DurationFinancialFact | InstantFinancialFact,
 ): boolean {
   const binding = presentation.binding;
   return (
     binding.fiscalYear === fact.fiscalYear &&
-    binding.startDate === fact.startDate &&
-    binding.endDate === fact.endDate &&
+    reportingContextsMatch(binding.reportingContext, reportingContextFromFact(fact)) &&
     binding.form === fact.form &&
     binding.filedAt === fact.filedAt &&
     binding.accession === fact.accession
   );
 }
 
-function validFactIdentity(fact: AnnualFinancialFact): boolean {
+function validFactIdentity(
+  fact: DurationFinancialFact | InstantFinancialFact,
+): boolean {
   return (
     Number.isSafeInteger(fact.fiscalYear) &&
     fact.fiscalYear > 0 &&
-    /^\d{4}-\d{2}-\d{2}$/.test(fact.startDate) &&
-    /^\d{4}-\d{2}-\d{2}$/.test(fact.endDate) &&
-    fact.startDate <= fact.endDate &&
+    validReportingContext(reportingContextFromFact(fact)) &&
     /^\d{4}-\d{2}-\d{2}$/.test(fact.filedAt) &&
     /^(10-K|10-K\/A)$/.test(fact.form) &&
     /^\d{10}-\d{2}-\d{6}$/.test(fact.accession)
+  );
+}
+
+function reportingContextFromFact(
+  fact: DurationFinancialFact | InstantFinancialFact,
+): ReportingContext {
+  if ("asOfDate" in fact) {
+    return { kind: "instant", asOfDate: fact.asOfDate };
+  }
+  return {
+    kind: "duration",
+    startDate: fact.startDate,
+    endDate: fact.endDate,
+  };
+}
+
+function validReportingContext(context: ReportingContext): boolean {
+  if (context.kind === "instant") {
+    return /^\d{4}-\d{2}-\d{2}$/.test(context.asOfDate);
+  }
+  return (
+    /^\d{4}-\d{2}-\d{2}$/.test(context.startDate) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(context.endDate) &&
+    context.startDate <= context.endDate
+  );
+}
+
+function reportingContextsMatch(
+  left: ReportingContext,
+  right: ReportingContext,
+): boolean {
+  if (left.kind !== right.kind) return false;
+  if (left.kind === "instant" && right.kind === "instant") {
+    return left.asOfDate === right.asOfDate;
+  }
+  return (
+    left.kind === "duration" &&
+    right.kind === "duration" &&
+    left.startDate === right.startDate &&
+    left.endDate === right.endDate
   );
 }
 
