@@ -179,7 +179,10 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
         ) : (
           <div className="evidence-fallback">
             <p>
-              FinPath can trace this number to the SEC filing, but the reviewed Apple statement presentation is unavailable for this record. FinPath therefore does not show an Apple filing label or recreate its statement context here.
+              FinPath can trace this number to the SEC filing, but a reviewed
+              statement presentation for this company is unavailable for this
+              record. FinPath therefore does not show a company-specific filing
+              label or recreate its statement context here.
             </p>
             <p className="evidence-format-note">{evidence.transformation.note}</p>
           </div>

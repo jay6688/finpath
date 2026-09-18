@@ -459,8 +459,8 @@ test("the reusable UI keeps source context, fallback, and Level 3 boundaries hon
   assert.match(component, /data-evidence-kind="derived"/);
   assert.match(component, /FinPath-rendered context from Apple’s reviewed filing/);
   assert.match(component, /Not a filing screenshot or exact HTML locator/);
-  assert.match(component, /reviewed Apple statement presentation is unavailable/);
-  assert.match(component, /does not show an Apple filing label or recreate its statement context/);
+  assert.match(component, /reviewed\s+statement presentation for this company is unavailable/);
+  assert.match(component, /does not show a company-specific filing\s+label or recreate its statement context/);
   assert.match(component, /Apple reported the inputs\. FinPath calculated the result\./);
   assert.match(component, /FinPath uses the selected reported fact currently attached to this fiscal-year record\./);
   assert.match(component, /href=\{evidence\.filing\.sourceUrl\}/);

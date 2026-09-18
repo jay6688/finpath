@@ -4,6 +4,11 @@ import type { CompanyRevenueData } from "@/lib/company-revenue-data";
 
 export function RevenueLessonContent(props: CompanyRevenueData) {
   const english = revenueConcept.locales.en;
+  const teachingSources = revenueConcept.sources.filter(
+    (source) =>
+      !source.supports.includes("appleExample") ||
+      props.company.ticker === "AAPL",
+  );
 
   return (
     <section className="research-grid lesson-revenue-grid" aria-labelledby="lesson-revenue-heading">
@@ -50,7 +55,7 @@ export function RevenueLessonContent(props: CompanyRevenueData) {
         <details className="learning-section teaching-sources">
           <summary>Teaching sources</summary>
           <ul>
-            {revenueConcept.sources.map((source) => (
+            {teachingSources.map((source) => (
               <li key={source.id}>
                 <a href={source.url} rel="noreferrer" target="_blank">
                   {source.title}

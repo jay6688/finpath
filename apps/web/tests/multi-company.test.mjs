@@ -70,3 +70,14 @@ test("company-specific financial values are not hard-coded in React source", asy
     assert.doesNotMatch(source, /416161000000|331839000000|713163000000/);
   }
 });
+
+test("non-Apple Revenue examples do not present Apple-only teaching sources", async () => {
+  const [lesson, evidence] = await Promise.all([
+    readSource("components/revenue-lesson-content.tsx"),
+    readSource("components/evidence-inspector.tsx"),
+  ]);
+
+  assert.match(lesson, /source\.supports\.includes\("appleExample"\)/);
+  assert.match(lesson, /props\.company\.ticker === "AAPL"/);
+  assert.doesNotMatch(evidence, /reviewed Apple statement presentation is unavailable/);
+});
