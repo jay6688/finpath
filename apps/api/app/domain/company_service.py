@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+from app.domain.balance_sheet import (
+    BalanceSheetUnavailableError,
+    extract_balance_sheet,
+)
 from app.domain.cash_flow_statement import (
     CashFlowStatementUnavailableError,
     extract_cash_flow_statement,
@@ -12,6 +16,7 @@ from app.domain.income_statement import (
 )
 from app.domain.revenue import extract_annual_revenue
 from app.schemas.company import (
+    CompanyBalanceSheetResponse,
     CompanyCashFlowStatementResponse,
     CompanyIdentity,
     CompanyIncomeStatementResponse,
@@ -127,6 +132,40 @@ class CompanyOverviewService:
         )
 
         return CompanyCashFlowStatementResponse(
+            company=CompanyIdentity(
+                ticker=company.ticker,
+                name=company.name,
+                cik=company.cik,
+            ),
+            statement=statement,
+            dataStatus=DataStatus(
+                state=facts_payload.state,
+                retrievedAt=facts_payload.retrieved_at,
+            ),
+        )
+
+    async def get_balance_sheet(
+        self,
+        ticker: str,
+        fiscal_year: int,
+    ) -> CompanyBalanceSheetResponse:
+        company, profile = await self._resolve_company(ticker)
+        if (
+            not profile.capabilities.balance_sheet
+            or fiscal_year != profile.reviewed_fiscal_year
+        ):
+            raise BalanceSheetUnavailableError(
+                "Balance Sheet profile for "
+                f"CIK {company.cik} FY{fiscal_year} is unavailable."
+            )
+        facts_payload = await self.sec.get_company_facts(company.cik)
+        statement = extract_balance_sheet(
+            facts_payload.payload,
+            cik=company.cik,
+            fiscal_year=fiscal_year,
+        )
+
+        return CompanyBalanceSheetResponse(
             company=CompanyIdentity(
                 ticker=company.ticker,
                 name=company.name,

@@ -18,7 +18,16 @@
           {"start":"2024-02-01","end":"2025-01-31","val":680985000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"},
           {"start":"2025-02-01","end":"2026-01-31","val":713163000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}
         ]}
-      }
+      },
+      "Assets": {"label":"Assets","units":{"USD":[{"end":"2026-01-31","val":284668000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "LiabilitiesCurrent": {"label":"Liabilities, Current","units":{"USD":[{"end":"2026-01-31","val":107469000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "LongTermDebtNoncurrent": {"label":"Long-term Debt, Excluding Current Maturities","units":{"USD":[{"end":"2026-01-31","val":34624000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "OperatingLeaseLiabilityNoncurrent": {"label":"Operating Lease, Liability, Noncurrent","units":{"USD":[{"end":"2026-01-31","val":13941000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "FinanceLeaseLiabilityNoncurrent": {"label":"Finance Lease, Liability, Noncurrent","units":{"USD":[{"end":"2026-01-31","val":5905000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "DeferredIncomeTaxesAndOtherLiabilitiesNoncurrent": {"label":"Deferred Income Taxes and Other Liabilities, Noncurrent","units":{"USD":[{"end":"2026-01-31","val":16549000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "RedeemableNoncontrollingInterestEquityCarryingAmount": {"label":"Redeemable Noncontrolling Interest, Equity, Carrying Amount","units":{"USD":[{"end":"2026-01-31","val":293000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest": {"label":"Stockholders' Equity, Including Portion Attributable to Noncontrolling Interest","units":{"USD":[{"end":"2026-01-31","val":105887000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "CashAndCashEquivalentsAtCarryingValue": {"label":"Cash and Cash Equivalents, at Carrying Value","units":{"USD":[{"end":"2026-01-31","val":10727000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}}
     }
   }
 }

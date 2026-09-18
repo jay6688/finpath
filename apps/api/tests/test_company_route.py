@@ -50,6 +50,7 @@ def test_supported_company_list_is_a_stable_non_financial_contract() -> None:
         "revenueGrowth": True,
         "incomeStatement": True,
         "cashFlow": False,
+        "balanceSheet": True,
     }
     assert "value" not in str(payload)
 
@@ -181,6 +182,47 @@ def test_aapl_cash_flow_statement_http_contract_from_offline_sec_fixture() -> No
         "state": "cached",
         "retrievedAt": "2026-08-19T00:00:00Z",
     }
+
+
+def test_balance_sheet_http_contract_preserves_instant_context_and_evidence_kind() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        apple = asyncio.run(_request("/v1/companies/AAPL/balance-sheets/2025"))
+        walmart = asyncio.run(_request("/v1/companies/WMT/balance-sheets/2026"))
+    finally:
+        app.dependency_overrides.clear()
+
+    assert apple.status_code == 200
+    apple_statement = apple.json()["statement"]
+    assert apple_statement["asOfDate"] == "2025-09-27"
+    assert "startDate" not in apple_statement
+    assert "endDate" not in apple_statement
+    assert apple_statement["liabilities"]["evidenceKind"] == "reported"
+    assert apple_statement["sourceUrl"].endswith(
+        "/000032019325000079/0000320193-25-000079-index.htm"
+    )
+
+    assert walmart.status_code == 200
+    walmart_statement = walmart.json()["statement"]
+    assert walmart_statement["liabilities"]["evidenceKind"] == "derived"
+    assert walmart_statement["liabilities"]["value"] == 178_488_000_000
+    assert len(walmart_statement["liabilities"]["inputs"]) == 5
+    assert walmart_statement["otherClaims"][0]["value"] == 293_000_000
+
+
+def test_balance_sheet_route_rejects_an_unreviewed_fiscal_year() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        response = asyncio.run(_request("/v1/companies/AAPL/balance-sheets/2024"))
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 422
+    assert "profile" in response.json()["detail"]
 
 
 async def _request_aapl_overview() -> httpx.Response:

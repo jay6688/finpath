@@ -33,6 +33,7 @@ class CompanyCapabilities(ApiModel):
     revenue_growth: bool = Field(alias="revenueGrowth")
     income_statement: bool = Field(alias="incomeStatement")
     cash_flow: bool = Field(alias="cashFlow")
+    balance_sheet: bool = Field(alias="balanceSheet")
 
 
 class SupportedCompanySummary(ApiModel):
@@ -245,4 +246,84 @@ class CompanyIncomeStatementResponse(ApiModel):
 class CompanyCashFlowStatementResponse(ApiModel):
     company: CompanyIdentity
     statement: CashFlowStatement
+    data_status: DataStatus = Field(alias="dataStatus")
+
+
+BalanceSheetLineId = Literal[
+    "total-assets",
+    "total-liabilities",
+    "current-liabilities",
+    "long-term-debt",
+    "long-term-operating-lease-obligations",
+    "long-term-finance-lease-obligations",
+    "deferred-income-taxes-and-other",
+    "redeemable-noncontrolling-interest",
+    "shareholders-equity",
+    "cash-and-cash-equivalents",
+]
+
+BalanceSheetLineRole = Literal[
+    "assets",
+    "liabilities",
+    "liability-component",
+    "other-claim",
+    "equity",
+    "supporting-fact",
+]
+
+
+class ReportedBalanceSheetLine(ApiModel):
+    evidence_kind: Literal["reported"] = Field(
+        default="reported", alias="evidenceKind"
+    )
+    id: BalanceSheetLineId
+    taxonomy_tag: str = Field(alias="taxonomyTag")
+    taxonomy_label: str = Field(alias="taxonomyLabel")
+    reported_label: str = Field(alias="reportedLabel")
+    value: int
+    role: BalanceSheetLineRole
+
+
+class DerivedBalanceSheetLine(ApiModel):
+    evidence_kind: Literal["derived"] = Field(
+        default="derived", alias="evidenceKind"
+    )
+    id: Literal["total-liabilities"]
+    label: Literal["Liabilities"]
+    value: int
+    role: Literal["liabilities"]
+    formula: str
+    inputs: list[ReportedBalanceSheetLine]
+
+
+class BalanceSheet(ApiModel):
+    fiscal_year: int = Field(alias="fiscalYear")
+    as_of_date: date = Field(alias="asOfDate")
+    currency: Literal["USD"]
+    form: Literal["10-K", "10-K/A"]
+    filed_at: date = Field(alias="filedAt")
+    accession: str
+    source_url: HttpUrl = Field(alias="sourceUrl")
+    statement_name: str = Field(alias="statementName")
+    assets: ReportedBalanceSheetLine
+    liabilities: ReportedBalanceSheetLine | DerivedBalanceSheetLine
+    other_claims: list[ReportedBalanceSheetLine] = Field(alias="otherClaims")
+    equity: ReportedBalanceSheetLine
+    cash_and_cash_equivalents: ReportedBalanceSheetLine = Field(
+        alias="cashAndCashEquivalents"
+    )
+
+    @field_validator("source_url")
+    @classmethod
+    def require_sec_filing_url(cls, value: HttpUrl) -> HttpUrl:
+        if value.host not in {"sec.gov", "www.sec.gov"}:
+            raise ValueError("sourceUrl must point to an SEC host")
+        if "/Archives/edgar/data/" not in value.path:
+            raise ValueError("sourceUrl must point to an EDGAR filing")
+        return value
+
+
+class CompanyBalanceSheetResponse(ApiModel):
+    company: CompanyIdentity
+    statement: BalanceSheet
     data_status: DataStatus = Field(alias="dataStatus")

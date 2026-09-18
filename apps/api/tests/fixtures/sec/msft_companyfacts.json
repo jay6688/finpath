@@ -22,7 +22,11 @@
       "NonoperatingIncomeExpense": {"label":"Nonoperating Income (Expense)","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":10697000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
       "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest": {"label":"Income (Loss) from Continuing Operations before Income Taxes, Noncontrolling Interest","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":165934000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
       "IncomeTaxExpenseBenefit": {"label":"Income Tax Expense (Benefit)","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":32185000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
-      "NetIncomeLoss": {"label":"Net Income (Loss) Attributable to Parent","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":133749000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}}
+      "NetIncomeLoss": {"label":"Net Income (Loss) Attributable to Parent","units":{"USD":[{"start":"2025-07-01","end":"2026-06-30","val":133749000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "Assets": {"label":"Assets","units":{"USD":[{"end":"2026-06-30","val":758376000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "Liabilities": {"label":"Liabilities","units":{"USD":[{"end":"2026-06-30","val":315989000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "StockholdersEquity": {"label":"Stockholders' Equity Attributable to Parent","units":{"USD":[{"end":"2026-06-30","val":442387000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "CashAndCashEquivalentsAtCarryingValue": {"label":"Cash and Cash Equivalents, at Carrying Value","units":{"USD":[{"end":"2026-06-30","val":20935000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}}
     }
   }
 }

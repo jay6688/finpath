@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.dependencies import get_company_service
+from app.domain.balance_sheet import BalanceSheetUnavailableError
 from app.domain.cash_flow_statement import CashFlowStatementUnavailableError
 from app.domain.company_registry import list_supported_companies
 from app.domain.company_service import CompanyNotFoundError, CompanyOverviewService
 from app.domain.income_statement import IncomeStatementUnavailableError
 from app.domain.revenue import RevenueUnavailableError
 from app.schemas.company import (
+    CompanyBalanceSheetResponse,
     CompanyCashFlowStatementResponse,
     CompanyIncomeStatementResponse,
     CompanyOverviewResponse,
@@ -35,6 +37,7 @@ async def supported_companies() -> SupportedCompaniesResponse:
                     revenueGrowth=company.capabilities.revenue_growth,
                     incomeStatement=company.capabilities.income_statement,
                     cashFlow=company.capabilities.cash_flow,
+                    balanceSheet=company.capabilities.balance_sheet,
                 ),
             )
             for company in list_supported_companies()
@@ -123,6 +126,39 @@ async def company_cash_flow_statement(
     except CashFlowStatementUnavailableError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
+    except SecConfigurationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(error),
+        ) from error
+    except SecUpstreamError as error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="SEC data is temporarily unavailable.",
+        ) from error
+
+
+@router.get(
+    "/{ticker}/balance-sheets/{fiscal_year}",
+    response_model=CompanyBalanceSheetResponse,
+)
+async def company_balance_sheet(
+    ticker: str,
+    fiscal_year: int,
+    service: CompanyOverviewService = Depends(get_company_service),
+) -> CompanyBalanceSheetResponse:
+    try:
+        return await service.get_balance_sheet(ticker, fiscal_year)
+    except CompanyNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except BalanceSheetUnavailableError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(error),
         ) from error
     except SecConfigurationError as error:

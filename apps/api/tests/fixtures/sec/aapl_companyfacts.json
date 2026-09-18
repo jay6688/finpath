@@ -381,6 +381,32 @@
           {"end": "2024-09-28", "val": 29943000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"},
           {"end": "2025-09-27", "val": 35934000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
         ]}
+      },
+      "Assets": {
+        "label": "Assets",
+        "units": {"USD": [
+          {"end": "2024-09-28", "val": 364980000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"},
+          {"end": "2025-09-27", "val": 359241000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"},
+          {"end": "2026-06-27", "val": 350000000000, "accn": "0000320193-26-000080", "fy": 2026, "fp": "Q3", "form": "10-Q", "filed": "2026-08-01"}
+        ]}
+      },
+      "Liabilities": {
+        "label": "Liabilities",
+        "units": {"USD": [
+          {"end": "2025-09-27", "val": 285508000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
+      },
+      "StockholdersEquity": {
+        "label": "Stockholders' Equity Attributable to Parent",
+        "units": {"USD": [
+          {"end": "2025-09-27", "val": 73733000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
+      },
+      "CashAndCashEquivalentsAtCarryingValue": {
+        "label": "Cash and Cash Equivalents, at Carrying Value",
+        "units": {"USD": [
+          {"end": "2025-09-27", "val": 35934000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
       }
     }
   }

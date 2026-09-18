@@ -12,6 +12,7 @@ class CompanyCapabilities:
     revenue_growth: bool
     income_statement: bool
     cash_flow: bool
+    balance_sheet: bool
 
 
 @dataclass(frozen=True)
@@ -43,7 +44,13 @@ _COMPANIES = (
         cik="0000320193",
         display_name="Apple Inc.",
         reviewed_fiscal_year=2025,
-        capabilities=CompanyCapabilities(True, True, True, True),
+        capabilities=CompanyCapabilities(
+            revenue=True,
+            revenue_growth=True,
+            income_statement=True,
+            cash_flow=True,
+            balance_sheet=True,
+        ),
         revenue_profile=RevenueProfile(
             taxonomy_tag="RevenueFromContractWithCustomerExcludingAssessedTax",
             fiscal_year=2025,
@@ -60,7 +67,13 @@ _COMPANIES = (
         cik="0000789019",
         display_name="Microsoft Corporation",
         reviewed_fiscal_year=2026,
-        capabilities=CompanyCapabilities(True, True, True, False),
+        capabilities=CompanyCapabilities(
+            revenue=True,
+            revenue_growth=True,
+            income_statement=True,
+            cash_flow=False,
+            balance_sheet=True,
+        ),
         revenue_profile=RevenueProfile(
             taxonomy_tag="RevenueFromContractWithCustomerExcludingAssessedTax",
             fiscal_year=2026,
@@ -77,7 +90,13 @@ _COMPANIES = (
         cik="0000104169",
         display_name="Walmart Inc.",
         reviewed_fiscal_year=2026,
-        capabilities=CompanyCapabilities(True, True, False, False),
+        capabilities=CompanyCapabilities(
+            revenue=True,
+            revenue_growth=True,
+            income_statement=False,
+            cash_flow=False,
+            balance_sheet=True,
+        ),
         revenue_profile=RevenueProfile(
             taxonomy_tag="Revenues",
             fiscal_year=2026,
