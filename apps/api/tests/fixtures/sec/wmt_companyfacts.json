@@ -27,7 +27,10 @@
       "DeferredIncomeTaxesAndOtherLiabilitiesNoncurrent": {"label":"Deferred Income Taxes and Other Liabilities, Noncurrent","units":{"USD":[{"end":"2026-01-31","val":16549000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
       "RedeemableNoncontrollingInterestEquityCarryingAmount": {"label":"Redeemable Noncontrolling Interest, Equity, Carrying Amount","units":{"USD":[{"end":"2026-01-31","val":293000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
       "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest": {"label":"Stockholders' Equity, Including Portion Attributable to Noncontrolling Interest","units":{"USD":[{"end":"2026-01-31","val":105887000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
-      "CashAndCashEquivalentsAtCarryingValue": {"label":"Cash and Cash Equivalents, at Carrying Value","units":{"USD":[{"end":"2026-01-31","val":10727000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}}
+      "CashAndCashEquivalentsAtCarryingValue": {"label":"Cash and Cash Equivalents, at Carrying Value","units":{"USD":[{"end":"2026-01-31","val":10727000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "ShortTermBorrowings": {"label":"Short-term Debt","units":{"USD":[{"end":"2026-01-31","val":6596000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "LongTermDebtCurrent": {"label":"Long-term Debt, Current Maturities","units":{"USD":[{"end":"2026-01-31","val":3542000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "LongTermDebtNoncurrent": {"label":"Long-term Debt, Excluding Current Maturities","units":{"USD":[{"end":"2026-01-31","val":34624000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}}
     }
   }
 }

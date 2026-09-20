@@ -38,6 +38,7 @@ async def supported_companies() -> SupportedCompaniesResponse:
                     incomeStatement=company.capabilities.income_statement,
                     cashFlow=company.capabilities.cash_flow,
                     balanceSheet=company.capabilities.balance_sheet,
+                    cashDebt=company.capabilities.cash_debt,
                 ),
             )
             for company in list_supported_companies()

@@ -88,6 +88,121 @@ def test_walmart_derives_liabilities_from_complete_reported_components() -> None
     )
 
 
+@pytest.mark.parametrize(
+    (
+        "fixture",
+        "cik",
+        "fiscal_year",
+        "cash",
+        "supplemental",
+        "borrowing_values",
+        "simple_borrowings",
+    ),
+    [
+        (
+            "aapl_companyfacts.json",
+            "0000320193",
+            2025,
+            35_934_000_000,
+            [18_763_000_000, 77_723_000_000],
+            [7_979_000_000, 12_350_000_000, 78_328_000_000],
+            98_657_000_000,
+        ),
+        (
+            "msft_companyfacts.json",
+            "0000789019",
+            2026,
+            20_935_000_000,
+            [55_908_000_000],
+            [9_227_000_000, 31_067_000_000],
+            40_294_000_000,
+        ),
+        (
+            "wmt_companyfacts.json",
+            "0000104169",
+            2026,
+            10_727_000_000,
+            [],
+            [6_596_000_000, 3_542_000_000, 34_624_000_000],
+            44_762_000_000,
+        ),
+    ],
+)
+def test_extracts_reviewed_cash_assets_and_simple_borrowings(
+    fixture: str,
+    cik: str,
+    fiscal_year: int,
+    cash: int,
+    supplemental: list[int],
+    borrowing_values: list[int],
+    simple_borrowings: int,
+) -> None:
+    statement = extract_balance_sheet(
+        load_sec_fixture(fixture), cik=cik, fiscal_year=fiscal_year
+    )
+
+    assert statement.cash_and_cash_equivalents.value == cash
+    assert [line.value for line in statement.supplemental_financial_assets] == supplemental
+    assert statement.simple_borrowings.evidence_kind == "derived"
+    assert statement.simple_borrowings.id == "simple-borrowings"
+    assert [line.value for line in statement.simple_borrowings.inputs] == borrowing_values
+    assert all(
+        line.evidence_kind == "reported"
+        for line in statement.simple_borrowings.inputs
+    )
+    assert statement.simple_borrowings.value == simple_borrowings
+    assert simple_borrowings == sum(borrowing_values)
+
+
+def test_walmart_liabilities_and_simple_borrowings_remain_distinct() -> None:
+    statement = extract_balance_sheet(
+        load_sec_fixture("wmt_companyfacts.json"),
+        cik="0000104169",
+        fiscal_year=2026,
+    )
+
+    assert statement.liabilities.id == "total-liabilities"
+    assert statement.liabilities.value == 178_488_000_000
+    assert statement.simple_borrowings.id == "simple-borrowings"
+    assert statement.simple_borrowings.value == 44_762_000_000
+    assert statement.liabilities.inputs != statement.simple_borrowings.inputs
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("accn", "0000320193-24-000123"),
+        ("end", "2024-09-28"),
+        ("form", "10-Q"),
+        ("filed", "2025-10-30"),
+    ],
+)
+def test_simple_borrowings_reject_wrong_instant_identity(
+    field: str, value: str
+) -> None:
+    payload = deepcopy(load_sec_fixture("aapl_companyfacts.json"))
+    fact = payload["facts"]["us-gaap"]["CommercialPaper"]["units"]["USD"][0]
+    fact[field] = value
+
+    with pytest.raises(BalanceSheetUnavailableError, match="reviewed instant context"):
+        extract_balance_sheet(payload, cik="0000320193", fiscal_year=2025)
+
+
+def test_simple_borrowings_reject_missing_and_conflicting_inputs() -> None:
+    missing = deepcopy(load_sec_fixture("msft_companyfacts.json"))
+    del missing["facts"]["us-gaap"]["LongTermDebtCurrent"]
+    with pytest.raises(BalanceSheetUnavailableError, match="LongTermDebtCurrent is unavailable"):
+        extract_balance_sheet(missing, cik="0000789019", fiscal_year=2026)
+
+    conflicting = deepcopy(load_sec_fixture("wmt_companyfacts.json"))
+    facts = conflicting["facts"]["us-gaap"]["ShortTermBorrowings"]["units"]["USD"]
+    duplicate = deepcopy(facts[0])
+    duplicate["val"] += 1
+    facts.append(duplicate)
+    with pytest.raises(BalanceSheetUnavailableError, match="conflicting values"):
+        extract_balance_sheet(conflicting, cik="0000104169", fiscal_year=2026)
+
+
 def test_instant_context_rejects_wrong_date_instead_of_using_a_comparative_fact() -> None:
     payload = deepcopy(load_sec_fixture("aapl_companyfacts.json"))
     facts = payload["facts"]["us-gaap"]["Liabilities"]["units"]["USD"]

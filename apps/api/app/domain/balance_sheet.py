@@ -7,6 +7,7 @@ from app.schemas.company import (
     BalanceSheetLineId,
     BalanceSheetLineRole,
     DerivedBalanceSheetLine,
+    DerivedBalanceSheetMeasure,
     ReportedBalanceSheetLine,
 )
 from app.services.sec.provenance import build_filing_index_url
@@ -54,6 +55,8 @@ class BalanceSheetProfile:
     other_claims: tuple[ReportedLineSpec, ...]
     equity: ReportedLineSpec
     cash_and_cash_equivalents: ReportedLineSpec
+    supplemental_financial_assets: tuple[ReportedLineSpec, ...]
+    borrowing_inputs: tuple[ReportedLineSpec, ...]
 
 
 ASSETS = ReportedLineSpec("total-assets", "Assets", "Total assets", "assets")
@@ -86,6 +89,40 @@ BALANCE_SHEET_PROFILES = {
             "equity",
         ),
         cash_and_cash_equivalents=CASH,
+        supplemental_financial_assets=(
+            ReportedLineSpec(
+                "current-marketable-securities",
+                "MarketableSecuritiesCurrent",
+                "Current marketable securities",
+                "supplemental-financial-asset",
+            ),
+            ReportedLineSpec(
+                "noncurrent-marketable-securities",
+                "MarketableSecuritiesNoncurrent",
+                "Non-current marketable securities",
+                "supplemental-financial-asset",
+            ),
+        ),
+        borrowing_inputs=(
+            ReportedLineSpec(
+                "commercial-paper",
+                "CommercialPaper",
+                "Commercial paper",
+                "borrowing-component",
+            ),
+            ReportedLineSpec(
+                "current-term-debt",
+                "LongTermDebtCurrent",
+                "Current term debt",
+                "borrowing-component",
+            ),
+            ReportedLineSpec(
+                "noncurrent-term-debt",
+                "LongTermDebtNoncurrent",
+                "Non-current term debt",
+                "borrowing-component",
+            ),
+        ),
     ),
     ("0000789019", 2026): BalanceSheetProfile(
         context=InstantFactContext(
@@ -108,6 +145,28 @@ BALANCE_SHEET_PROFILES = {
             "equity",
         ),
         cash_and_cash_equivalents=CASH,
+        supplemental_financial_assets=(
+            ReportedLineSpec(
+                "short-term-investments",
+                "ShortTermInvestments",
+                "Short-term investments",
+                "supplemental-financial-asset",
+            ),
+        ),
+        borrowing_inputs=(
+            ReportedLineSpec(
+                "current-portion-long-term-debt",
+                "LongTermDebtCurrent",
+                "Current portion of long-term debt",
+                "borrowing-component",
+            ),
+            ReportedLineSpec(
+                "long-term-debt",
+                "LongTermDebtNoncurrent",
+                "Long-term debt",
+                "borrowing-component",
+            ),
+        ),
     ),
     ("0000104169", 2026): BalanceSheetProfile(
         context=InstantFactContext(
@@ -176,6 +235,27 @@ BALANCE_SHEET_PROFILES = {
             "equity",
         ),
         cash_and_cash_equivalents=CASH,
+        supplemental_financial_assets=(),
+        borrowing_inputs=(
+            ReportedLineSpec(
+                "short-term-borrowings",
+                "ShortTermBorrowings",
+                "Short-term borrowings",
+                "borrowing-component",
+            ),
+            ReportedLineSpec(
+                "long-term-debt-due-within-one-year",
+                "LongTermDebtCurrent",
+                "Long-term debt due within one year",
+                "borrowing-component",
+            ),
+            ReportedLineSpec(
+                "long-term-debt",
+                "LongTermDebtNoncurrent",
+                "Long-term debt",
+                "borrowing-component",
+            ),
+        ),
     ),
 }
 
@@ -208,6 +288,22 @@ def extract_balance_sheet(
     cash = _reported_line(
         company_facts, profile.cash_and_cash_equivalents, profile.context
     )
+    supplemental_financial_assets = [
+        _reported_line(company_facts, spec, profile.context)
+        for spec in profile.supplemental_financial_assets
+    ]
+    borrowing_inputs = [
+        _reported_line(company_facts, spec, profile.context)
+        for spec in profile.borrowing_inputs
+    ]
+    simple_borrowings = DerivedBalanceSheetMeasure(
+        id="simple-borrowings",
+        label="FinPath simple borrowings",
+        value=sum(line.value for line in borrowing_inputs),
+        formula=" + ".join(line.reported_label for line in borrowing_inputs),
+        definition="The sum of the reviewed borrowing lines used in this lesson.",
+        inputs=borrowing_inputs,
+    )
 
     claims_total = (
         liabilities.value
@@ -233,6 +329,8 @@ def extract_balance_sheet(
         otherClaims=other_claims,
         equity=equity,
         cashAndCashEquivalents=cash,
+        supplementalFinancialAssets=supplemental_financial_assets,
+        simpleBorrowings=simple_borrowings,
     )
 
 

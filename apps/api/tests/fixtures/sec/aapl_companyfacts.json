@@ -407,6 +407,36 @@
         "units": {"USD": [
           {"end": "2025-09-27", "val": 35934000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
         ]}
+      },
+      "MarketableSecuritiesCurrent": {
+        "label": "Marketable Securities, Current",
+        "units": {"USD": [
+          {"end": "2025-09-27", "val": 18763000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
+      },
+      "MarketableSecuritiesNoncurrent": {
+        "label": "Marketable Securities, Noncurrent",
+        "units": {"USD": [
+          {"end": "2025-09-27", "val": 77723000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
+      },
+      "CommercialPaper": {
+        "label": "Commercial Paper",
+        "units": {"USD": [
+          {"end": "2025-09-27", "val": 7979000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
+      },
+      "LongTermDebtCurrent": {
+        "label": "Long-term Debt, Current Maturities",
+        "units": {"USD": [
+          {"end": "2025-09-27", "val": 12350000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
+      },
+      "LongTermDebtNoncurrent": {
+        "label": "Long-term Debt, Excluding Current Maturities",
+        "units": {"USD": [
+          {"end": "2025-09-27", "val": 78328000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}
+        ]}
       }
     }
   }

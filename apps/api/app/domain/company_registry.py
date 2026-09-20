@@ -13,6 +13,7 @@ class CompanyCapabilities:
     income_statement: bool
     cash_flow: bool
     balance_sheet: bool
+    cash_debt: bool
 
 
 @dataclass(frozen=True)
@@ -50,6 +51,7 @@ _COMPANIES = (
             income_statement=True,
             cash_flow=True,
             balance_sheet=True,
+            cash_debt=True,
         ),
         revenue_profile=RevenueProfile(
             taxonomy_tag="RevenueFromContractWithCustomerExcludingAssessedTax",
@@ -73,6 +75,7 @@ _COMPANIES = (
             income_statement=True,
             cash_flow=False,
             balance_sheet=True,
+            cash_debt=True,
         ),
         revenue_profile=RevenueProfile(
             taxonomy_tag="RevenueFromContractWithCustomerExcludingAssessedTax",
@@ -96,6 +99,7 @@ _COMPANIES = (
             income_statement=False,
             cash_flow=False,
             balance_sheet=True,
+            cash_debt=True,
         ),
         revenue_profile=RevenueProfile(
             taxonomy_tag="Revenues",

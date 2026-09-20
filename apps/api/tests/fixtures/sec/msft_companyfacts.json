@@ -26,7 +26,10 @@
       "Assets": {"label":"Assets","units":{"USD":[{"end":"2026-06-30","val":758376000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
       "Liabilities": {"label":"Liabilities","units":{"USD":[{"end":"2026-06-30","val":315989000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
       "StockholdersEquity": {"label":"Stockholders' Equity Attributable to Parent","units":{"USD":[{"end":"2026-06-30","val":442387000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
-      "CashAndCashEquivalentsAtCarryingValue": {"label":"Cash and Cash Equivalents, at Carrying Value","units":{"USD":[{"end":"2026-06-30","val":20935000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}}
+      "CashAndCashEquivalentsAtCarryingValue": {"label":"Cash and Cash Equivalents, at Carrying Value","units":{"USD":[{"end":"2026-06-30","val":20935000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "ShortTermInvestments": {"label":"Short-term Investments","units":{"USD":[{"end":"2026-06-30","val":55908000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "LongTermDebtCurrent": {"label":"Long-term Debt, Current Maturities","units":{"USD":[{"end":"2026-06-30","val":9227000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
+      "LongTermDebtNoncurrent": {"label":"Long-term Debt, Excluding Current Maturities","units":{"USD":[{"end":"2026-06-30","val":31067000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}}
     }
   }
 }

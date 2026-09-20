@@ -34,6 +34,7 @@ class CompanyCapabilities(ApiModel):
     income_statement: bool = Field(alias="incomeStatement")
     cash_flow: bool = Field(alias="cashFlow")
     balance_sheet: bool = Field(alias="balanceSheet")
+    cash_debt: bool = Field(alias="cashDebt")
 
 
 class SupportedCompanySummary(ApiModel):
@@ -260,6 +261,15 @@ BalanceSheetLineId = Literal[
     "redeemable-noncontrolling-interest",
     "shareholders-equity",
     "cash-and-cash-equivalents",
+    "current-marketable-securities",
+    "noncurrent-marketable-securities",
+    "short-term-investments",
+    "commercial-paper",
+    "current-term-debt",
+    "noncurrent-term-debt",
+    "current-portion-long-term-debt",
+    "short-term-borrowings",
+    "long-term-debt-due-within-one-year",
 ]
 
 BalanceSheetLineRole = Literal[
@@ -269,6 +279,8 @@ BalanceSheetLineRole = Literal[
     "other-claim",
     "equity",
     "supporting-fact",
+    "supplemental-financial-asset",
+    "borrowing-component",
 ]
 
 
@@ -296,6 +308,18 @@ class DerivedBalanceSheetLine(ApiModel):
     inputs: list[ReportedBalanceSheetLine]
 
 
+class DerivedBalanceSheetMeasure(ApiModel):
+    evidence_kind: Literal["derived"] = Field(
+        default="derived", alias="evidenceKind"
+    )
+    id: Literal["simple-borrowings"]
+    label: Literal["FinPath simple borrowings"]
+    value: int
+    formula: str
+    definition: str
+    inputs: list[ReportedBalanceSheetLine]
+
+
 class BalanceSheet(ApiModel):
     fiscal_year: int = Field(alias="fiscalYear")
     as_of_date: date = Field(alias="asOfDate")
@@ -311,6 +335,12 @@ class BalanceSheet(ApiModel):
     equity: ReportedBalanceSheetLine
     cash_and_cash_equivalents: ReportedBalanceSheetLine = Field(
         alias="cashAndCashEquivalents"
+    )
+    supplemental_financial_assets: list[ReportedBalanceSheetLine] = Field(
+        alias="supplementalFinancialAssets"
+    )
+    simple_borrowings: DerivedBalanceSheetMeasure = Field(
+        alias="simpleBorrowings"
     )
 
     @field_validator("source_url")

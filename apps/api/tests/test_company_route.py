@@ -51,6 +51,7 @@ def test_supported_company_list_is_a_stable_non_financial_contract() -> None:
         "incomeStatement": True,
         "cashFlow": False,
         "balanceSheet": True,
+        "cashDebt": True,
     }
     assert "value" not in str(payload)
 
@@ -200,6 +201,17 @@ def test_balance_sheet_http_contract_preserves_instant_context_and_evidence_kind
     assert "startDate" not in apple_statement
     assert "endDate" not in apple_statement
     assert apple_statement["liabilities"]["evidenceKind"] == "reported"
+    assert apple_statement["simpleBorrowings"]["evidenceKind"] == "derived"
+    assert apple_statement["simpleBorrowings"]["value"] == 98_657_000_000
+    assert [line["value"] for line in apple_statement["simpleBorrowings"]["inputs"]] == [
+        7_979_000_000,
+        12_350_000_000,
+        78_328_000_000,
+    ]
+    assert [line["value"] for line in apple_statement["supplementalFinancialAssets"]] == [
+        18_763_000_000,
+        77_723_000_000,
+    ]
     assert apple_statement["sourceUrl"].endswith(
         "/000032019325000079/0000320193-25-000079-index.htm"
     )
@@ -210,6 +222,8 @@ def test_balance_sheet_http_contract_preserves_instant_context_and_evidence_kind
     assert walmart_statement["liabilities"]["value"] == 178_488_000_000
     assert len(walmart_statement["liabilities"]["inputs"]) == 5
     assert walmart_statement["otherClaims"][0]["value"] == 293_000_000
+    assert walmart_statement["simpleBorrowings"]["value"] == 44_762_000_000
+    assert walmart_statement["supplementalFinancialAssets"] == []
 
 
 def test_balance_sheet_route_rejects_an_unreviewed_fiscal_year() -> None:
