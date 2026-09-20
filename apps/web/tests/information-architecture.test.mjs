@@ -15,9 +15,10 @@ const canonicalLessons = [
   ["operating-cash-flow", "Operating Cash Flow"],
   ["investing-financing-cash-flow", "Investing & Financing Cash Flow"],
   ["free-cash-flow", "Free Cash Flow"],
+  ["balance-sheet", "Balance Sheet"],
 ];
 
-test("all seven concepts have canonical Learn pages with learning identity", async () => {
+test("all eight concepts have canonical Learn pages with learning identity", async () => {
   const catalog = await readSource("lib/lesson-catalog.ts");
 
   for (const [slug, title] of canonicalLessons) {
@@ -45,14 +46,14 @@ test("lesson shell expresses Learn hierarchy, ordered navigation, and Explore cr
   assert.match(sequence, /selectedCompany\?\.slug \?\? "aapl"/);
   assert.match(sequence, /Explore \{selectedCompany\?\.ticker \?\? "AAPL"\}/);
   assert.match(sequence, /More concepts coming/);
-  assert.doesNotMatch(sequence, /Balance Sheet|EPS|P\/E/);
+  assert.doesNotMatch(sequence, /EPS|P\/E/);
 
   for (const [slug] of canonicalLessons) {
     assert.match(catalog, new RegExp(`/learn/company-analysis/${slug}`));
   }
 });
 
-test("previous and next lesson ordering follows the approved seven-concept sequence", () => {
+test("previous and next lesson ordering follows the approved eight-concept sequence", () => {
   assert.deepEqual(getAdjacentLessons("revenue"), {
     previous: null,
     next: {
@@ -68,7 +69,9 @@ test("previous and next lesson ordering follows the approved seven-concept seque
   assert.equal(getAdjacentLessons("operating-cash-flow").previous?.id, "net-profit-margin");
   assert.equal(getAdjacentLessons("operating-cash-flow").next?.id, "investing-financing-cash-flow");
   assert.equal(getAdjacentLessons("investing-financing-cash-flow").next?.id, "free-cash-flow");
-  assert.equal(getAdjacentLessons("free-cash-flow").next, null);
+  assert.equal(getAdjacentLessons("free-cash-flow").next?.id, "balance-sheet");
+  assert.equal(getAdjacentLessons("balance-sheet").previous?.id, "free-cash-flow");
+  assert.equal(getAdjacentLessons("balance-sheet").next, null);
 });
 
 test("former company lesson routes permanently redirect to canonical Learn routes", async () => {

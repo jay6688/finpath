@@ -112,6 +112,7 @@ export function deriveCurrentConcept(
     return "investing-financing-cash-flow";
   }
   if (!explored.has("free-cash-flow")) return "free-cash-flow";
+  if (!explored.has("balance-sheet")) return "balance-sheet";
   return null;
 }
 
@@ -171,6 +172,11 @@ const recommendations: Record<ConceptId, Omit<HomeRecommendation, "conceptId" | 
     goal: "Derive one simple Free Cash Flow measure from Apple’s reported cash-flow inputs.",
     href: "/learn/company-analysis/free-cash-flow",
   },
+  "balance-sheet": {
+    title: "Balance Sheet",
+    goal: "See where a company stands on one reporting date.",
+    href: "/learn/company-analysis/balance-sheet",
+  },
 };
 
 export function deriveHomeRecommendation(
@@ -179,8 +185,8 @@ export function deriveHomeRecommendation(
   const current = deriveCurrentConcept(progress);
   if (!current) {
     return {
-      conceptId: "free-cash-flow",
-      ...recommendations["free-cash-flow"],
+      conceptId: "balance-sheet",
+      ...recommendations["balance-sheet"],
       action: "Review",
     };
   }

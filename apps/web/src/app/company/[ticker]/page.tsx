@@ -4,7 +4,13 @@ import { notFound } from "next/navigation";
 
 import { RevenueExactRecords } from "@/components/revenue-exact-records";
 import { RevenueMetricSnapshot } from "@/components/revenue-metric-snapshot";
-import { getSupportedCompanies } from "@/lib/api";
+import { FinancialPositionSnapshot } from "@/components/financial-position-snapshot";
+import {
+  getCompanyBalanceSheet,
+  getSupportedCompanies,
+  type CompanyBalanceSheet,
+} from "@/lib/api";
+import { validateBalanceSheetForLesson } from "@/lib/balance-sheet-learning";
 import { findSupportedCompany } from "@/lib/company-selection";
 import { getCompanyRevenueData } from "@/lib/company-revenue-data";
 
@@ -24,6 +30,18 @@ export default async function CompanyResearchPage({
   if (!company) notFound();
 
   const data = await getCompanyRevenueData(company);
+  let balanceSheet: CompanyBalanceSheet | null = null;
+  if (company.capabilities.balanceSheet) {
+    try {
+      balanceSheet = await getCompanyBalanceSheet(
+        company.ticker,
+        company.reviewedFiscalYear,
+      );
+      validateBalanceSheetForLesson(balanceSheet.statement, balanceSheet.company);
+    } catch {
+      balanceSheet = null;
+    }
+  }
   const selectedQuery = `?company=${company.slug}`;
 
   return (
@@ -73,8 +91,18 @@ export default async function CompanyResearchPage({
                 : "Not reviewed for this company yet"}
             </span>
           </li>
+          <li>
+            <strong>Balance Sheet</strong>
+            <span>
+              {company.capabilities.balanceSheet
+                ? "Reviewed"
+                : "Not reviewed for this company yet"}
+            </span>
+          </li>
         </ul>
       </section>
+
+      <FinancialPositionSnapshot balanceSheet={balanceSheet} company={company} />
 
       <section className="explore-revenue" aria-labelledby="explore-revenue-heading">
         <div className="metric-column">

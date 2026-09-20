@@ -48,6 +48,13 @@ export const lessonCatalog = [
     shortGoal: "Derive one simple analytical measure from reported cash-flow inputs.",
     href: "/learn/company-analysis/free-cash-flow",
   },
+  {
+    id: "balance-sheet",
+    number: 8,
+    title: "Balance Sheet",
+    shortGoal: "Read a company’s financial position at one reporting date.",
+    href: "/learn/company-analysis/balance-sheet",
+  },
 ] as const;
 
 export type ConceptId = (typeof lessonCatalog)[number]["id"];

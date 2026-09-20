@@ -254,12 +254,19 @@ function ReportedInspector({ evidence, id }: { evidence: ReportedEvidence; id: s
 function DerivedInspector({ evidence, id }: { evidence: DerivedEvidence; id: string }) {
   const [first, second] = evidence.inputs;
   const isGrowth = evidence.calculation.type === "year-over-year-percent";
-  const isAmount = evidence.calculation.type === "difference-amount";
+  const isAmount =
+    evidence.calculation.type === "difference-amount" ||
+    evidence.calculation.type === "sum-amount";
   const definitionNote =
-    evidence.calculation.type === "difference-amount"
+    evidence.calculation.type === "difference-amount" ||
+    evidence.calculation.type === "sum-amount"
       ? evidence.calculation.definitionNote
       : null;
-  const substitutedFormula = isAmount
+  const substitutedFormula = evidence.calculation.type === "sum-amount"
+    ? evidence.inputs
+        .map((input) => formatBillions(input.finPathDisplay.value))
+        .join(" + ")
+    : isAmount
     ? `${formatBillions(first.finPathDisplay.value)} − ${formatBillions(Math.abs(second.finPathDisplay.value))}`
     : isGrowth
       ? `(${formatBillions(second.finPathDisplay.value)} − ${formatBillions(first.finPathDisplay.value)}) ÷ ${formatBillions(first.finPathDisplay.value)} × 100`

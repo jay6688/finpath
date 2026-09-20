@@ -113,6 +113,11 @@ export type ReportedEvidence = {
       | "pp-and-e-purchases"
       | "total-assets"
       | "total-liabilities"
+      | "current-liabilities"
+      | "long-term-debt"
+      | "long-term-operating-lease-obligations"
+      | "long-term-finance-lease-obligations"
+      | "deferred-income-taxes-and-other"
       | "redeemable-noncontrolling-interest"
       | "shareholders-equity"
       | "cash-and-cash-equivalents";
@@ -154,7 +159,11 @@ export type ReportedEvidence = {
 export type DerivedEvidence = {
   kind: "derived";
   metric: {
-    id: "net-profit-margin" | "revenue-growth" | "free-cash-flow";
+    id:
+      | "net-profit-margin"
+      | "revenue-growth"
+      | "free-cash-flow"
+      | "total-liabilities";
     label: string;
   };
   inputs: ReportedEvidence[];
@@ -168,7 +177,7 @@ export type DerivedEvidence = {
         roundingNote: string;
       }
     | {
-        type: "difference-amount";
+        type: "difference-amount" | "sum-amount";
         formula: string;
         exactResult: number;
         displayedResult: number;

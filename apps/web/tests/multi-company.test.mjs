@@ -39,15 +39,16 @@ test("Explore and company research are one reusable three-company architecture",
   assert.match(navigation, /pathname\.startsWith\("\/company\/"\)/);
 });
 
-test("Revenue lessons use URL-backed company selection without forking progress", async () => {
-  const [revenuePage, growthPage, selector, progress] = await Promise.all([
+test("multi-company lessons use URL-backed company selection without forking progress", async () => {
+  const [revenuePage, growthPage, balanceSheetPage, selector, progress] = await Promise.all([
     readSource("app/learn/company-analysis/revenue/page.tsx"),
     readSource("app/learn/company-analysis/revenue-growth/page.tsx"),
+    readSource("app/learn/company-analysis/balance-sheet/page.tsx"),
     readSource("components/company-example-selector.tsx"),
     readSource("lib/learning-progress.ts"),
   ]);
 
-  for (const page of [revenuePage, growthPage]) {
+  for (const page of [revenuePage, growthPage, balanceSheetPage]) {
     assert.match(page, /searchParams/);
     assert.match(page, /company/);
     assert.match(page, /CompanyExampleSelector/);

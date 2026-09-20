@@ -106,6 +106,30 @@ test("existing version-1 progress remains valid when two more cash-flow concepts
   );
 });
 
+test("existing version-1 progress advances to Balance Sheet without a storage migration", () => {
+  const storage = memoryStorage({
+    [LEARNING_PROGRESS_STORAGE_KEY]: JSON.stringify({
+      version: 1,
+      exploredConceptIds: [
+        "revenue",
+        "revenue-growth",
+        "profit",
+        "net-profit-margin",
+        "operating-cash-flow",
+        "investing-financing-cash-flow",
+        "free-cash-flow",
+      ],
+    }),
+  });
+
+  const progress = readLearningProgress(storage);
+  assert.equal(deriveCurrentConcept(progress), "balance-sheet");
+  assert.equal(
+    deriveHomeRecommendation(progress).href,
+    "/learn/company-analysis/balance-sheet",
+  );
+});
+
 test("malformed, old-version, and unavailable storage fail to the honest default", () => {
   const malformed = memoryStorage({ [LEARNING_PROGRESS_STORAGE_KEY]: "{not-json" });
   const oldVersion = memoryStorage({
@@ -149,7 +173,8 @@ test("current is always the first recommended milestone not yet explored", () =>
   const investingFinancing = markConceptsExplored(operating, [
     "investing-financing-cash-flow",
   ]);
-  const all = markConceptsExplored(investingFinancing, ["free-cash-flow"]);
+  const freeCashFlow = markConceptsExplored(investingFinancing, ["free-cash-flow"]);
+  const all = markConceptsExplored(freeCashFlow, ["balance-sheet"]);
 
   assert.equal(deriveCurrentConcept(revenue), "revenue-growth");
   assert.equal(deriveCurrentConcept(growth), "profit");
@@ -157,6 +182,7 @@ test("current is always the first recommended milestone not yet explored", () =>
   assert.equal(deriveCurrentConcept(margin), "operating-cash-flow");
   assert.equal(deriveCurrentConcept(operating), "investing-financing-cash-flow");
   assert.equal(deriveCurrentConcept(investingFinancing), "free-cash-flow");
+  assert.equal(deriveCurrentConcept(freeCashFlow), "balance-sheet");
   assert.equal(deriveCurrentConcept(all), null);
   assert.equal(deriveHomeRecommendation(all).action, "Review");
 });
@@ -232,6 +258,7 @@ test("every progress state recommends its canonical Learn route", () => {
     ["operating-cash-flow", "/learn/company-analysis/operating-cash-flow"],
     ["investing-financing-cash-flow", "/learn/company-analysis/investing-financing-cash-flow"],
     ["free-cash-flow", "/learn/company-analysis/free-cash-flow"],
+    ["balance-sheet", "/learn/company-analysis/balance-sheet"],
   ];
 
   for (const [conceptId, href] of expected) {
