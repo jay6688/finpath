@@ -16,9 +16,10 @@ const canonicalLessons = [
   ["investing-financing-cash-flow", "Investing & Financing Cash Flow"],
   ["free-cash-flow", "Free Cash Flow"],
   ["balance-sheet", "Balance Sheet"],
+  ["cash-and-debt", "Cash & Debt"],
 ];
 
-test("all eight concepts have canonical Learn pages with learning identity", async () => {
+test("all nine concepts have canonical Learn pages with learning identity", async () => {
   const catalog = await readSource("lib/lesson-catalog.ts");
 
   for (const [slug, title] of canonicalLessons) {
@@ -53,7 +54,7 @@ test("lesson shell expresses Learn hierarchy, ordered navigation, and Explore cr
   }
 });
 
-test("previous and next lesson ordering follows the approved eight-concept sequence", () => {
+test("previous and next lesson ordering follows the approved nine-concept sequence", () => {
   assert.deepEqual(getAdjacentLessons("revenue"), {
     previous: null,
     next: {
@@ -71,7 +72,9 @@ test("previous and next lesson ordering follows the approved eight-concept seque
   assert.equal(getAdjacentLessons("investing-financing-cash-flow").next?.id, "free-cash-flow");
   assert.equal(getAdjacentLessons("free-cash-flow").next?.id, "balance-sheet");
   assert.equal(getAdjacentLessons("balance-sheet").previous?.id, "free-cash-flow");
-  assert.equal(getAdjacentLessons("balance-sheet").next, null);
+  assert.equal(getAdjacentLessons("balance-sheet").next?.id, "cash-and-debt");
+  assert.equal(getAdjacentLessons("cash-and-debt").previous?.id, "balance-sheet");
+  assert.equal(getAdjacentLessons("cash-and-debt").next, null);
 });
 
 test("former company lesson routes permanently redirect to canonical Learn routes", async () => {

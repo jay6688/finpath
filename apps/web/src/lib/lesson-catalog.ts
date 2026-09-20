@@ -55,6 +55,13 @@ export const lessonCatalog = [
     shortGoal: "Read a company’s financial position at one reporting date.",
     href: "/learn/company-analysis/balance-sheet",
   },
+  {
+    id: "cash-and-debt",
+    number: 9,
+    title: "Cash & Debt",
+    shortGoal: "Separate Cash, Borrowings and Total Liabilities at one reporting date.",
+    href: "/learn/company-analysis/cash-and-debt",
+  },
 ] as const;
 
 export type ConceptId = (typeof lessonCatalog)[number]["id"];

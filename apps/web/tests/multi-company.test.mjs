@@ -40,15 +40,16 @@ test("Explore and company research are one reusable three-company architecture",
 });
 
 test("multi-company lessons use URL-backed company selection without forking progress", async () => {
-  const [revenuePage, growthPage, balanceSheetPage, selector, progress] = await Promise.all([
+  const [revenuePage, growthPage, balanceSheetPage, cashDebtPage, selector, progress] = await Promise.all([
     readSource("app/learn/company-analysis/revenue/page.tsx"),
     readSource("app/learn/company-analysis/revenue-growth/page.tsx"),
     readSource("app/learn/company-analysis/balance-sheet/page.tsx"),
+    readSource("app/learn/company-analysis/cash-and-debt/page.tsx"),
     readSource("components/company-example-selector.tsx"),
     readSource("lib/learning-progress.ts"),
   ]);
 
-  for (const page of [revenuePage, growthPage, balanceSheetPage]) {
+  for (const page of [revenuePage, growthPage, balanceSheetPage, cashDebtPage]) {
     assert.match(page, /searchParams/);
     assert.match(page, /company/);
     assert.match(page, /CompanyExampleSelector/);

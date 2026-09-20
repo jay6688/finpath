@@ -3,13 +3,13 @@
 FinPath is a beginner-first financial learning platform. V0 proves a narrow,
 connected learning loop:
 
-> Open FinPath → explore Apple (AAPL) → understand Revenue and Profit → follow Apple’s FY2025 Cash Flow Statement → derive a simple Free Cash Flow measure from reported inputs → trace every number and explanation to a source.
+> Open FinPath → choose a reviewed company → learn how its income, cash flow and financial-position facts connect → trace every number and calculation to a source.
 
 The product does not tell users what to buy. V0 does not include authentication, an AI tutor, gamification, paper trading, news, trade execution, or PWA behavior.
 
 ## Repository status
 
-This repository is currently at the **completed Apple Cash Flow learning module milestone**. It contains:
+This repository is currently at the **Cash & Debt learning milestone**. It contains:
 
 - a runnable Next.js product shell and real-data Apple company page;
 - a FastAPI company endpoint backed by SEC ticker and Company Facts data;
@@ -21,6 +21,8 @@ This repository is currently at the **completed Apple Cash Flow learning module 
 - a complete FY2025 Operating, Investing, and Financing Cash Flow model from one filing context;
 - exact section, net-change, and beginning-to-ending cash reconciliations;
 - a simple Free Cash Flow lesson derived from reported Operating Cash Flow and PP&E purchases, with an explicit non-GAAP/definition boundary;
+- reviewed AAPL, MSFT and WMT Balance Sheet profiles with exact instant-date provenance;
+- Balance Sheet and Cash & Debt lessons that keep reported facts, Total Liabilities and FinPath-derived simple borrowings distinct;
 - a SQLite cache containing public SEC JSON only;
 - sourced English and Chinese Revenue learning content;
 - deterministic SEC fixtures and an optional live smoke test;

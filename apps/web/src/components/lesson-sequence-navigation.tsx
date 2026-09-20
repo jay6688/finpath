@@ -23,10 +23,20 @@ export function LessonSequenceNavigation({
   const { markExplored } = useLearningProgress();
   const { previous, next } = getAdjacentLessons(currentConceptId);
   const companyQuery = selectedCompany ? `?company=${selectedCompany.slug}` : "";
+  const companyAwareLessons = new Set<ConceptId>([
+    "revenue",
+    "revenue-growth",
+    "balance-sheet",
+    "cash-and-debt",
+  ]);
   const previousHref =
-    previous?.id === "revenue" ? `${previous.href}${companyQuery}` : previous?.href;
+    previous && companyAwareLessons.has(previous.id)
+      ? `${previous.href}${companyQuery}`
+      : previous?.href;
   const nextHref =
-    next?.id === "revenue-growth" ? `${next.href}${companyQuery}` : next?.href;
+    next && companyAwareLessons.has(next.id)
+      ? `${next.href}${companyQuery}`
+      : next?.href;
 
   return (
     <footer className="lesson-sequence">

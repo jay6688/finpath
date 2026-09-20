@@ -14,19 +14,38 @@ type BalanceSheetStatement = CompanyBalanceSheet["statement"];
 
 const reviewedIdentities = new Map<
   string,
-  { cik: string; fiscalYear: number; asOfDate: string; filedAt: string }
+  {
+    cik: string;
+    fiscalYear: number;
+    asOfDate: string;
+    filedAt: string;
+    supplementalIds: BalanceSheetLineId[];
+    borrowingIds: BalanceSheetLineId[];
+  }
 >([
   [
     "0000320193-25-000079",
-    { cik: "0000320193", fiscalYear: 2025, asOfDate: "2025-09-27", filedAt: "2025-10-31" },
+    {
+      cik: "0000320193", fiscalYear: 2025, asOfDate: "2025-09-27", filedAt: "2025-10-31",
+      supplementalIds: ["current-marketable-securities", "noncurrent-marketable-securities"],
+      borrowingIds: ["commercial-paper", "current-term-debt", "noncurrent-term-debt"],
+    },
   ],
   [
     "0001193125-26-323660",
-    { cik: "0000789019", fiscalYear: 2026, asOfDate: "2026-06-30", filedAt: "2026-07-29" },
+    {
+      cik: "0000789019", fiscalYear: 2026, asOfDate: "2026-06-30", filedAt: "2026-07-29",
+      supplementalIds: ["short-term-investments"],
+      borrowingIds: ["current-portion-long-term-debt", "long-term-debt"],
+    },
   ],
   [
     "0000104169-26-000055",
-    { cik: "0000104169", fiscalYear: 2026, asOfDate: "2026-01-31", filedAt: "2026-03-13" },
+    {
+      cik: "0000104169", fiscalYear: 2026, asOfDate: "2026-01-31", filedAt: "2026-03-13",
+      supplementalIds: [],
+      borrowingIds: ["short-term-borrowings", "long-term-debt-due-within-one-year", "long-term-debt"],
+    },
   ],
 ] as const);
 
@@ -44,6 +63,8 @@ export type BalanceSheetEvidence = {
   otherClaims: ReportedEvidence[];
   equity: ReportedEvidence;
   cashAndCashEquivalents: ReportedEvidence;
+  supplementalFinancialAssets: ReportedEvidence[];
+  simpleBorrowings: DerivedEvidence;
 };
 
 export function validateBalanceSheetForLesson(
@@ -71,6 +92,8 @@ export function validateBalanceSheetForLesson(
     ...statement.otherClaims,
     statement.equity,
     statement.cashAndCashEquivalents,
+    ...statement.supplementalFinancialAssets,
+    ...statement.simpleBorrowings.inputs,
     ...(statement.liabilities.evidenceKind === "reported"
       ? [statement.liabilities]
       : statement.liabilities.inputs),
@@ -89,6 +112,38 @@ export function validateBalanceSheetForLesson(
     statement.otherClaims.some((line) => line.role !== "other-claim")
   ) {
     throw new EvidenceDataError("Balance Sheet lines use an invalid semantic role.");
+  }
+
+  const supplementalIds = statement.supplementalFinancialAssets.map((line) => line.id);
+  const borrowingIds = statement.simpleBorrowings.inputs.map((line) => line.id);
+  const borrowingTotal = statement.simpleBorrowings.inputs.reduce(
+    (sum, line) => sum + line.value,
+    0,
+  );
+  if (
+    statement.supplementalFinancialAssets.some(
+      (line) => line.role !== "supplemental-financial-asset",
+    ) ||
+    statement.simpleBorrowings.evidenceKind !== "derived" ||
+    statement.simpleBorrowings.id !== "simple-borrowings" ||
+    statement.simpleBorrowings.label !== "FinPath simple borrowings" ||
+    statement.simpleBorrowings.definition !==
+      "The sum of the reviewed borrowing lines used in this lesson." ||
+    statement.simpleBorrowings.formula !==
+      statement.simpleBorrowings.inputs.map((line) => line.reportedLabel).join(" + ") ||
+    statement.simpleBorrowings.inputs.length === 0 ||
+    statement.simpleBorrowings.inputs.some(
+      (line) => line.role !== "borrowing-component",
+    ) ||
+    new Set(supplementalIds).size !== supplementalIds.length ||
+    new Set(borrowingIds).size !== borrowingIds.length ||
+    supplementalIds.join("|") !== identity.supplementalIds.join("|") ||
+    borrowingIds.join("|") !== identity.borrowingIds.join("|") ||
+    borrowingTotal !== statement.simpleBorrowings.value
+  ) {
+    throw new EvidenceDataError(
+      "Cash & Debt evidence does not match the complete reviewed profile.",
+    );
   }
 
   if (statement.liabilities.evidenceKind === "derived") {
@@ -161,6 +216,42 @@ export function buildBalanceSheetEvidence(
       statement.cashAndCashEquivalents,
       "Cash and cash equivalents",
     ),
+    supplementalFinancialAssets: statement.supplementalFinancialAssets.map((line) =>
+      reported(line, line.reportedLabel),
+    ),
+    simpleBorrowings: buildSimpleBorrowingsEvidence(response, reported),
+  };
+}
+
+function buildSimpleBorrowingsEvidence(
+  response: CompanyBalanceSheet,
+  reported: (line: ReportedBalanceSheetLine, label: string) => ReportedEvidence,
+): DerivedEvidence {
+  const measure = response.statement.simpleBorrowings;
+  const inputs = measure.inputs.map((line) => reported(line, line.reportedLabel));
+  const exactResult = inputs.reduce(
+    (sum, input) => sum + input.reportedFact.value,
+    0,
+  );
+  if (exactResult !== measure.value) {
+    throw new EvidenceDataError("Simple borrowings do not match their inputs.");
+  }
+  return {
+    kind: "derived",
+    metric: { id: "simple-borrowings", label: measure.label },
+    inputs,
+    calculation: {
+      type: "sum-amount",
+      formula: measure.formula,
+      exactResult,
+      displayedResult: exactResult / 1_000_000_000,
+      decimalPlaces: 3,
+      roundingNote:
+        "FinPath sums exact reported USD values, then changes the display to billions.",
+      definitionNote: measure.definition,
+    },
+    limitation:
+      "This is not a company-reported Total Debt line. Debt definitions can vary. This lesson excludes lease obligations, and this number alone does not prove financial strength, weakness, solvency, valuation, or investment quality.",
   };
 }
 

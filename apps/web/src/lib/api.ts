@@ -42,6 +42,7 @@ export type SupportedCompany = {
     incomeStatement: boolean;
     cashFlow: boolean;
     balanceSheet: boolean;
+    cashDebt: boolean;
   };
 };
 
@@ -180,7 +181,16 @@ export type BalanceSheetLineId =
   | "deferred-income-taxes-and-other"
   | "redeemable-noncontrolling-interest"
   | "shareholders-equity"
-  | "cash-and-cash-equivalents";
+  | "cash-and-cash-equivalents"
+  | "current-marketable-securities"
+  | "noncurrent-marketable-securities"
+  | "short-term-investments"
+  | "commercial-paper"
+  | "current-term-debt"
+  | "noncurrent-term-debt"
+  | "current-portion-long-term-debt"
+  | "short-term-borrowings"
+  | "long-term-debt-due-within-one-year";
 
 export type BalanceSheetLineRole =
   | "assets"
@@ -188,7 +198,9 @@ export type BalanceSheetLineRole =
   | "liability-component"
   | "other-claim"
   | "equity"
-  | "supporting-fact";
+  | "supporting-fact"
+  | "supplemental-financial-asset"
+  | "borrowing-component";
 
 export type ReportedBalanceSheetLine = {
   evidenceKind: "reported";
@@ -210,6 +222,16 @@ export type DerivedBalanceSheetLine = {
   inputs: ReportedBalanceSheetLine[];
 };
 
+export type DerivedBalanceSheetMeasure = {
+  evidenceKind: "derived";
+  id: "simple-borrowings";
+  label: "FinPath simple borrowings";
+  value: number;
+  formula: string;
+  definition: string;
+  inputs: ReportedBalanceSheetLine[];
+};
+
 export type CompanyBalanceSheet = {
   company: CompanyOverview["company"];
   statement: {
@@ -226,6 +248,8 @@ export type CompanyBalanceSheet = {
     otherClaims: ReportedBalanceSheetLine[];
     equity: ReportedBalanceSheetLine;
     cashAndCashEquivalents: ReportedBalanceSheetLine;
+    supplementalFinancialAssets: ReportedBalanceSheetLine[];
+    simpleBorrowings: DerivedBalanceSheetMeasure;
   };
   dataStatus: CompanyOverview["dataStatus"];
 };

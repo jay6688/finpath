@@ -8,21 +8,23 @@ also retains the nine FY2025 facts required to reconcile Apple's Revenue to Net
 income and the complete FY2025 cash-flow facts required to reconcile Operating,
 Investing, Financing, the net cash change, and beginning-to-ending cash from one
 filing context. It also retains the reviewed FY2025 instant Balance Sheet totals
-and cash fact. The fixture intentionally includes a quarterly
+and cash fact, plus the reviewed marketable-securities and borrowing lines used
+by Lesson 09. The fixture intentionally includes a quarterly
 Revenue fact, an invalid short-duration fact, a comparative Gross Profit fact,
 and an identical duplicate Net Income fact so those boundaries remain tested.
 Do not replace it with an unexplained full Company Facts dump.
 
 `msft_companyfacts.json` preserves Microsoft's reviewed FY2026 Revenue history
 and the nine same-context Income Statement facts required by the explicit
-Microsoft FY2026 profile, plus the reviewed instant Balance Sheet totals and
-cash fact. Source: Microsoft Form 10-K filed 2026-07-29,
+Microsoft FY2026 profile, plus the reviewed instant Balance Sheet totals, cash,
+short-term investment and borrowing facts used by Lessons 08 and 09. Source:
+Microsoft Form 10-K filed 2026-07-29,
 accession `0001193125-26-323660`.
 
 `wmt_companyfacts.json` preserves Walmart's reviewed five-year Total revenues
 history and a competing FY2026 Net sales fact. It proves that FinPath selects
 the reviewed `Revenues` concept rather than relying on global taxonomy priority.
-It also keeps Walmart's reviewed instant Balance Sheet facts. The fixture
+It also keeps Walmart's reviewed instant Balance Sheet, cash and borrowing facts. The fixture
 intentionally has no direct total-liabilities fact: five complete filed
 liability components support an explicit derived total in offline tests.
 Source: Walmart Form 10-K filed 2026-03-13, accession

@@ -67,9 +67,30 @@ export function FinancialPositionSnapshot({ balanceSheet, company }: Props) {
         Exact stored values reconcile: Assets = Liabilities
         {statement.otherClaims.length ? " + separately presented claims" : ""} + Equity.
       </p>
-      <Link href={`/learn/company-analysis/balance-sheet?company=${company.slug}`}>
-        Understand the Balance Sheet <span aria-hidden="true">→</span>
-      </Link>
+      <dl className="financial-position__cash-debt">
+        <div>
+          <dt>Cash and cash equivalents</dt>
+          <dd>{formatBillions(statement.cashAndCashEquivalents.value)}</dd>
+        </div>
+        <div>
+          <dt>FinPath simple borrowings</dt>
+          <dd>{formatBillions(statement.simpleBorrowings.value)}</dd>
+          <small>Derived from reviewed reported borrowing lines</small>
+        </div>
+      </dl>
+      {statement.supplementalFinancialAssets.length > 0 ? (
+        <p className="financial-position__asset-note">
+          Additional reviewed financial-asset lines are available in the Cash & Debt lesson.
+        </p>
+      ) : null}
+      <div className="financial-position__links">
+        <Link href={`/learn/company-analysis/balance-sheet?company=${company.slug}`}>
+          Understand the Balance Sheet <span aria-hidden="true">→</span>
+        </Link>
+        <Link href={`/learn/company-analysis/cash-and-debt?company=${company.slug}`}>
+          Understand Cash & Debt <span aria-hidden="true">→</span>
+        </Link>
+      </div>
     </section>
   );
 }

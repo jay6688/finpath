@@ -113,6 +113,7 @@ export function deriveCurrentConcept(
   }
   if (!explored.has("free-cash-flow")) return "free-cash-flow";
   if (!explored.has("balance-sheet")) return "balance-sheet";
+  if (!explored.has("cash-and-debt")) return "cash-and-debt";
   return null;
 }
 
@@ -177,6 +178,11 @@ const recommendations: Record<ConceptId, Omit<HomeRecommendation, "conceptId" | 
     goal: "See where a company stands on one reporting date.",
     href: "/learn/company-analysis/balance-sheet",
   },
+  "cash-and-debt": {
+    title: "Cash & Debt",
+    goal: "See why Cash, Borrowings and Total Liabilities are different parts of financial position.",
+    href: "/learn/company-analysis/cash-and-debt",
+  },
 };
 
 export function deriveHomeRecommendation(
@@ -185,8 +191,8 @@ export function deriveHomeRecommendation(
   const current = deriveCurrentConcept(progress);
   if (!current) {
     return {
-      conceptId: "balance-sheet",
-      ...recommendations["balance-sheet"],
+      conceptId: "cash-and-debt",
+      ...recommendations["cash-and-debt"],
       action: "Review",
     };
   }

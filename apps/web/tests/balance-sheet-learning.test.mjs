@@ -25,6 +25,15 @@ const profiles = {
     equity: 73_733_000_000,
     cash: 35_934_000_000,
     equityTag: "StockholdersEquity",
+    supplemental: [
+      ["current-marketable-securities", "MarketableSecuritiesCurrent", "Current marketable securities", 18_763_000_000],
+      ["noncurrent-marketable-securities", "MarketableSecuritiesNoncurrent", "Non-current marketable securities", 77_723_000_000],
+    ],
+    borrowings: [
+      ["commercial-paper", "CommercialPaper", "Commercial paper", 7_979_000_000],
+      ["current-term-debt", "LongTermDebtCurrent", "Current term debt", 12_350_000_000],
+      ["noncurrent-term-debt", "LongTermDebtNoncurrent", "Non-current term debt", 78_328_000_000],
+    ],
   },
   MSFT: {
     company: { ticker: "MSFT", name: "Microsoft Corporation", cik: "0000789019" },
@@ -37,6 +46,13 @@ const profiles = {
     equity: 442_387_000_000,
     cash: 20_935_000_000,
     equityTag: "StockholdersEquity",
+    supplemental: [
+      ["short-term-investments", "ShortTermInvestments", "Short-term investments", 55_908_000_000],
+    ],
+    borrowings: [
+      ["current-portion-long-term-debt", "LongTermDebtCurrent", "Current portion of long-term debt", 9_227_000_000],
+      ["long-term-debt", "LongTermDebtNoncurrent", "Long-term debt", 31_067_000_000],
+    ],
   },
 };
 
@@ -56,6 +72,9 @@ function reported(id, taxonomyTag, reportedLabel, value, role) {
 
 function makeDirectBalanceSheet(ticker) {
   const profile = profiles[ticker];
+  const borrowingInputs = profile.borrowings.map(([id, tag, label, value]) =>
+    reported(id, tag, label, value, "borrowing-component"),
+  );
   return {
     company: profile.company,
     dataStatus,
@@ -73,6 +92,18 @@ function makeDirectBalanceSheet(ticker) {
       otherClaims: [],
       equity: reported("shareholders-equity", profile.equityTag, "Total shareholders’ equity", profile.equity, "equity"),
       cashAndCashEquivalents: reported("cash-and-cash-equivalents", "CashAndCashEquivalentsAtCarryingValue", "Cash and cash equivalents", profile.cash, "supporting-fact"),
+      supplementalFinancialAssets: profile.supplemental.map(([id, tag, label, value]) =>
+        reported(id, tag, label, value, "supplemental-financial-asset"),
+      ),
+      simpleBorrowings: {
+        evidenceKind: "derived",
+        id: "simple-borrowings",
+        label: "FinPath simple borrowings",
+        value: borrowingInputs.reduce((sum, line) => sum + line.value, 0),
+        formula: borrowingInputs.map((line) => line.reportedLabel).join(" + "),
+        definition: "The sum of the reviewed borrowing lines used in this lesson.",
+        inputs: borrowingInputs,
+      },
     },
   };
 }
@@ -84,6 +115,11 @@ function makeWalmartBalanceSheet() {
     reported("long-term-operating-lease-obligations", "OperatingLeaseLiabilityNoncurrent", "Long-term operating lease obligations", 13_941_000_000, "liability-component"),
     reported("long-term-finance-lease-obligations", "FinanceLeaseLiabilityNoncurrent", "Long-term finance lease obligations", 5_905_000_000, "liability-component"),
     reported("deferred-income-taxes-and-other", "DeferredIncomeTaxesAndOtherLiabilitiesNoncurrent", "Deferred income taxes and other", 16_549_000_000, "liability-component"),
+  ];
+  const borrowingInputs = [
+    reported("short-term-borrowings", "ShortTermBorrowings", "Short-term borrowings", 6_596_000_000, "borrowing-component"),
+    reported("long-term-debt-due-within-one-year", "LongTermDebtCurrent", "Long-term debt due within one year", 3_542_000_000, "borrowing-component"),
+    reported("long-term-debt", "LongTermDebtNoncurrent", "Long-term debt", 34_624_000_000, "borrowing-component"),
   ];
   return {
     company: { ticker: "WMT", name: "Walmart Inc.", cik: "0000104169" },
@@ -110,6 +146,16 @@ function makeWalmartBalanceSheet() {
       otherClaims: [reported("redeemable-noncontrolling-interest", "RedeemableNoncontrollingInterestEquityCarryingAmount", "Redeemable noncontrolling interest", 293_000_000, "other-claim")],
       equity: reported("shareholders-equity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest", "Total shareholders’ equity", 105_887_000_000, "equity"),
       cashAndCashEquivalents: reported("cash-and-cash-equivalents", "CashAndCashEquivalentsAtCarryingValue", "Cash and cash equivalents", 10_727_000_000, "supporting-fact"),
+      supplementalFinancialAssets: [],
+      simpleBorrowings: {
+        evidenceKind: "derived",
+        id: "simple-borrowings",
+        label: "FinPath simple borrowings",
+        value: 44_762_000_000,
+        formula: borrowingInputs.map((line) => line.reportedLabel).join(" + "),
+        definition: "The sum of the reviewed borrowing lines used in this lesson.",
+        inputs: borrowingInputs,
+      },
     },
   };
 }
@@ -140,6 +186,51 @@ test("keeps Walmart liabilities derived and redeemable NCI separate", () => {
   assert.equal(evidence.liabilities.calculation.type, "sum-amount");
   assert.equal(evidence.liabilities.inputs.length, 5);
   assert.equal(evidence.assets.filing.reportingContext.kind, "instant");
+  assert.equal(evidence.simpleBorrowings.metric.id, "simple-borrowings");
+  assert.equal(evidence.simpleBorrowings.inputs.length, 3);
+});
+
+test("builds company-specific Cash & Debt evidence from reviewed instant facts", () => {
+  const expected = {
+    AAPL: { cash: 35_934_000_000, supplemental: 2, inputs: 3, borrowings: 98_657_000_000 },
+    MSFT: { cash: 20_935_000_000, supplemental: 1, inputs: 2, borrowings: 40_294_000_000 },
+  };
+
+  for (const ticker of ["AAPL", "MSFT"]) {
+    const evidence = buildBalanceSheetEvidence(makeDirectBalanceSheet(ticker));
+    assert.equal(evidence.cashAndCashEquivalents.reportedFact.value, expected[ticker].cash);
+    assert.equal(evidence.supplementalFinancialAssets.length, expected[ticker].supplemental);
+    assert.equal(evidence.simpleBorrowings.inputs.length, expected[ticker].inputs);
+    assert.equal(evidence.simpleBorrowings.calculation.exactResult, expected[ticker].borrowings);
+    assert.equal(evidence.simpleBorrowings.kind, "derived");
+    assert.equal(evidence.simpleBorrowings.inputs[0].kind, "reported");
+    assert.equal(evidence.simpleBorrowings.inputs[0].filing.reportingContext.kind, "instant");
+  }
+
+  const walmart = buildBalanceSheetEvidence(makeWalmartBalanceSheet());
+  assert.equal(walmart.supplementalFinancialAssets.length, 0);
+  assert.equal(walmart.simpleBorrowings.calculation.exactResult, 44_762_000_000);
+  assert.equal(walmart.liabilities.calculation.exactResult, 178_488_000_000);
+});
+
+test("rejects incomplete or cross-company Cash & Debt profiles", () => {
+  const missing = makeDirectBalanceSheet("AAPL");
+  missing.statement.simpleBorrowings.inputs.pop();
+  assert.throws(() => validateBalanceSheetForLesson(missing.statement, missing.company));
+
+  const wrongRole = makeDirectBalanceSheet("MSFT");
+  wrongRole.statement.supplementalFinancialAssets[0].role = "supporting-fact";
+  assert.throws(() => validateBalanceSheetForLesson(wrongRole.statement, wrongRole.company));
+
+  const wrongTotal = makeWalmartBalanceSheet();
+  wrongTotal.statement.simpleBorrowings.value += 1;
+  assert.throws(() => validateBalanceSheetForLesson(wrongTotal.statement, wrongTotal.company));
+
+  const misleadingFormula = makeDirectBalanceSheet("AAPL");
+  misleadingFormula.statement.simpleBorrowings.formula = "Cash minus debt";
+  assert.throws(() =>
+    validateBalanceSheetForLesson(misleadingFormula.statement, misleadingFormula.company),
+  );
 });
 
 test("rejects wrong instant identity, unsafe source, missing facts, and bad arithmetic", () => {

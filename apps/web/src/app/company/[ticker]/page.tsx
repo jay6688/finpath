@@ -99,6 +99,14 @@ export default async function CompanyResearchPage({
                 : "Not reviewed for this company yet"}
             </span>
           </li>
+          <li>
+            <strong>Cash & Debt</strong>
+            <span>
+              {company.capabilities.cashDebt
+                ? "Reviewed"
+                : "Not reviewed for this company yet"}
+            </span>
+          </li>
         </ul>
       </section>
 
