@@ -197,6 +197,22 @@ def test_rejects_zero_weighted_average_shares_and_unmatched_reported_eps() -> No
         extract_earnings_per_share(unmatched, cik="0000320193", fiscal_year=2025)
 
 
+def test_rejects_impossible_diluted_denominator_and_extra_eps_precision() -> None:
+    smaller_diluted = deepcopy(load_sec_fixture("aapl_companyfacts.json"))
+    smaller_diluted["facts"]["us-gaap"][
+        "WeightedAverageNumberOfDilutedSharesOutstanding"
+    ]["units"]["shares"][0]["val"] = 14_000_000_000
+    with pytest.raises(EarningsPerShareUnavailableError, match="cannot be below"):
+        extract_earnings_per_share(smaller_diluted, cik="0000320193", fiscal_year=2025)
+
+    extra_precision = deepcopy(load_sec_fixture("aapl_companyfacts.json"))
+    extra_precision["facts"]["us-gaap"]["EarningsPerShareBasic"]["units"][
+        "USD/shares"
+    ][0]["val"] = 7.494
+    with pytest.raises(EarningsPerShareUnavailableError, match="two-decimal"):
+        extract_earnings_per_share(extra_precision, cik="0000320193", fiscal_year=2025)
+
+
 def test_rejects_unreviewed_profile_and_wrong_company_payload() -> None:
     with pytest.raises(EarningsPerShareUnavailableError, match="profile.*unavailable"):
         extract_earnings_per_share(

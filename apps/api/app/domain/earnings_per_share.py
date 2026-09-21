@@ -163,6 +163,10 @@ def extract_earnings_per_share(
         raise EarningsPerShareUnavailableError(
             "Weighted-average share counts must be positive."
         )
+    if diluted_shares < basic_shares:
+        raise EarningsPerShareUnavailableError(
+            "Diluted weighted-average shares cannot be below basic weighted-average shares."
+        )
 
     basic_verification = _verification(
         "basic", numerator, basic_shares, basic_eps
@@ -299,7 +303,12 @@ def _reported_value(
                 f"{spec.taxonomy_tag} must be an exact integer {spec.unit} fact."
             )
         return int(value), taxonomy_label.strip()
-    return value.quantize(Decimal("0.01")), taxonomy_label.strip()
+    quantized = value.quantize(Decimal("0.01"))
+    if value != quantized:
+        raise EarningsPerShareUnavailableError(
+            f"{spec.taxonomy_tag} exceeds the reviewed two-decimal reporting precision."
+        )
+    return quantized, taxonomy_label.strip()
 
 
 def _matches_context(raw: dict[str, Any], context: DurationContext) -> bool:
