@@ -406,7 +406,7 @@ class EarningsPerShareVerification(ApiModel):
     formula: str
     numerator: int
     denominator: int
-    exact_result: Decimal = Field(alias="exactResult")
+    unrounded_result: Decimal = Field(alias="unroundedResult")
     rounded_result: Decimal = Field(alias="roundedResult")
     reported_result: Decimal = Field(alias="reportedResult")
     decimal_places: Literal[2] = Field(default=2, alias="decimalPlaces")

@@ -28,7 +28,7 @@ export function LearningPathView() {
         <p className="eyebrow">Learning path</p>
         <h1>Company Analysis Basics</h1>
         <p>
-          Nine concepts, with reviewed real-company examples. Follow the
+          Eleven concepts, with reviewed real-company examples. Follow the
           recommended order or revisit any lesson you have explored.
         </p>
       </header>
@@ -66,7 +66,7 @@ export function LearningPathView() {
           <p className="eyebrow">Explore freely</p>
           <h2 id="learn-explore-heading">Research stays separate.</h2>
           <p>
-            Lessons explain financial concepts. Explore lets you inspect Apple&apos;s
+            Lessons explain financial concepts. Explore lets you inspect a company&apos;s
             real reported record directly.
           </p>
           <Link href="/company/aapl">Explore Apple →</Link>

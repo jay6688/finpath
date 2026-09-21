@@ -115,6 +115,7 @@ export function deriveCurrentConcept(
   if (!explored.has("balance-sheet")) return "balance-sheet";
   if (!explored.has("cash-and-debt")) return "cash-and-debt";
   if (!explored.has("three-statements-connect")) return "three-statements-connect";
+  if (!explored.has("eps-and-share-count")) return "eps-and-share-count";
   return null;
 }
 
@@ -189,6 +190,11 @@ const recommendations: Record<ConceptId, Omit<HomeRecommendation, "conceptId" | 
     goal: "Connect Apple’s annual performance, cash movement and reporting-date Cash position.",
     href: "/learn/company-analysis/three-statements-connect",
   },
+  "eps-and-share-count": {
+    title: "EPS & Share Count",
+    goal: "See how reviewed earnings and weighted-average shares connect to reported EPS.",
+    href: "/learn/company-analysis/eps-and-share-count",
+  },
 };
 
 export function deriveHomeRecommendation(
@@ -197,8 +203,8 @@ export function deriveHomeRecommendation(
   const current = deriveCurrentConcept(progress);
   if (!current) {
     return {
-      conceptId: "three-statements-connect",
-      ...recommendations["three-statements-connect"],
+      conceptId: "eps-and-share-count",
+      ...recommendations["eps-and-share-count"],
       action: "Review",
     };
   }

@@ -44,6 +44,7 @@ export type SupportedCompany = {
     balanceSheet: boolean;
     cashDebt: boolean;
     threeStatements: boolean;
+    earningsPerShare: boolean;
   };
 };
 
@@ -255,6 +256,73 @@ export type CompanyBalanceSheet = {
   dataStatus: CompanyOverview["dataStatus"];
 };
 
+export type ReportedEarningsAmount = {
+  evidenceKind: "reported";
+  id: "earnings-numerator";
+  taxonomyTag: string;
+  taxonomyLabel: string;
+  reportedLabel: string;
+  value: number;
+  unit: "USD";
+};
+
+export type ReportedWeightedAverageShares = {
+  evidenceKind: "reported";
+  id: "basic-weighted-average-shares" | "diluted-weighted-average-shares";
+  taxonomyTag: string;
+  taxonomyLabel: string;
+  reportedLabel: string;
+  value: number;
+  unit: "shares";
+};
+
+export type ReportedEarningsPerShare = {
+  evidenceKind: "reported";
+  id: "basic-eps" | "diluted-eps";
+  taxonomyTag: string;
+  taxonomyLabel: string;
+  reportedLabel: string;
+  value: string;
+  unit: "USD/share";
+};
+
+export type EarningsPerShareVerification = {
+  evidenceKind: "verification";
+  basis: "basic" | "diluted";
+  formula: string;
+  numerator: number;
+  denominator: number;
+  unroundedResult: string;
+  roundedResult: string;
+  reportedResult: string;
+  decimalPlaces: 2;
+  roundingMode: "ROUND_HALF_UP";
+  matchesReported: true;
+};
+
+export type CompanyEarningsPerShare = {
+  company: CompanyOverview["company"];
+  statement: {
+    fiscalYear: number;
+    startDate: string;
+    endDate: string;
+    currency: "USD";
+    form: "10-K" | "10-K/A";
+    filedAt: string;
+    accession: string;
+    sourceUrl: string;
+    statementName: string;
+    earningsNumerator: ReportedEarningsAmount;
+    basicWeightedAverageShares: ReportedWeightedAverageShares;
+    dilutedWeightedAverageShares: ReportedWeightedAverageShares;
+    basicEps: ReportedEarningsPerShare;
+    dilutedEps: ReportedEarningsPerShare;
+    basicVerification: EarningsPerShareVerification;
+    dilutedVerification: EarningsPerShareVerification;
+  };
+  dataStatus: CompanyOverview["dataStatus"];
+};
+
 export class FinPathApiError extends Error {
   readonly status?: number;
 
@@ -401,4 +469,28 @@ export async function getCompanyBalanceSheet(
   }
 
   return (await response.json()) as CompanyBalanceSheet;
+}
+
+export async function getCompanyEarningsPerShare(
+  ticker: string,
+  fiscalYear: number,
+): Promise<CompanyEarningsPerShare> {
+  const apiBaseUrl = getApiBaseUrl();
+  const response = await fetch(
+    `${apiBaseUrl}/v1/companies/${encodeURIComponent(ticker)}/earnings-per-share/${fiscalYear}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    let detail = `FinPath API returned ${response.status}.`;
+    try {
+      const payload = (await response.json()) as { detail?: string };
+      if (payload.detail) detail = payload.detail;
+    } catch {
+      // Keep the status-based message when an upstream proxy returns non-JSON.
+    }
+    throw new FinPathApiError(detail, response.status);
+  }
+
+  return (await response.json()) as CompanyEarningsPerShare;
 }

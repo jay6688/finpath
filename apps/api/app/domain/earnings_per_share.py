@@ -342,7 +342,7 @@ def _verification(
         formula="Earnings numerator ÷ weighted-average shares",
         numerator=numerator,
         denominator=denominator,
-        exactResult=exact,
+        unroundedResult=exact,
         roundedResult=rounded,
         reportedResult=reported,
     )

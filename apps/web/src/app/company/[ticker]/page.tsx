@@ -5,14 +5,18 @@ import { notFound } from "next/navigation";
 import { RevenueExactRecords } from "@/components/revenue-exact-records";
 import { RevenueMetricSnapshot } from "@/components/revenue-metric-snapshot";
 import { FinancialPositionSnapshot } from "@/components/financial-position-snapshot";
+import { EarningsPerShareSnapshot } from "@/components/earnings-per-share-snapshot";
 import {
   getCompanyBalanceSheet,
+  getCompanyEarningsPerShare,
   getSupportedCompanies,
   type CompanyBalanceSheet,
+  type CompanyEarningsPerShare,
 } from "@/lib/api";
 import { validateBalanceSheetForLesson } from "@/lib/balance-sheet-learning";
 import { findSupportedCompany } from "@/lib/company-selection";
 import { getCompanyRevenueData } from "@/lib/company-revenue-data";
+import { validateEarningsPerShareForLesson } from "@/lib/earnings-per-share";
 
 export const metadata: Metadata = {
   title: "Company Research",
@@ -31,6 +35,7 @@ export default async function CompanyResearchPage({
 
   const data = await getCompanyRevenueData(company);
   let balanceSheet: CompanyBalanceSheet | null = null;
+  let earningsPerShare: CompanyEarningsPerShare | null = null;
   if (company.capabilities.balanceSheet) {
     try {
       balanceSheet = await getCompanyBalanceSheet(
@@ -40,6 +45,19 @@ export default async function CompanyResearchPage({
       validateBalanceSheetForLesson(balanceSheet.statement, balanceSheet.company);
     } catch {
       balanceSheet = null;
+    }
+  }
+  if (company.capabilities.earningsPerShare) {
+    try {
+      earningsPerShare = validateEarningsPerShareForLesson(
+        await getCompanyEarningsPerShare(
+          company.ticker,
+          company.reviewedFiscalYear,
+        ),
+        company,
+      );
+    } catch {
+      earningsPerShare = null;
     }
   }
   const selectedQuery = `?company=${company.slug}`;
@@ -107,10 +125,23 @@ export default async function CompanyResearchPage({
                 : "Not reviewed for this company yet"}
             </span>
           </li>
+          <li>
+            <strong>EPS &amp; Share Count</strong>
+            <span>
+              {company.capabilities.earningsPerShare
+                ? "Reviewed"
+                : "Not reviewed for this company yet"}
+            </span>
+          </li>
         </ul>
       </section>
 
       <FinancialPositionSnapshot balanceSheet={balanceSheet} company={company} />
+
+      <EarningsPerShareSnapshot
+        company={company}
+        earningsPerShare={earningsPerShare}
+      />
 
       <section className="explore-revenue" aria-labelledby="explore-revenue-heading">
         <div className="metric-column">

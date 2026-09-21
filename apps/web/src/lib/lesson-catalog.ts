@@ -69,6 +69,13 @@ export const lessonCatalog = [
     shortGoal: "Connect annual performance, cash movement and the reporting-date position.",
     href: "/learn/company-analysis/three-statements-connect",
   },
+  {
+    id: "eps-and-share-count",
+    number: 11,
+    title: "EPS & Share Count",
+    shortGoal: "Connect company-level earnings to reported earnings per share.",
+    href: "/learn/company-analysis/eps-and-share-count",
+  },
 ] as const;
 
 export type ConceptId = (typeof lessonCatalog)[number]["id"];
