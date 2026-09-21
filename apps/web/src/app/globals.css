@@ -3844,6 +3844,343 @@ h2 {
   }
 }
 
+/* Lesson 10: one connected financial story, not three competing cards. */
+.three-statements-lesson {
+  padding: clamp(2rem, 5vw, 4.5rem) 0 1rem;
+}
+
+.three-statements-lesson__header {
+  max-width: 52rem;
+  margin-bottom: 2rem;
+}
+
+.three-statements-lesson__header h2 {
+  max-width: 44rem;
+  margin: 0.4rem 0 0.8rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 4.7vw, 4rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+.three-statements-lesson__header > p:not(.eyebrow, .profit-lesson__period),
+.three-statements-stage > p:not(.cash-section__number, .three-statements-equation, .three-statements-boundary) {
+  max-width: 46rem;
+  color: var(--muted);
+}
+
+.three-statements-stage {
+  padding: clamp(2rem, 5vw, 4rem) 0;
+  border-top: 1px solid var(--divider);
+}
+
+.three-statement-map {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: clamp(0.6rem, 2vw, 1.25rem);
+  margin: 1.5rem 0;
+}
+
+.three-statement-map article {
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.5rem) 0;
+  border-block: 1px solid var(--divider-strong);
+}
+
+.three-statement-map article > * {
+  display: block;
+}
+
+.three-statement-map article > span {
+  color: var(--trust);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.three-statement-map article strong {
+  margin: 0.55rem 0 0.35rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.15rem, 2.2vw, 1.55rem);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.three-statement-map article small {
+  color: var(--muted);
+}
+
+.three-statement-map__connector {
+  align-self: center;
+  color: var(--trace);
+  font-size: 1.3rem;
+}
+
+.three-statements-boundary {
+  max-width: 46rem;
+  padding-left: 1rem;
+  color: var(--ink);
+  border-left: 3px solid var(--trace);
+}
+
+.statement-bridge {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  margin: 1.5rem 0;
+}
+
+.statement-bridge > div:not(.statement-bridge__match),
+.three-statements-focus-value {
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+  background: var(--surface);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-sm);
+}
+
+.statement-bridge > div > *,
+.three-statements-focus-value > * {
+  display: block;
+}
+
+.statement-bridge span,
+.three-statements-focus-value span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.statement-bridge strong,
+.three-statements-focus-value strong {
+  margin: 0.3rem 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.7rem, 4vw, 2.8rem);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.statement-bridge small,
+.three-statements-focus-value small {
+  color: var(--muted);
+}
+
+.statement-bridge__match {
+  color: var(--trust);
+  text-align: center;
+}
+
+.statement-bridge__match span,
+.statement-bridge__match strong {
+  display: block;
+}
+
+.statement-bridge__match span {
+  font-size: 1.5rem;
+}
+
+.statement-bridge__match strong {
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.three-statements-stage form {
+  max-width: 42rem;
+  margin: 1.5rem 0;
+}
+
+.three-statements-stage fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.three-statements-stage legend {
+  margin-bottom: 0.9rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+  line-height: 1.35;
+}
+
+.three-statements-stage form > button {
+  min-height: 2.75rem;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  color: var(--surface);
+  background: var(--trust);
+  border: 1px solid var(--trust);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.three-statements-stage form > button:disabled {
+  color: var(--muted);
+  background: var(--canvas);
+  border-color: var(--divider);
+  cursor: not-allowed;
+}
+
+.three-statements-focus-value {
+  margin: 1rem 0;
+  border-left: 3px solid var(--trust);
+}
+
+.cash-movement-ledger {
+  max-width: 46rem;
+  margin: 1.5rem 0;
+  border-top: 1px solid var(--divider-strong);
+}
+
+.cash-movement-ledger > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.cash-movement-ledger strong {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.cash-movement-ledger__net {
+  margin-top: 0.5rem;
+  color: var(--trust-dark);
+  font-weight: 700;
+}
+
+.cash-movement-ledger__ending {
+  color: var(--ink);
+  font-size: 1.08rem;
+  font-weight: 800;
+  border-bottom-color: var(--divider-strong) !important;
+}
+
+.three-statements-equation {
+  max-width: 46rem;
+  padding: 0.85rem 1rem;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  background: var(--soft-jade);
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+}
+
+.three-evidence-pair,
+.three-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.three-evidence-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.three-evidence-pair .evidence-inspector,
+.three-evidence-grid .evidence-inspector {
+  min-width: 0;
+  margin: 0;
+}
+
+.three-evidence-item {
+  min-width: 0;
+}
+
+.three-evidence-item > span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.three-statement-choice-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.three-statements-trace {
+  max-width: 46rem;
+  margin-top: 1.5rem;
+}
+
+.three-statements-stage--complete h3 {
+  max-width: 42rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 500;
+}
+
+.three-statements-stage--complete ul {
+  max-width: 48rem;
+  padding-left: 1.25rem;
+}
+
+.three-statements-stage--complete li + li {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 760px) {
+  .three-statement-map,
+  .statement-bridge {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .three-statement-map__connector {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+
+  .statement-bridge__match {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    gap: 0.45rem;
+  }
+
+  .statement-bridge__match span,
+  .statement-bridge__match strong {
+    align-self: center;
+  }
+
+  .three-evidence-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .three-statements-lesson__header h2 {
+    font-size: clamp(1.85rem, 10.5vw, 2.6rem);
+  }
+
+  .three-evidence-pair,
+  .three-evidence-grid,
+  .three-statement-choice-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cash-movement-ledger > div {
+    gap: 0.6rem;
+  }
+
+  .cash-movement-ledger strong {
+    font-size: 0.95rem;
+  }
+}
+
 /* Cash & Debt learning --------------------------------------------------- */
 
 .cash-debt-lesson {

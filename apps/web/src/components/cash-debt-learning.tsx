@@ -237,7 +237,7 @@ export function CashDebtLearning({ balanceSheet }: Props) {
                   ? "Right. Borrowings are one part of the broader Liabilities picture."
                   : "Not quite. Total Liabilities includes Borrowings and other obligations."}
               </p>
-              <p><strong>More concepts coming.</strong> The next concept is still being validated.</p>
+              <p><strong>Next:</strong> Connect the Income Statement, Cash Flow Statement and Balance Sheet.</p>
             </div>
           ) : null}
         </section>

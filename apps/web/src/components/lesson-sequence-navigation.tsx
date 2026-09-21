@@ -13,12 +13,14 @@ type LessonSequenceNavigationProps = {
   completeCurrentOnNext?: boolean;
   currentConceptId: ConceptId;
   selectedCompany?: Pick<SupportedCompany, "name" | "slug" | "ticker">;
+  showExploreCompany?: boolean;
 };
 
 export function LessonSequenceNavigation({
   completeCurrentOnNext = false,
   currentConceptId,
   selectedCompany,
+  showExploreCompany = true,
 }: LessonSequenceNavigationProps) {
   const { markExplored } = useLearningProgress();
   const { previous, next } = getAdjacentLessons(currentConceptId);
@@ -69,17 +71,19 @@ export function LessonSequenceNavigation({
         )}
       </nav>
 
-      <div className="lesson-explore-link">
-        <div>
-          <span>Explore this company</span>
-          <strong>
-            Inspect {selectedCompany?.name ?? "Apple Inc."}&apos;s real financial record.
-          </strong>
+      {showExploreCompany ? (
+        <div className="lesson-explore-link">
+          <div>
+            <span>Explore this company</span>
+            <strong>
+              Inspect {selectedCompany?.name ?? "Apple Inc."}&apos;s real financial record.
+            </strong>
+          </div>
+          <Link href={`/company/${selectedCompany?.slug ?? "aapl"}`}>
+            Explore {selectedCompany?.ticker ?? "AAPL"} →
+          </Link>
         </div>
-        <Link href={`/company/${selectedCompany?.slug ?? "aapl"}`}>
-          Explore {selectedCompany?.ticker ?? "AAPL"} →
-        </Link>
-      </div>
+      ) : null}
     </footer>
   );
 }

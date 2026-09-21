@@ -110,6 +110,8 @@ export type ReportedEvidence = {
       | "investing-cash-flow"
       | "financing-cash-flow"
       | "net-change-in-cash"
+      | "beginning-cash"
+      | "ending-cash"
       | "pp-and-e-purchases"
       | "total-assets"
       | "total-liabilities"

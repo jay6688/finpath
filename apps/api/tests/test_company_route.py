@@ -52,6 +52,7 @@ def test_supported_company_list_is_a_stable_non_financial_contract() -> None:
         "cashFlow": False,
         "balanceSheet": True,
         "cashDebt": True,
+        "threeStatements": False,
     }
     assert "value" not in str(payload)
 

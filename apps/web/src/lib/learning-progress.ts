@@ -114,6 +114,7 @@ export function deriveCurrentConcept(
   if (!explored.has("free-cash-flow")) return "free-cash-flow";
   if (!explored.has("balance-sheet")) return "balance-sheet";
   if (!explored.has("cash-and-debt")) return "cash-and-debt";
+  if (!explored.has("three-statements-connect")) return "three-statements-connect";
   return null;
 }
 
@@ -183,6 +184,11 @@ const recommendations: Record<ConceptId, Omit<HomeRecommendation, "conceptId" | 
     goal: "See why Cash, Borrowings and Total Liabilities are different parts of financial position.",
     href: "/learn/company-analysis/cash-and-debt",
   },
+  "three-statements-connect": {
+    title: "Three Statements Connect",
+    goal: "Connect Apple’s annual performance, cash movement and reporting-date Cash position.",
+    href: "/learn/company-analysis/three-statements-connect",
+  },
 };
 
 export function deriveHomeRecommendation(
@@ -191,8 +197,8 @@ export function deriveHomeRecommendation(
   const current = deriveCurrentConcept(progress);
   if (!current) {
     return {
-      conceptId: "cash-and-debt",
-      ...recommendations["cash-and-debt"],
+      conceptId: "three-statements-connect",
+      ...recommendations["three-statements-connect"],
       action: "Review",
     };
   }

@@ -62,6 +62,13 @@ export const lessonCatalog = [
     shortGoal: "Separate Cash, Borrowings and Total Liabilities at one reporting date.",
     href: "/learn/company-analysis/cash-and-debt",
   },
+  {
+    id: "three-statements-connect",
+    number: 10,
+    title: "Three Statements Connect",
+    shortGoal: "Connect annual performance, cash movement and the reporting-date position.",
+    href: "/learn/company-analysis/three-statements-connect",
+  },
 ] as const;
 
 export type ConceptId = (typeof lessonCatalog)[number]["id"];

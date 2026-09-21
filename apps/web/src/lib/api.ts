@@ -43,6 +43,7 @@ export type SupportedCompany = {
     cashFlow: boolean;
     balanceSheet: boolean;
     cashDebt: boolean;
+    threeStatements: boolean;
   };
 };
 

@@ -35,6 +35,7 @@ class CompanyCapabilities(ApiModel):
     cash_flow: bool = Field(alias="cashFlow")
     balance_sheet: bool = Field(alias="balanceSheet")
     cash_debt: bool = Field(alias="cashDebt")
+    three_statements: bool = Field(alias="threeStatements")
 
 
 class SupportedCompanySummary(ApiModel):

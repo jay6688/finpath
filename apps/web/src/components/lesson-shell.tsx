@@ -16,6 +16,7 @@ type LessonShellProps = {
   example: string;
   exampleSelector?: ReactNode;
   selectedCompany?: Pick<SupportedCompany, "name" | "slug" | "ticker">;
+  showExploreCompany?: boolean;
 };
 
 export function LessonShell({
@@ -25,6 +26,7 @@ export function LessonShell({
   example,
   exampleSelector,
   selectedCompany,
+  showExploreCompany = true,
 }: LessonShellProps) {
   const lesson = getLesson(conceptId);
 
@@ -61,6 +63,7 @@ export function LessonShell({
         completeCurrentOnNext={completeCurrentOnNext}
         currentConceptId={conceptId}
         selectedCompany={selectedCompany}
+        showExploreCompany={showExploreCompany}
       />
     </div>
   );

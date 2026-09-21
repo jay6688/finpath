@@ -131,6 +131,11 @@ export default async function CompanyResearchPage({
           <Link href={`/learn/company-analysis/revenue-growth${selectedQuery}`}>
             Learn Revenue Growth <span aria-hidden="true">→</span>
           </Link>
+          {company.capabilities.threeStatements ? (
+            <Link href="/learn/company-analysis/three-statements-connect">
+              See how the three statements connect <span aria-hidden="true">→</span>
+            </Link>
+          ) : null}
         </aside>
       </section>
     </div>
