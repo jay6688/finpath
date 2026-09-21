@@ -1,4 +1,5 @@
 import asyncio
+from decimal import Decimal
 
 from app.domain.company_service import CompanyOverviewService, find_company
 from app.domain.income_statement import IncomeStatementUnavailableError
@@ -99,3 +100,16 @@ def test_walmart_income_statement_fails_as_unreviewed() -> None:
         assert "profile" in str(error).lower()
     else:
         raise AssertionError("Walmart must not inherit Apple income-statement rules")
+
+
+def test_fixture_pipeline_produces_reviewed_eps_for_all_three_companies() -> None:
+    service = CompanyOverviewService(FixtureSecDataSource())
+
+    apple = asyncio.run(service.get_earnings_per_share("AAPL", 2025))
+    microsoft = asyncio.run(service.get_earnings_per_share("MSFT", 2026))
+    walmart = asyncio.run(service.get_earnings_per_share("WMT", 2026))
+
+    assert apple.statement.basic_eps.value == Decimal("7.49")
+    assert microsoft.statement.diluted_eps.value == Decimal("17.95")
+    assert walmart.statement.earnings_numerator.value == 21_893_000_000
+    assert walmart.statement.basic_verification.matches_reported is True

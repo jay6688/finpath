@@ -275,6 +275,22 @@
           ]
         }
       },
+      "WeightedAverageNumberOfSharesOutstandingBasic": {
+        "label": "Weighted Average Number of Shares Outstanding, Basic",
+        "units": {"shares": [{"start":"2024-09-29","end":"2025-09-27","val":14948500000,"accn":"0000320193-25-000079","fy":2025,"fp":"FY","form":"10-K","filed":"2025-10-31"}]}
+      },
+      "WeightedAverageNumberOfDilutedSharesOutstanding": {
+        "label": "Weighted Average Number of Shares Outstanding, Diluted",
+        "units": {"shares": [{"start":"2024-09-29","end":"2025-09-27","val":15004697000,"accn":"0000320193-25-000079","fy":2025,"fp":"FY","form":"10-K","filed":"2025-10-31"}]}
+      },
+      "EarningsPerShareBasic": {
+        "label": "Earnings Per Share, Basic",
+        "units": {"USD/shares": [{"start":"2024-09-29","end":"2025-09-27","val":7.49,"accn":"0000320193-25-000079","fy":2025,"fp":"FY","form":"10-K","filed":"2025-10-31"}]}
+      },
+      "EarningsPerShareDiluted": {
+        "label": "Earnings Per Share, Diluted",
+        "units": {"USD/shares": [{"start":"2024-09-29","end":"2025-09-27","val":7.46,"accn":"0000320193-25-000079","fy":2025,"fp":"FY","form":"10-K","filed":"2025-10-31"}]}
+      },
       "DepreciationDepletionAndAmortization": {
         "label": "Depreciation, Depletion and Amortization",
         "units": {"USD": [{"start": "2024-09-29", "end": "2025-09-27", "val": 11698000000, "accn": "0000320193-25-000079", "fy": 2025, "fp": "FY", "form": "10-K", "filed": "2025-10-31"}]}

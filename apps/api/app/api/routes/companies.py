@@ -4,6 +4,7 @@ from app.api.dependencies import get_company_service
 from app.domain.balance_sheet import BalanceSheetUnavailableError
 from app.domain.cash_flow_statement import CashFlowStatementUnavailableError
 from app.domain.company_registry import list_supported_companies
+from app.domain.earnings_per_share import EarningsPerShareUnavailableError
 from app.domain.company_service import CompanyNotFoundError, CompanyOverviewService
 from app.domain.income_statement import IncomeStatementUnavailableError
 from app.domain.revenue import RevenueUnavailableError
@@ -12,6 +13,7 @@ from app.schemas.company import (
     CompanyCashFlowStatementResponse,
     CompanyIncomeStatementResponse,
     CompanyOverviewResponse,
+    CompanyEarningsPerShareResponse,
     CompanyCapabilities,
     SupportedCompaniesResponse,
     SupportedCompanySummary,
@@ -40,6 +42,7 @@ async def supported_companies() -> SupportedCompaniesResponse:
                     balanceSheet=company.capabilities.balance_sheet,
                     cashDebt=company.capabilities.cash_debt,
                     threeStatements=company.capabilities.three_statements,
+                    earningsPerShare=company.capabilities.earnings_per_share,
                 ),
             )
             for company in list_supported_companies()
@@ -159,6 +162,39 @@ async def company_balance_sheet(
             detail=str(error),
         ) from error
     except BalanceSheetUnavailableError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
+    except SecConfigurationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(error),
+        ) from error
+    except SecUpstreamError as error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="SEC data is temporarily unavailable.",
+        ) from error
+
+
+@router.get(
+    "/{ticker}/earnings-per-share/{fiscal_year}",
+    response_model=CompanyEarningsPerShareResponse,
+)
+async def company_earnings_per_share(
+    ticker: str,
+    fiscal_year: int,
+    service: CompanyOverviewService = Depends(get_company_service),
+) -> CompanyEarningsPerShareResponse:
+    try:
+        return await service.get_earnings_per_share(ticker, fiscal_year)
+    except CompanyNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except EarningsPerShareUnavailableError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(error),

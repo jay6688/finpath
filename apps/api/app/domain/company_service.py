@@ -10,6 +10,10 @@ from app.domain.cash_flow_statement import (
     extract_cash_flow_statement,
 )
 from app.domain.company_registry import SupportedCompany, require_supported_company
+from app.domain.earnings_per_share import (
+    EarningsPerShareUnavailableError,
+    extract_earnings_per_share,
+)
 from app.domain.income_statement import (
     IncomeStatementUnavailableError,
     extract_income_statement,
@@ -21,6 +25,7 @@ from app.schemas.company import (
     CompanyIdentity,
     CompanyIncomeStatementResponse,
     CompanyOverviewResponse,
+    CompanyEarningsPerShareResponse,
     DataStatus,
     MetricMetadata,
 )
@@ -166,6 +171,39 @@ class CompanyOverviewService:
         )
 
         return CompanyBalanceSheetResponse(
+            company=CompanyIdentity(
+                ticker=company.ticker,
+                name=company.name,
+                cik=company.cik,
+            ),
+            statement=statement,
+            dataStatus=DataStatus(
+                state=facts_payload.state,
+                retrievedAt=facts_payload.retrieved_at,
+            ),
+        )
+
+    async def get_earnings_per_share(
+        self,
+        ticker: str,
+        fiscal_year: int,
+    ) -> CompanyEarningsPerShareResponse:
+        company, profile = await self._resolve_company(ticker)
+        if (
+            not profile.capabilities.earnings_per_share
+            or fiscal_year != profile.reviewed_fiscal_year
+        ):
+            raise EarningsPerShareUnavailableError(
+                "Earnings per share profile for "
+                f"CIK {company.cik} FY{fiscal_year} is unavailable."
+            )
+        facts_payload = await self.sec.get_company_facts(company.cik)
+        statement = extract_earnings_per_share(
+            facts_payload.payload,
+            cik=company.cik,
+            fiscal_year=fiscal_year,
+        )
+        return CompanyEarningsPerShareResponse(
             company=CompanyIdentity(
                 ticker=company.ticker,
                 name=company.name,

@@ -13,15 +13,18 @@ def test_registry_contains_exactly_the_three_reviewed_companies() -> None:
     assert companies[0].capabilities.balance_sheet is True
     assert companies[0].capabilities.cash_debt is True
     assert companies[0].capabilities.three_statements is True
+    assert companies[0].capabilities.earnings_per_share is True
     assert companies[1].capabilities.income_statement is True
     assert companies[1].capabilities.cash_flow is False
     assert companies[1].capabilities.balance_sheet is True
     assert companies[1].capabilities.cash_debt is True
     assert companies[1].capabilities.three_statements is False
+    assert companies[1].capabilities.earnings_per_share is True
     assert companies[2].capabilities.income_statement is False
     assert companies[2].capabilities.balance_sheet is True
     assert companies[2].capabilities.cash_debt is True
     assert companies[2].capabilities.three_statements is False
+    assert companies[2].capabilities.earnings_per_share is True
 
 
 def test_registry_rejects_unreviewed_tickers() -> None:

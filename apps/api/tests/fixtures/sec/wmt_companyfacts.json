@@ -19,6 +19,12 @@
           {"start":"2025-02-01","end":"2026-01-31","val":713163000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}
         ]}
       },
+      "ProfitLoss": {"label":"Net Income (Loss), Including Portion Attributable to Noncontrolling Interest","units":{"USD":[{"start":"2025-02-01","end":"2026-01-31","val":22270000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "NetIncomeLoss": {"label":"Net Income (Loss) Attributable to Parent","units":{"USD":[{"start":"2025-02-01","end":"2026-01-31","val":21893000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "WeightedAverageNumberOfSharesOutstandingBasic": {"label":"Weighted Average Number of Shares Outstanding, Basic","units":{"shares":[{"start":"2025-02-01","end":"2026-01-31","val":7983000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "WeightedAverageNumberOfDilutedSharesOutstanding": {"label":"Weighted Average Number of Shares Outstanding, Diluted","units":{"shares":[{"start":"2025-02-01","end":"2026-01-31","val":8022000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "EarningsPerShareBasic": {"label":"Earnings Per Share, Basic","units":{"USD/shares":[{"start":"2025-02-01","end":"2026-01-31","val":2.74,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
+      "EarningsPerShareDiluted": {"label":"Earnings Per Share, Diluted","units":{"USD/shares":[{"start":"2025-02-01","end":"2026-01-31","val":2.73,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
       "Assets": {"label":"Assets","units":{"USD":[{"end":"2026-01-31","val":284668000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
       "LiabilitiesCurrent": {"label":"Liabilities, Current","units":{"USD":[{"end":"2026-01-31","val":107469000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
       "LongTermDebtNoncurrent": {"label":"Long-term Debt, Excluding Current Maturities","units":{"USD":[{"end":"2026-01-31","val":34624000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},

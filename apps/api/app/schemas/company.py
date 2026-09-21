@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 from enum import StrEnum
 from typing import Literal
 
@@ -36,6 +37,7 @@ class CompanyCapabilities(ApiModel):
     balance_sheet: bool = Field(alias="balanceSheet")
     cash_debt: bool = Field(alias="cashDebt")
     three_statements: bool = Field(alias="threeStatements")
+    earnings_per_share: bool = Field(alias="earningsPerShare")
 
 
 class SupportedCompanySummary(ApiModel):
@@ -357,4 +359,100 @@ class BalanceSheet(ApiModel):
 class CompanyBalanceSheetResponse(ApiModel):
     company: CompanyIdentity
     statement: BalanceSheet
+    data_status: DataStatus = Field(alias="dataStatus")
+
+
+class ReportedEarningsAmount(ApiModel):
+    evidence_kind: Literal["reported"] = Field(
+        default="reported", alias="evidenceKind"
+    )
+    id: Literal["earnings-numerator"]
+    taxonomy_tag: str = Field(alias="taxonomyTag")
+    taxonomy_label: str = Field(alias="taxonomyLabel")
+    reported_label: str = Field(alias="reportedLabel")
+    value: int
+    unit: Literal["USD"]
+
+
+class ReportedWeightedAverageShares(ApiModel):
+    evidence_kind: Literal["reported"] = Field(
+        default="reported", alias="evidenceKind"
+    )
+    id: Literal["basic-weighted-average-shares", "diluted-weighted-average-shares"]
+    taxonomy_tag: str = Field(alias="taxonomyTag")
+    taxonomy_label: str = Field(alias="taxonomyLabel")
+    reported_label: str = Field(alias="reportedLabel")
+    value: int
+    unit: Literal["shares"]
+
+
+class ReportedEarningsPerShare(ApiModel):
+    evidence_kind: Literal["reported"] = Field(
+        default="reported", alias="evidenceKind"
+    )
+    id: Literal["basic-eps", "diluted-eps"]
+    taxonomy_tag: str = Field(alias="taxonomyTag")
+    taxonomy_label: str = Field(alias="taxonomyLabel")
+    reported_label: str = Field(alias="reportedLabel")
+    value: Decimal
+    unit: Literal["USD/share"]
+
+
+class EarningsPerShareVerification(ApiModel):
+    evidence_kind: Literal["verification"] = Field(
+        default="verification", alias="evidenceKind"
+    )
+    basis: Literal["basic", "diluted"]
+    formula: str
+    numerator: int
+    denominator: int
+    exact_result: Decimal = Field(alias="exactResult")
+    rounded_result: Decimal = Field(alias="roundedResult")
+    reported_result: Decimal = Field(alias="reportedResult")
+    decimal_places: Literal[2] = Field(default=2, alias="decimalPlaces")
+    rounding_mode: Literal["ROUND_HALF_UP"] = Field(
+        default="ROUND_HALF_UP", alias="roundingMode"
+    )
+    matches_reported: Literal[True] = Field(default=True, alias="matchesReported")
+
+
+class EarningsPerShareStatement(ApiModel):
+    fiscal_year: int = Field(alias="fiscalYear")
+    start_date: date = Field(alias="startDate")
+    end_date: date = Field(alias="endDate")
+    currency: Literal["USD"]
+    form: Literal["10-K", "10-K/A"]
+    filed_at: date = Field(alias="filedAt")
+    accession: str
+    source_url: HttpUrl = Field(alias="sourceUrl")
+    statement_name: str = Field(alias="statementName")
+    earnings_numerator: ReportedEarningsAmount = Field(alias="earningsNumerator")
+    basic_weighted_average_shares: ReportedWeightedAverageShares = Field(
+        alias="basicWeightedAverageShares"
+    )
+    diluted_weighted_average_shares: ReportedWeightedAverageShares = Field(
+        alias="dilutedWeightedAverageShares"
+    )
+    basic_eps: ReportedEarningsPerShare = Field(alias="basicEps")
+    diluted_eps: ReportedEarningsPerShare = Field(alias="dilutedEps")
+    basic_verification: EarningsPerShareVerification = Field(
+        alias="basicVerification"
+    )
+    diluted_verification: EarningsPerShareVerification = Field(
+        alias="dilutedVerification"
+    )
+
+    @field_validator("source_url")
+    @classmethod
+    def require_sec_filing_url(cls, value: HttpUrl) -> HttpUrl:
+        if value.host not in {"sec.gov", "www.sec.gov"}:
+            raise ValueError("sourceUrl must point to an SEC host")
+        if "/Archives/edgar/data/" not in value.path:
+            raise ValueError("sourceUrl must point to an EDGAR filing")
+        return value
+
+
+class CompanyEarningsPerShareResponse(ApiModel):
+    company: CompanyIdentity
+    statement: EarningsPerShareStatement
     data_status: DataStatus = Field(alias="dataStatus")

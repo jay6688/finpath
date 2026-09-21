@@ -53,6 +53,7 @@ def test_supported_company_list_is_a_stable_non_financial_contract() -> None:
         "balanceSheet": True,
         "cashDebt": True,
         "threeStatements": False,
+        "earningsPerShare": True,
     }
     assert "value" not in str(payload)
 
@@ -238,6 +239,42 @@ def test_balance_sheet_route_rejects_an_unreviewed_fiscal_year() -> None:
 
     assert response.status_code == 422
     assert "profile" in response.json()["detail"]
+
+
+def test_eps_http_contract_preserves_reported_and_verification_boundaries() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        response = asyncio.run(
+            _request("/v1/companies/WMT/earnings-per-share/2026")
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    payload = response.json()
+    statement = payload["statement"]
+    assert statement["earningsNumerator"] == {
+        "evidenceKind": "reported",
+        "id": "earnings-numerator",
+        "taxonomyTag": "NetIncomeLoss",
+        "taxonomyLabel": "Net Income (Loss) Attributable to Parent",
+        "reportedLabel": "Consolidated net income attributable to Walmart",
+        "value": 21_893_000_000,
+        "unit": "USD",
+    }
+    assert statement["basicEps"]["value"] == "2.74"
+    assert statement["basicEps"]["evidenceKind"] == "reported"
+    assert statement["basicVerification"]["evidenceKind"] == "verification"
+    assert statement["basicVerification"]["matchesReported"] is True
+    assert statement["sourceUrl"].endswith(
+        "/000010416926000055/0000104169-26-000055-index.htm"
+    )
+    assert payload["dataStatus"] == {
+        "state": "cached",
+        "retrievedAt": "2026-08-19T00:00:00Z",
+    }
 
 
 async def _request_aapl_overview() -> httpx.Response:
