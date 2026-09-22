@@ -80,11 +80,13 @@ def test_public_display_gate_rejects_ambiguous_values(
         Settings.from_environment()
 
 
-def test_no_public_market_price_route_exists() -> None:
+def test_no_public_market_price_or_market_cap_route_exists() -> None:
     paths = {
         route.path
         for route in create_app().routes
         if isinstance(getattr(route, "path", None), str)
     }
 
-    assert not any("market" in path or "price" in path for path in paths)
+    assert not any(
+        "market" in path or "price" in path or "cap" in path for path in paths
+    )
