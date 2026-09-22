@@ -26,7 +26,67 @@ class MarketDataState(StrEnum):
 
 
 @dataclass(frozen=True)
+class MarketVenuePeriod:
+    provider_exchange: str
+    valid_from: date
+    valid_through: date | None
+
+    def __post_init__(self) -> None:
+        if not self.provider_exchange.strip():
+            raise MarketDataValidationError("Provider exchange must not be empty.")
+        if self.valid_through is not None and self.valid_through < self.valid_from:
+            raise MarketDataValidationError(
+                "A market venue period cannot end before it starts."
+            )
+
+    def includes(self, price_date: date) -> bool:
+        return self.valid_from <= price_date and (
+            self.valid_through is None or price_date <= self.valid_through
+        )
+
+
+@dataclass(frozen=True)
 class MarketSecurityProfile:
+    ticker: str
+    provider: str
+    provider_symbol: str
+    currency: str
+    venue_periods: tuple[MarketVenuePeriod, ...]
+
+    def __post_init__(self) -> None:
+        if not self.venue_periods:
+            raise MarketDataValidationError(
+                "A reviewed market security requires venue history."
+            )
+        ordered = sorted(self.venue_periods, key=lambda period: period.valid_from)
+        if tuple(ordered) != self.venue_periods:
+            raise MarketDataValidationError(
+                "Market venue periods must be ordered by valid-from date."
+            )
+        for previous, current in zip(ordered, ordered[1:]):
+            if previous.valid_through is None or previous.valid_through >= current.valid_from:
+                raise MarketDataValidationError(
+                    "Market venue periods must not overlap."
+                )
+
+    def resolve(self, price_date: date) -> "ResolvedMarketSecurityProfile":
+        matches = [period for period in self.venue_periods if period.includes(price_date)]
+        if len(matches) != 1:
+            raise MarketDataValidationError(
+                f"{self.ticker} has no single reviewed venue history entry for "
+                f"{price_date.isoformat()}."
+            )
+        return ResolvedMarketSecurityProfile(
+            ticker=self.ticker,
+            provider=self.provider,
+            provider_symbol=self.provider_symbol,
+            provider_exchange=matches[0].provider_exchange,
+            currency=self.currency,
+        )
+
+
+@dataclass(frozen=True)
+class ResolvedMarketSecurityProfile:
     ticker: str
     provider: str
     provider_symbol: str
@@ -69,22 +129,29 @@ _MARKETSTACK_PROFILES = {
         ticker="AAPL",
         provider="marketstack",
         provider_symbol="AAPL",
-        provider_exchange="XNAS",
         currency="USD",
+        venue_periods=(
+            MarketVenuePeriod("XNAS", date(2025, 9, 26), None),
+        ),
     ),
     "MSFT": MarketSecurityProfile(
         ticker="MSFT",
         provider="marketstack",
         provider_symbol="MSFT",
-        provider_exchange="XNAS",
         currency="USD",
+        venue_periods=(
+            MarketVenuePeriod("XNAS", date(2026, 6, 30), None),
+        ),
     ),
     "WMT": MarketSecurityProfile(
         ticker="WMT",
         provider="marketstack",
         provider_symbol="WMT",
-        provider_exchange="XNYS",
         currency="USD",
+        venue_periods=(
+            MarketVenuePeriod("XNYS", date(2025, 12, 8), date(2025, 12, 8)),
+            MarketVenuePeriod("XNAS", date(2025, 12, 9), None),
+        ),
     ),
 }
 
@@ -97,3 +164,9 @@ def get_market_security_profile(ticker: str) -> MarketSecurityProfile:
         raise MarketDataValidationError(
             f"{normalized or 'Empty ticker'} is not a reviewed market-data security."
         ) from error
+
+
+def resolve_market_security_profile(
+    ticker: str, price_date: date
+) -> ResolvedMarketSecurityProfile:
+    return get_market_security_profile(ticker).resolve(price_date)

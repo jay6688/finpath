@@ -10,7 +10,7 @@ import pytest
 from app.domain.market_data import (
     MarketDataUnavailableError,
     MarketDataValidationError,
-    get_market_security_profile,
+    resolve_market_security_profile,
 )
 from app.services.market_data.marketstack import (
     MARKETSTACK_EOD_URL,
@@ -42,7 +42,9 @@ def provider_for_fixture(name: str, *, status_code: int = 200):
 
 def get_aapl(provider: MarketstackProvider):
     return asyncio.run(
-        provider.get_eod_close(get_market_security_profile("AAPL"), PRICE_DATE)
+        provider.get_eod_close(
+            resolve_market_security_profile("AAPL", PRICE_DATE), PRICE_DATE
+        )
     )
 
 
@@ -80,7 +82,7 @@ def test_raw_close_wins_over_adjusted_close() -> None:
     [
         ("AAPL", date(2025, 9, 26), "aapl_success.json", "123.45", "XNAS"),
         ("MSFT", date(2026, 6, 30), "msft_success.json", "234.56", "XNAS"),
-        ("WMT", date(2026, 1, 30), "wmt_success.json", "345.67", "XNYS"),
+        ("WMT", date(2025, 12, 8), "wmt_success.json", "345.67", "XNYS"),
     ],
 )
 def test_reviewed_security_profiles_normalize_provider_identity(
@@ -89,13 +91,28 @@ def test_reviewed_security_profiles_normalize_provider_identity(
     provider, _ = provider_for_fixture(fixture)
 
     result = asyncio.run(
-        provider.get_eod_close(get_market_security_profile(ticker), price_date)
+        provider.get_eod_close(
+            resolve_market_security_profile(ticker, price_date), price_date
+        )
     )
 
     assert result.provider_symbol == ticker
     assert result.provider_exchange == exchange
     assert result.currency == "USD"
     assert result.price == Decimal(price)
+
+
+def test_walmart_post_transfer_response_requires_nasdaq_identity() -> None:
+    provider, _ = provider_for_fixture("wmt_post_transfer_success.json")
+    price_date = date(2026, 3, 11)
+
+    result = asyncio.run(
+        provider.get_eod_close(
+            resolve_market_security_profile("WMT", price_date), price_date
+        )
+    )
+
+    assert result.provider_exchange == "XNAS"
 
 
 @pytest.mark.parametrize(

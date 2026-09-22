@@ -6,7 +6,7 @@ import os
 import pytest
 
 from app.core.settings import Settings
-from app.domain.market_data import get_market_security_profile
+from app.domain.market_data import resolve_market_security_profile
 from app.services.market_data.marketstack import MarketstackProvider
 
 
@@ -23,7 +23,7 @@ def test_live_marketstack_exact_date_when_explicitly_enabled() -> None:
     requested_date = date(2025, 9, 26)
     result = asyncio.run(
         MarketstackProvider(settings.marketstack_access_key).get_eod_close(
-            get_market_security_profile("AAPL"), requested_date
+            resolve_market_security_profile("AAPL", requested_date), requested_date
         )
     )
 

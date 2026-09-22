@@ -7,9 +7,9 @@ from app.domain.market_data import (
     MarketDataUnavailableError,
     MarketDataValidationError,
     MarketPriceSnapshot,
-    MarketSecurityProfile,
+    ResolvedMarketSecurityProfile,
     ProviderMarketPrice,
-    get_market_security_profile,
+    resolve_market_security_profile,
 )
 
 
@@ -18,7 +18,7 @@ class MarketDataProvider(Protocol):
 
     async def get_eod_close(
         self,
-        profile: MarketSecurityProfile,
+        profile: ResolvedMarketSecurityProfile,
         price_date: date,
     ) -> ProviderMarketPrice: ...
 
@@ -42,7 +42,7 @@ class MarketPriceService:
     async def get_eod_close(
         self, ticker: str, price_date: date
     ) -> MarketPriceSnapshot:
-        profile = get_market_security_profile(ticker)
+        profile = resolve_market_security_profile(ticker, price_date)
         if profile.provider != self.provider.name:
             raise MarketDataValidationError(
                 "The reviewed security profile does not match the configured provider."
@@ -95,7 +95,7 @@ class MarketPriceService:
 
 def _validate_observation(
     observation: ProviderMarketPrice,
-    profile: MarketSecurityProfile,
+    profile: ResolvedMarketSecurityProfile,
     price_date: date,
 ) -> None:
     if (
@@ -115,7 +115,7 @@ def _validate_observation(
 
 
 def _snapshot(
-    profile: MarketSecurityProfile,
+    profile: ResolvedMarketSecurityProfile,
     price_date: date,
     cached: MarketDataCacheEntry,
     state: MarketDataState,

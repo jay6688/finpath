@@ -8,7 +8,7 @@ import httpx
 from app.domain.market_data import (
     MarketDataUnavailableError,
     MarketDataValidationError,
-    MarketSecurityProfile,
+    ResolvedMarketSecurityProfile,
     ProviderMarketPrice,
 )
 
@@ -30,7 +30,7 @@ class MarketstackProvider:
 
     async def get_eod_close(
         self,
-        profile: MarketSecurityProfile,
+        profile: ResolvedMarketSecurityProfile,
         price_date: date,
     ) -> ProviderMarketPrice:
         if profile.provider != self.name:
@@ -90,7 +90,7 @@ class MarketstackProvider:
     def _normalize_exact_close(
         self,
         payload: dict[str, Any],
-        profile: MarketSecurityProfile,
+        profile: ResolvedMarketSecurityProfile,
         price_date: date,
     ) -> ProviderMarketPrice:
         records = payload.get("data")
