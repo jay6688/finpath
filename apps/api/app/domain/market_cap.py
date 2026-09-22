@@ -13,6 +13,7 @@ from app.domain.shares_outstanding import (
     SharesOutstandingProfile,
     get_shares_outstanding_profile,
 )
+from app.services.sec.provenance import build_filing_index_url
 
 
 class MarketCapAlignmentError(ValueError):
@@ -147,12 +148,18 @@ def _validate_sec_input(
     profile: MarketCapProfile, shares: ReportedSharesOutstanding
 ) -> None:
     expected = profile.shares_outstanding_spec
+    expected_source_url = build_filing_index_url(
+        profile.cik, profile.filing_accession
+    )
     if (
         shares.evidence_kind != "reported"
         or shares.id != "common-shares-outstanding"
         or shares.cik != profile.cik
         or shares.fiscal_year != profile.fiscal_year
+        or shares.form != expected.form
+        or shares.filed_at != expected.filed_at
         or shares.accession != profile.filing_accession
+        or shares.source_url != expected_source_url
         or shares.as_of_date != profile.expected_shares_date
         or shares.taxonomy_namespace != expected.taxonomy_namespace
         or shares.taxonomy_tag != expected.taxonomy_tag

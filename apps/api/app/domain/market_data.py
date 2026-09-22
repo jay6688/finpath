@@ -64,13 +64,18 @@ class MarketSecurityProfile:
                 "Market venue periods must be ordered by valid-from date."
             )
         for previous, current in zip(ordered, ordered[1:]):
-            if previous.valid_through is None or previous.valid_through >= current.valid_from:
+            if (
+                previous.valid_through is None
+                or previous.valid_through >= current.valid_from
+            ):
                 raise MarketDataValidationError(
                     "Market venue periods must not overlap."
                 )
 
     def resolve(self, price_date: date) -> "ResolvedMarketSecurityProfile":
-        matches = [period for period in self.venue_periods if period.includes(price_date)]
+        matches = [
+            period for period in self.venue_periods if period.includes(price_date)
+        ]
         if len(matches) != 1:
             raise MarketDataValidationError(
                 f"{self.ticker} has no single reviewed venue history entry for "

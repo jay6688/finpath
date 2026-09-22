@@ -108,19 +108,23 @@ def extract_shares_outstanding(
             f"Required instant shares fact {profile.taxonomy_tag} is unavailable."
         )
 
-    values = {
-        raw["val"]
+    matching = [
+        raw
         for raw in facts
-        if isinstance(raw, dict)
-        and _matches_reviewed_instant(raw, profile)
-        and isinstance(raw.get("val"), int)
-        and not isinstance(raw.get("val"), bool)
-        and raw["val"] > 0
-    }
-    if not values:
+        if isinstance(raw, dict) and _matches_reviewed_instant(raw, profile)
+    ]
+    if not matching:
         raise SharesOutstandingUnavailableError(
             f"{profile.taxonomy_tag} does not match the reviewed instant context."
         )
+    values: set[int] = set()
+    for raw in matching:
+        value = raw.get("val")
+        if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+            raise SharesOutstandingUnavailableError(
+                f"{profile.taxonomy_tag} must be a positive integer shares fact."
+            )
+        values.add(value)
     if len(values) > 1:
         raise SharesOutstandingUnavailableError(
             f"{profile.taxonomy_tag} contains conflicting values for the reviewed instant context."

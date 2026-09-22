@@ -174,6 +174,26 @@ def test_profile_and_reported_share_identity_must_match() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("form", "10-Q"),
+        ("filed_at", date(2025, 10, 30)),
+        ("source_url", "https://example.com/not-sec"),
+    ],
+)
+def test_full_sec_filing_provenance_must_match(
+    field: str, value: object
+) -> None:
+    shares, price = aapl_inputs()
+    wrong_provenance = replace(shares, **{field: value})
+
+    with pytest.raises(MarketCapAlignmentError, match="SEC share-count identity"):
+        derive_market_cap_snapshot(
+            get_market_cap_profile("AAPL", 2025), wrong_provenance, price
+        )
+
+
 def test_only_three_reviewed_market_cap_profiles_exist() -> None:
     assert get_market_cap_profile("AAPL", 2025).expected_shares_date == date(
         2025, 10, 17

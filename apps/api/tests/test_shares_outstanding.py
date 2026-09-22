@@ -119,6 +119,18 @@ def test_rejects_wrong_company_duration_unit_and_conflicting_values() -> None:
     with pytest.raises(SharesOutstandingUnavailableError, match="conflicting"):
         extract_shares_outstanding(conflicting, cik="0000320193", fiscal_year=2025)
 
+    malformed_duplicate = deepcopy(load_sec_fixture("aapl_companyfacts.json"))
+    malformed_facts = malformed_duplicate["facts"]["dei"][
+        "EntityCommonStockSharesOutstanding"
+    ]["units"]["shares"]
+    invalid = deepcopy(malformed_facts[0])
+    invalid["val"] = "14776353000"
+    malformed_facts.append(invalid)
+    with pytest.raises(SharesOutstandingUnavailableError, match="positive integer"):
+        extract_shares_outstanding(
+            malformed_duplicate, cik="0000320193", fiscal_year=2025
+        )
+
 
 @pytest.mark.parametrize(
     ("fixture", "cik", "fiscal_year"),
