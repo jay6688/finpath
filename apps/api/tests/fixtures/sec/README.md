@@ -15,6 +15,9 @@ and an identical duplicate Net Income fact so those boundaries remain tested.
 It also keeps the five reviewed FY2025 reported facts used by Lesson 11: the
 earnings numerator, basic and diluted weighted-average shares, and reported
 Basic and Diluted EPS.
+The `dei:EntityCommonStockSharesOutstanding` instant retains Apple's reviewed
+10-K cover-page value and whole-share unit for the Market Cap alignment
+foundation.
 Do not replace it with an unexplained full Company Facts dump.
 
 `msft_companyfacts.json` preserves Microsoft's reviewed FY2026 Revenue history
@@ -24,6 +27,8 @@ short-term investment and borrowing facts used by Lessons 08 and 09. Source:
 Microsoft Form 10-K filed 2026-07-29,
 accession `0001193125-26-323660`.
 It also keeps the five reviewed FY2026 EPS facts used by Lesson 11.
+The reviewed `dei` cover-page instant is retained separately from those
+duration denominators.
 
 `wmt_companyfacts.json` preserves Walmart's reviewed five-year Total revenues
 history and a competing FY2026 Net sales fact. It proves that FinPath selects
@@ -36,3 +41,5 @@ Source: Walmart Form 10-K filed 2026-03-13, accession
 The Walmart fixture also retains both consolidated `ProfitLoss` and the
 parent-attributable `NetIncomeLoss` so Lesson 11 proves it uses the reviewed EPS
 numerator rather than the larger consolidated figure.
+It also retains Walmart's reviewed `dei` cover-page shares instant dated after
+the company's Nasdaq listing transfer.

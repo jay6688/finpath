@@ -34,6 +34,15 @@
       "ShortTermInvestments": {"label":"Short-term Investments","units":{"USD":[{"end":"2026-06-30","val":55908000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
       "LongTermDebtCurrent": {"label":"Long-term Debt, Current Maturities","units":{"USD":[{"end":"2026-06-30","val":9227000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}},
       "LongTermDebtNoncurrent": {"label":"Long-term Debt, Excluding Current Maturities","units":{"USD":[{"end":"2026-06-30","val":31067000000,"accn":"0001193125-26-323660","fy":2026,"fp":"FY","form":"10-K","filed":"2026-07-29"}]}}
+    },
+    "dei": {
+      "EntityCommonStockSharesOutstanding": {
+        "label": "Entity Common Stock, Shares Outstanding",
+        "description": "Shares outstanding as stated on the cover of the related periodic report.",
+        "units": {"shares": [
+          {"end": "2026-07-23", "val": 7425545491, "accn": "0001193125-26-323660", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-07-29", "frame": "CY2026Q2I"}
+        ]}
+      }
     }
   }
 }

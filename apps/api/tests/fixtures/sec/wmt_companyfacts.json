@@ -37,6 +37,15 @@
       "ShortTermBorrowings": {"label":"Short-term Debt","units":{"USD":[{"end":"2026-01-31","val":6596000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
       "LongTermDebtCurrent": {"label":"Long-term Debt, Current Maturities","units":{"USD":[{"end":"2026-01-31","val":3542000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}},
       "LongTermDebtNoncurrent": {"label":"Long-term Debt, Excluding Current Maturities","units":{"USD":[{"end":"2026-01-31","val":34624000000,"accn":"0000104169-26-000055","fy":2026,"fp":"FY","form":"10-K","filed":"2026-03-13"}]}}
+    },
+    "dei": {
+      "EntityCommonStockSharesOutstanding": {
+        "label": "Entity Common Stock, Shares Outstanding",
+        "description": "Shares outstanding as stated on the cover of the related periodic report.",
+        "units": {"shares": [
+          {"end": "2026-03-11", "val": 7972402501, "accn": "0000104169-26-000055", "fy": 2026, "fp": "FY", "form": "10-K", "filed": "2026-03-13", "frame": "CY2026Q1I"}
+        ]}
+      }
     }
   }
 }
