@@ -7,8 +7,9 @@
 
 FinPath now has a provider-neutral market-price domain with a first
 Marketstack end-of-day adapter. It is backend infrastructure only: there is no
-public price endpoint, browser request, price card, chart, Market Cap, or P/E
-feature.
+public price endpoint, browser request, price card, chart, Market Cap lesson/UI,
+or P/E feature. An internal Market Cap alignment domain now exists but cannot
+expose provider data.
 
 SEC filing facts and market observations remain separate trust domains:
 
@@ -19,13 +20,13 @@ SEC evidence
 Market-data evidence
   = a provider-observed price for one exact trading date
 
-Future derived metric
+Internal derived metric
   = a separately identified FinPath calculation using explicit inputs
 ```
 
 Marketstack is an adapter, not the domain model. A replacement provider should
-require a new adapter and reviewed security profiles, not a rewrite of future
-Market Cap logic.
+require a new adapter and reviewed security profiles, not a rewrite of the
+Market Cap alignment domain.
 
 ## Why end-of-day raw close
 
@@ -42,18 +43,26 @@ market date belongs to a future product milestone.
 
 ## Reviewed security boundary
 
-Foundation v1 accepts only these bounded provider profiles:
+Foundation v1 accepts only bounded, date-aware provider profiles:
 
-| FinPath ticker | Marketstack symbol | Expected exchange/MIC | Currency |
-|---|---|---|---|
-| AAPL | AAPL | XNAS | USD |
-| MSFT | MSFT | XNAS | USD |
-| WMT | WMT | XNYS | USD |
+| FinPath ticker | Marketstack symbol | Reviewed dates | Expected exchange/MIC | Currency |
+|---|---|---|---|---|
+| AAPL | AAPL | From 2025-09-26 | XNAS | USD |
+| MSFT | MSFT | From 2026-06-30 | XNAS | USD |
+| WMT | WMT | 2025-12-08 | XNYS | USD |
+| WMT | WMT | From 2025-12-09 | XNAS | USD |
 
 Ticker text alone is not treated as a globally unique security identity. The
 adapter requires the exact profile symbol and exchange. A live integration
 must continue to validate the returned provider identifiers; arbitrary ticker
 input remains unsupported.
+
+Walmart's FY2026 Form 10-K states that its principal listing moved from NYSE
+to the Nasdaq Global Select Market effective 2025-12-09. FinPath therefore
+resolves the expected exchange from the requested price date rather than from
+a timeless ticker mapping. The SEC listing change is confirmed; Marketstack's
+post-transfer `XNAS` response identifier still awaits inspection with an
+authorized live key.
 
 ## Decimal and serialization
 

@@ -9,7 +9,7 @@ The product does not tell users what to buy. V0 does not include authentication,
 
 ## Repository status
 
-This repository is currently at the **Market Data Foundation v1 milestone**. It contains:
+This repository is currently at the **Market Cap Alignment Foundation milestone**. It contains:
 
 - a runnable Next.js product shell and real-data Apple company page;
 - a FastAPI company endpoint backed by SEC ticker and Company Facts data;
@@ -27,6 +27,8 @@ This repository is currently at the **Market Data Foundation v1 milestone**. It 
 - a provider-neutral exact-date market-price domain and Marketstack EOD adapter,
   disabled by default with no public price endpoint or UI;
 - a separate normalized market-data cache with explicit live, cached and stale states;
+- reviewed point-in-time cover-page share counts and an internal exact-date
+  Market Cap alignment domain, with no public Market Cap or price UI enabled;
 - an existing separate SQLite cache containing only public SEC JSON;
 - sourced English and Chinese Revenue learning content;
 - deterministic SEC fixtures and an optional live smoke test;
@@ -36,6 +38,8 @@ Public market-price display is not approved. Marketstack plan wording does not
 yet establish redistribution/display rights, so the committed licensing gate
 remains false and normal FinPath development requires no provider account or
 key. See [`docs/market-data-provider.md`](docs/market-data-provider.md).
+The internal alignment model is documented in
+[`docs/market-cap-alignment.md`](docs/market-cap-alignment.md).
 
 The UI never substitutes a hard-coded financial value when the API or SEC is unavailable.
 
@@ -178,5 +182,6 @@ project settings, and the public validation checklist are documented in
 - [`docs/v0-architecture.md`](docs/v0-architecture.md)
 - [`docs/data-contract.md`](docs/data-contract.md)
 - [`docs/market-data-provider.md`](docs/market-data-provider.md)
+- [`docs/market-cap-alignment.md`](docs/market-cap-alignment.md)
 - [`docs/design/research.md`](docs/design/research.md)
 - [`docs/design/product-visual-direction.md`](docs/design/product-visual-direction.md)

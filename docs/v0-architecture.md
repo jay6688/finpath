@@ -1,6 +1,6 @@
 # V0 Architecture
 
-**Status:** Implemented through EPS & Share Count plus Market Data Foundation v1
+**Status:** Implemented through EPS & Share Count plus Market Cap Alignment Foundation
 **Decision date:** 2026-08-19
 
 ## Outcome
@@ -39,6 +39,11 @@ future server-side consumer
 
 It has no public route or UI. SEC filing evidence is not reused for provider-
 observed prices, and the market-data credential never reaches the browser.
+
+The internal Market Cap alignment domain joins two still-distinct inputs only
+when the SEC cover-page shares date equals the raw-close date. It does not add
+a public route and cannot substitute EPS weighted-average shares, filing date,
+fiscal year end, or a nearby trading date.
 
 ## Applications
 
