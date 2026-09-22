@@ -9,7 +9,7 @@ The product does not tell users what to buy. V0 does not include authentication,
 
 ## Repository status
 
-This repository is currently at the **Cash & Debt learning milestone**. It contains:
+This repository is currently at the **Market Data Foundation v1 milestone**. It contains:
 
 - a runnable Next.js product shell and real-data Apple company page;
 - a FastAPI company endpoint backed by SEC ticker and Company Facts data;
@@ -23,10 +23,19 @@ This repository is currently at the **Cash & Debt learning milestone**. It conta
 - a simple Free Cash Flow lesson derived from reported Operating Cash Flow and PP&E purchases, with an explicit non-GAAP/definition boundary;
 - reviewed AAPL, MSFT and WMT Balance Sheet profiles with exact instant-date provenance;
 - Balance Sheet and Cash & Debt lessons that keep reported facts, Total Liabilities and FinPath-derived simple borrowings distinct;
-- a SQLite cache containing public SEC JSON only;
+- a reviewed EPS & Share Count lesson for AAPL, MSFT and WMT that keeps company-reported EPS distinct from FinPath's verification;
+- a provider-neutral exact-date market-price domain and Marketstack EOD adapter,
+  disabled by default with no public price endpoint or UI;
+- a separate normalized market-data cache with explicit live, cached and stale states;
+- an existing separate SQLite cache containing only public SEC JSON;
 - sourced English and Chinese Revenue learning content;
 - deterministic SEC fixtures and an optional live smoke test;
 - architecture, data-contract, design-research, and product-brief documentation.
+
+Public market-price display is not approved. Marketstack plan wording does not
+yet establish redistribution/display rights, so the committed licensing gate
+remains false and normal FinPath development requires no provider account or
+key. See [`docs/market-data-provider.md`](docs/market-data-provider.md).
 
 The UI never substitutes a hard-coded financial value when the API or SEC is unavailable.
 
@@ -131,8 +140,8 @@ corepack pnpm test:web
 .\.venv\Scripts\python.exe -m pytest apps/api/tests --basetemp apps/api/var/pytest
 ```
 
-The normal API suite uses recorded, minimal SEC-shaped fixtures and never
-makes a live SEC request. The optional live test also reads `SEC_USER_AGENT`
+The normal API suite uses deterministic SEC and synthetic Marketstack-shaped
+fixtures and never calls either provider. Optional live tests read credentials
 from the ignored project `.env`.
 
 PowerShell:
@@ -149,6 +158,11 @@ set FINPATH_RUN_LIVE_SEC_TEST=1
 .\.venv\Scripts\python.exe -m pytest apps/api/tests/test_live_sec_smoke.py -m live --basetemp apps/api/var/pytest-live
 ```
 
+The optional Marketstack smoke test additionally requires a locally supplied
+`MARKETSTACK_ACCESS_KEY` and explicit
+`FINPATH_RUN_LIVE_MARKET_DATA_TEST=1`. It makes one exact-date EOD request and
+is not part of normal CI.
+
 ## Preview deployment
 
 The approved preview architecture uses two Vercel Hobby projects connected to
@@ -163,5 +177,6 @@ project settings, and the public validation checklist are documented in
 - [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md)
 - [`docs/v0-architecture.md`](docs/v0-architecture.md)
 - [`docs/data-contract.md`](docs/data-contract.md)
+- [`docs/market-data-provider.md`](docs/market-data-provider.md)
 - [`docs/design/research.md`](docs/design/research.md)
 - [`docs/design/product-visual-direction.md`](docs/design/product-visual-direction.md)

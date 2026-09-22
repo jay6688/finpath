@@ -1,6 +1,6 @@
 # V0 Architecture
 
-**Status:** Implemented through the Apple Cash Flow learning module
+**Status:** Implemented through EPS & Share Count plus Market Data Foundation v1
 **Decision date:** 2026-08-19
 
 ## Outcome
@@ -27,6 +27,19 @@ Browser
 
 The browser does not call `data.sec.gov` directly because SEC does not support CORS. It also does not call FastAPI directly in V0: the Next.js server fetches the loopback API. FastAPI therefore has no CORS middleware. FastAPI owns SEC identification, request pacing, caching, normalization, and errors.
 
+Market Data Foundation v1 adds a second, isolated backend trust domain:
+
+```text
+future server-side consumer
+  â†’ MarketPriceService
+  â†’ provider-neutral MarketDataProvider protocol
+  â†’ Marketstack EOD adapter
+  â†’ separate normalized SQLite cache
+```
+
+It has no public route or UI. SEC filing evidence is not reused for provider-
+observed prices, and the market-data credential never reaches the browser.
+
 ## Applications
 
 ### `apps/web`
@@ -52,7 +65,7 @@ The browser does not call `data.sec.gov` directly because SEC does not support C
   change, cash balances, and strict section/top-level/bridge reconciliation.
 - An explicit reviewed company/fiscal-year cash-flow profile boundary, so a
   future company cannot silently inherit Apple's taxonomy and sign mapping.
-- SQLite cache for public upstream data only.
+- Separate SQLite caches for public SEC JSON and normalized market observations.
 - A normalized API contract independent of SEC's raw JSON shape.
 
 ## Configuration and privacy
@@ -66,16 +79,23 @@ The default FinPath request policy is two upstream requests per second, below SE
 
 Next.js and FastAPI bind to `127.0.0.1` during local development. Neither service is intentionally exposed to the LAN.
 
+Market data is disabled by default. Provider connectivity and the public-
+display licensing gate are separate settings; the latter remains false until
+written redistribution/display clarification exists.
+
 ## Cache policy
 
 | Resource | Fresh TTL | Stale-if-error |
 |---|---:|---:|
 | SEC ticker map | 24 hours | 7 days |
 | Company Facts | 6 hours | 7 days |
+| Historical market EOD observation | 24 hours | 7 days |
 
 The response reports whether data is live or cached and when it was retrieved. A stale value is never presented as live.
 
-Normal tests read trimmed, SEC-shaped JSON fixtures. A separate `live` test is skipped unless `FINPATH_RUN_LIVE_SEC_TEST=1` and `SEC_USER_AGENT` are both supplied.
+Normal tests read trimmed SEC fixtures and synthetic provider-shaped market
+fixtures. Separate `live` tests are skipped unless their explicit opt-in flag
+and corresponding credential are supplied.
 
 ## Deferred deliberately
 
