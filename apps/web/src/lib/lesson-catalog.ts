@@ -76,6 +76,13 @@ export const lessonCatalog = [
     shortGoal: "Connect company-level earnings to reported earnings per share.",
     href: "/learn/company-analysis/eps-and-share-count",
   },
+  {
+    id: "market-cap",
+    number: 12,
+    title: "Market Cap",
+    shortGoal: "Connect point-in-time shares to an educational price per share.",
+    href: "/learn/company-analysis/market-cap",
+  },
 ] as const;
 
 export type ConceptId = (typeof lessonCatalog)[number]["id"];

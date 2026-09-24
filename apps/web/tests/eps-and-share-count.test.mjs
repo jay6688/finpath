@@ -60,13 +60,13 @@ function epsResponse(company = companies.aapl) {
   };
 }
 
-test("Lesson 11 is the canonical final lesson without changing progress version", () => {
+test("Lesson 11 now continues to Market Cap without changing progress version", () => {
   const lesson = getLesson("eps-and-share-count");
   assert.equal(lesson.number, 11);
   assert.equal(lesson.href, "/learn/company-analysis/eps-and-share-count");
-  assert.equal(lessonCatalog.length, 11);
+  assert.equal(lessonCatalog.length, 12);
   assert.equal(getAdjacentLessons("three-statements-connect").next?.id, "eps-and-share-count");
-  assert.equal(getAdjacentLessons("eps-and-share-count").next, null);
+  assert.equal(getAdjacentLessons("eps-and-share-count").next?.id, "market-cap");
 
   let progress = createDefaultLearningProgress();
   for (const existing of lessonCatalog.slice(0, 10)) {

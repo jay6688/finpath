@@ -45,6 +45,7 @@ export type SupportedCompany = {
     cashDebt: boolean;
     threeStatements: boolean;
     earningsPerShare: boolean;
+    sharesOutstanding: boolean;
   };
 };
 
@@ -323,6 +324,27 @@ export type CompanyEarningsPerShare = {
   dataStatus: CompanyOverview["dataStatus"];
 };
 
+export type CompanySharesOutstanding = {
+  company: CompanyOverview["company"];
+  fact: {
+    evidenceKind: "reported";
+    id: "common-shares-outstanding";
+    fiscalYear: number;
+    asOfDate: string;
+    form: "10-K";
+    filedAt: string;
+    accession: string;
+    sourceUrl: string;
+    taxonomyNamespace: "dei";
+    taxonomyTag: "EntityCommonStockSharesOutstanding";
+    taxonomyLabel: string;
+    reportedLabel: string;
+    value: number;
+    unit: "shares";
+  };
+  dataStatus: CompanyOverview["dataStatus"];
+};
+
 export class FinPathApiError extends Error {
   readonly status?: number;
 
@@ -493,4 +515,28 @@ export async function getCompanyEarningsPerShare(
   }
 
   return (await response.json()) as CompanyEarningsPerShare;
+}
+
+export async function getCompanySharesOutstanding(
+  ticker: string,
+  fiscalYear: number,
+): Promise<CompanySharesOutstanding> {
+  const apiBaseUrl = getApiBaseUrl();
+  const response = await fetch(
+    `${apiBaseUrl}/v1/companies/${encodeURIComponent(ticker)}/shares-outstanding/${fiscalYear}`,
+    { cache: "no-store" },
+  );
+
+  if (!response.ok) {
+    let detail = `FinPath API returned ${response.status}.`;
+    try {
+      const payload = (await response.json()) as { detail?: string };
+      if (payload.detail) detail = payload.detail;
+    } catch {
+      // Keep the status-based message when an upstream proxy returns non-JSON.
+    }
+    throw new FinPathApiError(detail, response.status);
+  }
+
+  return (await response.json()) as CompanySharesOutstanding;
 }

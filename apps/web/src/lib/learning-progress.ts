@@ -116,6 +116,7 @@ export function deriveCurrentConcept(
   if (!explored.has("cash-and-debt")) return "cash-and-debt";
   if (!explored.has("three-statements-connect")) return "three-statements-connect";
   if (!explored.has("eps-and-share-count")) return "eps-and-share-count";
+  if (!explored.has("market-cap")) return "market-cap";
   return null;
 }
 
@@ -195,6 +196,11 @@ const recommendations: Record<ConceptId, Omit<HomeRecommendation, "conceptId" | 
     goal: "See how reviewed earnings and weighted-average shares connect to reported EPS.",
     href: "/learn/company-analysis/eps-and-share-count",
   },
+  "market-cap": {
+    title: "Market Cap",
+    goal: "Use reviewed point-in-time shares with your own educational price input.",
+    href: "/learn/company-analysis/market-cap",
+  },
 };
 
 export function deriveHomeRecommendation(
@@ -203,8 +209,8 @@ export function deriveHomeRecommendation(
   const current = deriveCurrentConcept(progress);
   if (!current) {
     return {
-      conceptId: "eps-and-share-count",
-      ...recommendations["eps-and-share-count"],
+      conceptId: "market-cap",
+      ...recommendations["market-cap"],
       action: "Review",
     };
   }

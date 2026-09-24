@@ -31,6 +31,7 @@ export function LessonSequenceNavigation({
     "balance-sheet",
     "cash-and-debt",
     "eps-and-share-count",
+    "market-cap",
   ]);
   const previousHref =
     previous && companyAwareLessons.has(previous.id)

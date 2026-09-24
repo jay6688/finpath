@@ -177,7 +177,8 @@ test("current is always the first recommended milestone not yet explored", () =>
   const balanceSheet = markConceptsExplored(freeCashFlow, ["balance-sheet"]);
   const cashDebt = markConceptsExplored(balanceSheet, ["cash-and-debt"]);
   const threeStatements = markConceptsExplored(cashDebt, ["three-statements-connect"]);
-  const all = markConceptsExplored(threeStatements, ["eps-and-share-count"]);
+  const eps = markConceptsExplored(threeStatements, ["eps-and-share-count"]);
+  const all = markConceptsExplored(eps, ["market-cap"]);
 
   assert.equal(deriveCurrentConcept(revenue), "revenue-growth");
   assert.equal(deriveCurrentConcept(growth), "profit");
@@ -189,6 +190,7 @@ test("current is always the first recommended milestone not yet explored", () =>
   assert.equal(deriveCurrentConcept(balanceSheet), "cash-and-debt");
   assert.equal(deriveCurrentConcept(cashDebt), "three-statements-connect");
   assert.equal(deriveCurrentConcept(threeStatements), "eps-and-share-count");
+  assert.equal(deriveCurrentConcept(eps), "market-cap");
   assert.equal(deriveCurrentConcept(all), null);
   assert.equal(deriveHomeRecommendation(all).action, "Review");
 });
