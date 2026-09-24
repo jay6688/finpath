@@ -54,6 +54,7 @@ def test_supported_company_list_is_a_stable_non_financial_contract() -> None:
         "cashDebt": True,
         "threeStatements": False,
         "earningsPerShare": True,
+        "sharesOutstanding": True,
     }
     assert "value" not in str(payload)
 
@@ -275,6 +276,73 @@ def test_eps_http_contract_preserves_reported_and_verification_boundaries() -> N
         "state": "cached",
         "retrievedAt": "2026-08-19T00:00:00Z",
     }
+
+
+def test_shares_outstanding_http_contract_preserves_reviewed_instant_evidence() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    expected = {
+        "AAPL": (2025, "2025-10-17", 14_776_353_000, "0000320193-25-000079"),
+        "MSFT": (2026, "2026-07-23", 7_425_545_491, "0001193125-26-323660"),
+        "WMT": (2026, "2026-03-11", 7_972_402_501, "0000104169-26-000055"),
+    }
+    try:
+        responses = {
+            ticker: asyncio.run(
+                _request(f"/v1/companies/{ticker}/shares-outstanding/{values[0]}")
+            )
+            for ticker, values in expected.items()
+        }
+    finally:
+        app.dependency_overrides.clear()
+
+    for ticker, response in responses.items():
+        fiscal_year, as_of_date, shares, accession = expected[ticker]
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["company"]["ticker"] == ticker
+        assert payload["fact"] == {
+            "evidenceKind": "reported",
+            "id": "common-shares-outstanding",
+            "fiscalYear": fiscal_year,
+            "asOfDate": as_of_date,
+            "form": "10-K",
+            "filedAt": payload["fact"]["filedAt"],
+            "accession": accession,
+            "sourceUrl": payload["fact"]["sourceUrl"],
+            "taxonomyNamespace": "dei",
+            "taxonomyTag": "EntityCommonStockSharesOutstanding",
+            "taxonomyLabel": payload["fact"]["taxonomyLabel"],
+            "reportedLabel": "Shares of common stock outstanding",
+            "value": shares,
+            "unit": "shares",
+        }
+        assert payload["fact"]["sourceUrl"].endswith(
+            f"/{accession.replace('-', '')}/{accession}-index.htm"
+        )
+        assert payload["dataStatus"] == {
+            "state": "cached",
+            "retrievedAt": "2026-08-19T00:00:00Z",
+        }
+
+
+def test_shares_outstanding_route_rejects_unreviewed_contexts() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        wrong_year = asyncio.run(
+            _request("/v1/companies/AAPL/shares-outstanding/2024")
+        )
+        wrong_company = asyncio.run(
+            _request("/v1/companies/NVDA/shares-outstanding/2025")
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert wrong_year.status_code == 422
+    assert wrong_company.status_code == 404
 
 
 async def _request_aapl_overview() -> httpx.Response:

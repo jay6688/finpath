@@ -19,6 +19,10 @@ from app.domain.income_statement import (
     extract_income_statement,
 )
 from app.domain.revenue import extract_annual_revenue
+from app.domain.shares_outstanding import (
+    SharesOutstandingUnavailableError,
+    extract_shares_outstanding,
+)
 from app.schemas.company import (
     CompanyBalanceSheetResponse,
     CompanyCashFlowStatementResponse,
@@ -26,8 +30,10 @@ from app.schemas.company import (
     CompanyIncomeStatementResponse,
     CompanyOverviewResponse,
     CompanyEarningsPerShareResponse,
+    CompanySharesOutstandingResponse,
     DataStatus,
     MetricMetadata,
+    ReportedSharesOutstandingFact,
 )
 from app.services.sec.client import SecPayload
 
@@ -210,6 +216,54 @@ class CompanyOverviewService:
                 cik=company.cik,
             ),
             statement=statement,
+            dataStatus=DataStatus(
+                state=facts_payload.state,
+                retrievedAt=facts_payload.retrieved_at,
+            ),
+        )
+
+    async def get_shares_outstanding(
+        self,
+        ticker: str,
+        fiscal_year: int,
+    ) -> CompanySharesOutstandingResponse:
+        company, profile = await self._resolve_company(ticker)
+        if (
+            not profile.capabilities.shares_outstanding
+            or fiscal_year != profile.reviewed_fiscal_year
+        ):
+            raise SharesOutstandingUnavailableError(
+                "Shares-outstanding profile for "
+                f"CIK {company.cik} FY{fiscal_year} is unavailable."
+            )
+        facts_payload = await self.sec.get_company_facts(company.cik)
+        shares = extract_shares_outstanding(
+            facts_payload.payload,
+            cik=company.cik,
+            fiscal_year=fiscal_year,
+        )
+        return CompanySharesOutstandingResponse(
+            company=CompanyIdentity(
+                ticker=company.ticker,
+                name=company.name,
+                cik=company.cik,
+            ),
+            fact=ReportedSharesOutstandingFact(
+                evidenceKind=shares.evidence_kind,
+                id=shares.id,
+                fiscalYear=shares.fiscal_year,
+                asOfDate=shares.as_of_date,
+                form=shares.form,
+                filedAt=shares.filed_at,
+                accession=shares.accession,
+                sourceUrl=shares.source_url,
+                taxonomyNamespace=shares.taxonomy_namespace,
+                taxonomyTag=shares.taxonomy_tag,
+                taxonomyLabel=shares.taxonomy_label,
+                reportedLabel=shares.reported_label,
+                value=shares.value,
+                unit=shares.unit,
+            ),
             dataStatus=DataStatus(
                 state=facts_payload.state,
                 retrievedAt=facts_payload.retrieved_at,

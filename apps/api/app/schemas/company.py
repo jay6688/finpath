@@ -38,6 +38,7 @@ class CompanyCapabilities(ApiModel):
     cash_debt: bool = Field(alias="cashDebt")
     three_statements: bool = Field(alias="threeStatements")
     earnings_per_share: bool = Field(alias="earningsPerShare")
+    shares_outstanding: bool = Field(alias="sharesOutstanding")
 
 
 class SupportedCompanySummary(ApiModel):
@@ -455,4 +456,40 @@ class EarningsPerShareStatement(ApiModel):
 class CompanyEarningsPerShareResponse(ApiModel):
     company: CompanyIdentity
     statement: EarningsPerShareStatement
+    data_status: DataStatus = Field(alias="dataStatus")
+
+
+class ReportedSharesOutstandingFact(ApiModel):
+    evidence_kind: Literal["reported"] = Field(
+        default="reported", alias="evidenceKind"
+    )
+    id: Literal["common-shares-outstanding"]
+    fiscal_year: int = Field(alias="fiscalYear")
+    as_of_date: date = Field(alias="asOfDate")
+    form: Literal["10-K"]
+    filed_at: date = Field(alias="filedAt")
+    accession: str
+    source_url: HttpUrl = Field(alias="sourceUrl")
+    taxonomy_namespace: Literal["dei"] = Field(alias="taxonomyNamespace")
+    taxonomy_tag: Literal["EntityCommonStockSharesOutstanding"] = Field(
+        alias="taxonomyTag"
+    )
+    taxonomy_label: str = Field(alias="taxonomyLabel")
+    reported_label: str = Field(alias="reportedLabel")
+    value: int = Field(gt=0)
+    unit: Literal["shares"]
+
+    @field_validator("source_url")
+    @classmethod
+    def require_sec_filing_url(cls, value: HttpUrl) -> HttpUrl:
+        if value.host not in {"sec.gov", "www.sec.gov"}:
+            raise ValueError("sourceUrl must point to an SEC host")
+        if "/Archives/edgar/data/" not in value.path:
+            raise ValueError("sourceUrl must point to an EDGAR filing")
+        return value
+
+
+class CompanySharesOutstandingResponse(ApiModel):
+    company: CompanyIdentity
+    fact: ReportedSharesOutstandingFact
     data_status: DataStatus = Field(alias="dataStatus")

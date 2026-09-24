@@ -8,12 +8,14 @@ from app.domain.earnings_per_share import EarningsPerShareUnavailableError
 from app.domain.company_service import CompanyNotFoundError, CompanyOverviewService
 from app.domain.income_statement import IncomeStatementUnavailableError
 from app.domain.revenue import RevenueUnavailableError
+from app.domain.shares_outstanding import SharesOutstandingUnavailableError
 from app.schemas.company import (
     CompanyBalanceSheetResponse,
     CompanyCashFlowStatementResponse,
     CompanyIncomeStatementResponse,
     CompanyOverviewResponse,
     CompanyEarningsPerShareResponse,
+    CompanySharesOutstandingResponse,
     CompanyCapabilities,
     SupportedCompaniesResponse,
     SupportedCompanySummary,
@@ -43,6 +45,7 @@ async def supported_companies() -> SupportedCompaniesResponse:
                     cashDebt=company.capabilities.cash_debt,
                     threeStatements=company.capabilities.three_statements,
                     earningsPerShare=company.capabilities.earnings_per_share,
+                    sharesOutstanding=company.capabilities.shares_outstanding,
                 ),
             )
             for company in list_supported_companies()
@@ -195,6 +198,39 @@ async def company_earnings_per_share(
             detail=str(error),
         ) from error
     except EarningsPerShareUnavailableError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
+    except SecConfigurationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(error),
+        ) from error
+    except SecUpstreamError as error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="SEC data is temporarily unavailable.",
+        ) from error
+
+
+@router.get(
+    "/{ticker}/shares-outstanding/{fiscal_year}",
+    response_model=CompanySharesOutstandingResponse,
+)
+async def company_shares_outstanding(
+    ticker: str,
+    fiscal_year: int,
+    service: CompanyOverviewService = Depends(get_company_service),
+) -> CompanySharesOutstandingResponse:
+    try:
+        return await service.get_shares_outstanding(ticker, fiscal_year)
+    except CompanyNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except SharesOutstandingUnavailableError as error:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=str(error),

@@ -54,6 +54,8 @@ def test_decimal_market_cap_arithmetic_is_exact_and_never_display_rounded() -> N
     assert result.evidence_kind == "derived"
     assert result.market_price.data_state == MarketDataState.CACHED
     assert result.shares_outstanding.evidence_kind == "reported"
+    assert result.formula == "shares outstanding × raw closing price"
+    assert "Ã" not in result.formula
 
 
 @pytest.mark.parametrize(

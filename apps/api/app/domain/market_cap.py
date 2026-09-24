@@ -34,7 +34,7 @@ class MarketCapProfile:
 @dataclass(frozen=True)
 class MarketCapSnapshot:
     evidence_kind: Literal["derived"]
-    formula: Literal["shares outstanding Ã— raw closing price"]
+    formula: Literal["shares outstanding × raw closing price"]
     ticker: str
     cik: str
     fiscal_year: int
@@ -127,7 +127,7 @@ def derive_market_cap_snapshot(
     exact_value = calculate_exact_market_cap(shares.value, market_price.price)
     return MarketCapSnapshot(
         evidence_kind="derived",
-        formula="shares outstanding Ã— raw closing price",
+        formula="shares outstanding × raw closing price",
         ticker=profile.ticker,
         cik=profile.cik,
         fiscal_year=profile.fiscal_year,
