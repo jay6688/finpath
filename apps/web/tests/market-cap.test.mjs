@@ -121,14 +121,14 @@ test("shares lesson contract fails closed on identity, provenance, taxonomy, uni
   }
 });
 
-test("Lesson 12 follows EPS, preserves progress version 1, and becomes the final review target", () => {
+test("Lesson 12 follows EPS and now continues to P/E without changing progress version", () => {
   const lesson = getLesson("market-cap");
   assert.equal(lesson.number, 12);
   assert.equal(lesson.href, "/learn/company-analysis/market-cap");
-  assert.equal(lessonCatalog.length, 12);
+  assert.equal(lessonCatalog.length, 13);
   assert.equal(getAdjacentLessons("eps-and-share-count").next?.id, "market-cap");
   assert.equal(getAdjacentLessons("market-cap").previous?.id, "eps-and-share-count");
-  assert.equal(getAdjacentLessons("market-cap").next, null);
+  assert.equal(getAdjacentLessons("market-cap").next?.id, "pe-ratio");
 
   let progress = createDefaultLearningProgress();
   for (const existing of lessonCatalog.slice(0, 11)) {
@@ -137,9 +137,9 @@ test("Lesson 12 follows EPS, preserves progress version 1, and becomes the final
   assert.equal(progress.version, 1);
   assert.equal(deriveCurrentConcept(progress), "market-cap");
   progress = markConceptsExplored(progress, ["market-cap"]);
-  assert.equal(deriveCurrentConcept(progress), null);
-  assert.equal(deriveHomeRecommendation(progress).conceptId, "market-cap");
-  assert.equal(deriveHomeRecommendation(progress).action, "Review");
+  assert.equal(deriveCurrentConcept(progress), "pe-ratio");
+  assert.equal(deriveHomeRecommendation(progress).conceptId, "pe-ratio");
+  assert.equal(deriveHomeRecommendation(progress).action, "Continue");
 });
 
 test("Lesson 12 source keeps educational input separate from provider-backed Market Cap", async () => {

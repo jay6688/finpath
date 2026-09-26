@@ -20,9 +20,10 @@ const canonicalLessons = [
   ["three-statements-connect", "Three Statements Connect"],
   ["eps-and-share-count", "EPS & Share Count"],
   ["market-cap", "Market Cap"],
+  ["pe-ratio", "P/E Ratio"],
 ];
 
-test("all twelve concepts have canonical Learn pages with learning identity", async () => {
+test("all thirteen concepts have canonical Learn pages with learning identity", async () => {
   const catalog = await readSource("lib/lesson-catalog.ts");
 
   for (const [slug, title] of canonicalLessons) {
@@ -57,7 +58,7 @@ test("lesson shell expresses Learn hierarchy, ordered navigation, and Explore cr
   }
 });
 
-test("previous and next lesson ordering follows the approved twelve-concept sequence", () => {
+test("previous and next lesson ordering follows the approved thirteen-concept sequence", () => {
   assert.deepEqual(getAdjacentLessons("revenue"), {
     previous: null,
     next: {
@@ -83,7 +84,9 @@ test("previous and next lesson ordering follows the approved twelve-concept sequ
   assert.equal(getAdjacentLessons("eps-and-share-count").previous?.id, "three-statements-connect");
   assert.equal(getAdjacentLessons("eps-and-share-count").next?.id, "market-cap");
   assert.equal(getAdjacentLessons("market-cap").previous?.id, "eps-and-share-count");
-  assert.equal(getAdjacentLessons("market-cap").next, null);
+  assert.equal(getAdjacentLessons("market-cap").next?.id, "pe-ratio");
+  assert.equal(getAdjacentLessons("pe-ratio").previous?.id, "market-cap");
+  assert.equal(getAdjacentLessons("pe-ratio").next, null);
 });
 
 test("former company lesson routes permanently redirect to canonical Learn routes", async () => {

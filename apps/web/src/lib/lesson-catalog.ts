@@ -83,6 +83,13 @@ export const lessonCatalog = [
     shortGoal: "Connect point-in-time shares to an educational price per share.",
     href: "/learn/company-analysis/market-cap",
   },
+  {
+    id: "pe-ratio",
+    number: 13,
+    title: "P/E Ratio",
+    shortGoal: "Connect an educational price per share to reviewed annual Diluted EPS.",
+    href: "/learn/company-analysis/pe-ratio",
+  },
 ] as const;
 
 export type ConceptId = (typeof lessonCatalog)[number]["id"];

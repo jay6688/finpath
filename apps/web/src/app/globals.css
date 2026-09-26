@@ -4197,6 +4197,10 @@ h2 {
   font-weight: 750;
 }
 
+.eps-evidence small {
+  overflow-wrap: anywhere;
+}
+
 .eps-evidence__verification {
   margin-top: 1.5rem;
   padding: 1.15rem;
@@ -4565,6 +4569,69 @@ h2 {
 
   .market-cap-result > strong {
     font-size: clamp(1.9rem, 11vw, 3rem);
+  }
+}
+
+/* Lesson 13 — P/E Ratio */
+.pe-calculator {
+  grid-template-columns: minmax(12rem, 0.8fr) auto minmax(12rem, 1fr);
+}
+
+.pe-result .eps-continue {
+  margin-bottom: 0.2rem;
+}
+
+.eps-check {
+  max-width: 52rem;
+  margin: 1.6rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.eps-check legend {
+  padding: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.eps-check > p {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+}
+
+.pe-references {
+  max-width: 48rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--divider-strong);
+  border-bottom: 1px solid var(--divider-strong);
+}
+
+.pe-references summary {
+  padding: 0.9rem 0;
+  color: var(--trust-dark);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pe-references ul {
+  margin: 0.75rem 0 1.2rem;
+  padding-left: 1.2rem;
+}
+
+.pe-references li + li {
+  margin-top: 0.55rem;
+}
+
+.pe-references a {
+  color: var(--trust-dark);
+  font-weight: 750;
+  text-underline-offset: 0.2rem;
+}
+
+@media (max-width: 640px) {
+  .pe-calculator {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

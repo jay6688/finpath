@@ -117,6 +117,7 @@ export function deriveCurrentConcept(
   if (!explored.has("three-statements-connect")) return "three-statements-connect";
   if (!explored.has("eps-and-share-count")) return "eps-and-share-count";
   if (!explored.has("market-cap")) return "market-cap";
+  if (!explored.has("pe-ratio")) return "pe-ratio";
   return null;
 }
 
@@ -201,6 +202,11 @@ const recommendations: Record<ConceptId, Omit<HomeRecommendation, "conceptId" | 
     goal: "Use reviewed point-in-time shares with your own educational price input.",
     href: "/learn/company-analysis/market-cap",
   },
+  "pe-ratio": {
+    title: "P/E Ratio",
+    goal: "Use your own educational price with reviewed annual Diluted EPS.",
+    href: "/learn/company-analysis/pe-ratio",
+  },
 };
 
 export function deriveHomeRecommendation(
@@ -209,8 +215,8 @@ export function deriveHomeRecommendation(
   const current = deriveCurrentConcept(progress);
   if (!current) {
     return {
-      conceptId: "market-cap",
-      ...recommendations["market-cap"],
+      conceptId: "pe-ratio",
+      ...recommendations["pe-ratio"],
       action: "Review",
     };
   }
