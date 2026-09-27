@@ -9,7 +9,7 @@ The product does not tell users what to buy. V0 does not include authentication,
 
 ## Repository status
 
-This repository is currently at the **Market Cap Alignment Foundation milestone**. It contains:
+This repository is currently at the **Lesson 14 Business Model milestone**. It contains:
 
 - a runnable Next.js product shell and real-data Apple company page;
 - a FastAPI company endpoint backed by SEC ticker and Company Facts data;
@@ -29,6 +29,13 @@ This repository is currently at the **Market Cap Alignment Foundation milestone*
 - a separate normalized market-data cache with explicit live, cached and stale states;
 - reviewed point-in-time cover-page share counts and an internal exact-date
   Market Cap alignment domain, with no public Market Cap or price UI enabled;
+- a Market Cap lesson that combines reviewed point-in-time shares with a
+  learner-entered educational price, without presenting it as live market data;
+- a P/E lesson that combines the learner-entered educational price with
+  reviewed annual Diluted EPS;
+- reviewed AAPL, MSFT and WMT Business Model profiles backed by their annual
+  Form 10-K narrative, with company-specific offerings, counterparties, money
+  paths, business structure and explicit source boundaries;
 - an existing separate SQLite cache containing only public SEC JSON;
 - sourced English and Chinese Revenue learning content;
 - deterministic SEC fixtures and an optional live smoke test;
@@ -42,6 +49,11 @@ The internal alignment model is documented in
 [`docs/market-cap-alignment.md`](docs/market-cap-alignment.md).
 
 The UI never substitutes a hard-coded financial value when the API or SEC is unavailable.
+
+Lesson 3 already teaches the reported layers from Revenue through costs,
+operating expenses, tax and Net Income. FinPath therefore does not add a
+duplicate Profit Layers lesson. Business Model is the remaining concept lesson
+before a future V1 Capstone; the Capstone itself is not implemented.
 
 ## Prerequisites
 

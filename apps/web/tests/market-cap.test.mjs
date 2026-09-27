@@ -125,7 +125,7 @@ test("Lesson 12 follows EPS and now continues to P/E without changing progress v
   const lesson = getLesson("market-cap");
   assert.equal(lesson.number, 12);
   assert.equal(lesson.href, "/learn/company-analysis/market-cap");
-  assert.equal(lessonCatalog.length, 13);
+  assert.equal(lessonCatalog.length, 14);
   assert.equal(getAdjacentLessons("eps-and-share-count").next?.id, "market-cap");
   assert.equal(getAdjacentLessons("market-cap").previous?.id, "eps-and-share-count");
   assert.equal(getAdjacentLessons("market-cap").next?.id, "pe-ratio");

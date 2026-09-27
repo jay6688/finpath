@@ -90,6 +90,13 @@ export const lessonCatalog = [
     shortGoal: "Connect an educational price per share to reviewed annual Diluted EPS.",
     href: "/learn/company-analysis/pe-ratio",
   },
+  {
+    id: "business-model",
+    number: 14,
+    title: "Business Model",
+    shortGoal: "Understand what a company offers, who pays and how Revenue reaches the business.",
+    href: "/learn/company-analysis/business-model",
+  },
 ] as const;
 
 export type ConceptId = (typeof lessonCatalog)[number]["id"];

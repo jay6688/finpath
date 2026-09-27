@@ -33,6 +33,7 @@ export function LessonSequenceNavigation({
     "eps-and-share-count",
     "market-cap",
     "pe-ratio",
+    "business-model",
   ]);
   const previousHref =
     previous && companyAwareLessons.has(previous.id)

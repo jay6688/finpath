@@ -21,9 +21,10 @@ const canonicalLessons = [
   ["eps-and-share-count", "EPS & Share Count"],
   ["market-cap", "Market Cap"],
   ["pe-ratio", "P/E Ratio"],
+  ["business-model", "Business Model"],
 ];
 
-test("all thirteen concepts have canonical Learn pages with learning identity", async () => {
+test("all fourteen concepts have canonical Learn pages with learning identity", async () => {
   const catalog = await readSource("lib/lesson-catalog.ts");
 
   for (const [slug, title] of canonicalLessons) {
@@ -58,7 +59,7 @@ test("lesson shell expresses Learn hierarchy, ordered navigation, and Explore cr
   }
 });
 
-test("previous and next lesson ordering follows the approved thirteen-concept sequence", () => {
+test("previous and next lesson ordering follows the approved fourteen-concept sequence", () => {
   assert.deepEqual(getAdjacentLessons("revenue"), {
     previous: null,
     next: {
@@ -86,7 +87,9 @@ test("previous and next lesson ordering follows the approved thirteen-concept se
   assert.equal(getAdjacentLessons("market-cap").previous?.id, "eps-and-share-count");
   assert.equal(getAdjacentLessons("market-cap").next?.id, "pe-ratio");
   assert.equal(getAdjacentLessons("pe-ratio").previous?.id, "market-cap");
-  assert.equal(getAdjacentLessons("pe-ratio").next, null);
+  assert.equal(getAdjacentLessons("pe-ratio").next?.id, "business-model");
+  assert.equal(getAdjacentLessons("business-model").previous?.id, "pe-ratio");
+  assert.equal(getAdjacentLessons("business-model").next, null);
 });
 
 test("former company lesson routes permanently redirect to canonical Learn routes", async () => {
@@ -111,6 +114,7 @@ test("Explore remains company research and provides deliberate Learn links", asy
   assert.match(company, /Company research/);
   assert.match(company, /\/learn\/company-analysis\/revenue\$\{selectedQuery\}/);
   assert.match(company, /\/learn\/company-analysis\/revenue-growth\$\{selectedQuery\}/);
+  assert.match(company, /\/learn\/company-analysis\/business-model\$\{selectedQuery\}/);
   assert.doesNotMatch(company, /LearningUpNext/);
   assert.doesNotMatch(company, /id="revenue-growth"/);
 });

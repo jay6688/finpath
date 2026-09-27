@@ -179,7 +179,8 @@ test("current is always the first recommended milestone not yet explored", () =>
   const threeStatements = markConceptsExplored(cashDebt, ["three-statements-connect"]);
   const eps = markConceptsExplored(threeStatements, ["eps-and-share-count"]);
   const marketCap = markConceptsExplored(eps, ["market-cap"]);
-  const all = markConceptsExplored(marketCap, ["pe-ratio"]);
+  const peRatio = markConceptsExplored(marketCap, ["pe-ratio"]);
+  const all = markConceptsExplored(peRatio, ["business-model"]);
 
   assert.equal(deriveCurrentConcept(revenue), "revenue-growth");
   assert.equal(deriveCurrentConcept(growth), "profit");
@@ -193,6 +194,7 @@ test("current is always the first recommended milestone not yet explored", () =>
   assert.equal(deriveCurrentConcept(threeStatements), "eps-and-share-count");
   assert.equal(deriveCurrentConcept(eps), "market-cap");
   assert.equal(deriveCurrentConcept(marketCap), "pe-ratio");
+  assert.equal(deriveCurrentConcept(peRatio), "business-model");
   assert.equal(deriveCurrentConcept(all), null);
   assert.equal(deriveHomeRecommendation(all).action, "Review");
 });
@@ -274,6 +276,7 @@ test("every progress state recommends its canonical Learn route", () => {
     ["eps-and-share-count", "/learn/company-analysis/eps-and-share-count"],
     ["market-cap", "/learn/company-analysis/market-cap"],
     ["pe-ratio", "/learn/company-analysis/pe-ratio"],
+    ["business-model", "/learn/company-analysis/business-model"],
   ];
 
   for (const [conceptId, href] of expected) {

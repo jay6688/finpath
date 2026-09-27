@@ -118,6 +118,7 @@ export function deriveCurrentConcept(
   if (!explored.has("eps-and-share-count")) return "eps-and-share-count";
   if (!explored.has("market-cap")) return "market-cap";
   if (!explored.has("pe-ratio")) return "pe-ratio";
+  if (!explored.has("business-model")) return "business-model";
   return null;
 }
 
@@ -207,6 +208,11 @@ const recommendations: Record<ConceptId, Omit<HomeRecommendation, "conceptId" | 
     goal: "Use your own educational price with reviewed annual Diluted EPS.",
     href: "/learn/company-analysis/pe-ratio",
   },
+  "business-model": {
+    title: "Business Model",
+    goal: "Understand what the company actually sells and how Revenue is generated before putting all the numbers together.",
+    href: "/learn/company-analysis/business-model",
+  },
 };
 
 export function deriveHomeRecommendation(
@@ -215,8 +221,8 @@ export function deriveHomeRecommendation(
   const current = deriveCurrentConcept(progress);
   if (!current) {
     return {
-      conceptId: "pe-ratio",
-      ...recommendations["pe-ratio"],
+      conceptId: "business-model",
+      ...recommendations["business-model"],
       action: "Review",
     };
   }

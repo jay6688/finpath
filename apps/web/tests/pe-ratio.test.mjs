@@ -48,14 +48,14 @@ test("educational P/E uses exact BigInt cents and positive half-up rounding", ()
   });
 });
 
-test("Lesson 13 follows Market Cap, preserves progress version 1, and becomes final review", () => {
+test("Lesson 13 follows Market Cap and continues to Business Model without changing progress version", () => {
   const lesson = getLesson("pe-ratio");
   assert.equal(lesson.number, 13);
   assert.equal(lesson.href, "/learn/company-analysis/pe-ratio");
-  assert.equal(lessonCatalog.length, 13);
+  assert.equal(lessonCatalog.length, 14);
   assert.equal(getAdjacentLessons("market-cap").next?.id, "pe-ratio");
   assert.equal(getAdjacentLessons("pe-ratio").previous?.id, "market-cap");
-  assert.equal(getAdjacentLessons("pe-ratio").next, null);
+  assert.equal(getAdjacentLessons("pe-ratio").next?.id, "business-model");
 
   let progress = createDefaultLearningProgress();
   for (const existing of lessonCatalog.slice(0, 12)) {
@@ -64,9 +64,9 @@ test("Lesson 13 follows Market Cap, preserves progress version 1, and becomes fi
   assert.equal(progress.version, 1);
   assert.equal(deriveCurrentConcept(progress), "pe-ratio");
   progress = markConceptsExplored(progress, ["pe-ratio"]);
-  assert.equal(deriveCurrentConcept(progress), null);
-  assert.equal(deriveHomeRecommendation(progress).conceptId, "pe-ratio");
-  assert.equal(deriveHomeRecommendation(progress).action, "Review");
+  assert.equal(deriveCurrentConcept(progress), "business-model");
+  assert.equal(deriveHomeRecommendation(progress).conceptId, "business-model");
+  assert.equal(deriveHomeRecommendation(progress).action, "Continue");
 });
 
 test("Lesson 13 source preserves annual Diluted EPS, educational-price, and valuation boundaries", async () => {

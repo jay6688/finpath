@@ -2,11 +2,15 @@
 
 import { usePathname, useRouter } from "next/navigation";
 
-import type { SupportedCompany } from "@/lib/api";
+type SelectableCompany = {
+  name: string;
+  slug: string;
+  ticker: string;
+};
 
 type CompanyExampleSelectorProps = {
-  companies: SupportedCompany[];
-  selectedCompany: SupportedCompany;
+  companies: SelectableCompany[];
+  selectedCompany: SelectableCompany;
 };
 
 export function CompanyExampleSelector({
