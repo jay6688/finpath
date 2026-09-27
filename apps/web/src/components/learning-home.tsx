@@ -10,6 +10,7 @@ export function LearningHome({ companyNames }: { companyNames: string[] }) {
   const { progress } = useLearningProgress();
   const recommendation = deriveHomeRecommendation(progress);
   const exploredCount = progress.exploredConceptIds.length;
+  const isPathComplete = exploredCount === lessonCatalog.length;
 
   return (
     <div className="home-shell learning-home">
@@ -24,11 +25,13 @@ export function LearningHome({ companyNames }: { companyNames: string[] }) {
 
       <section className="home-learning-next" aria-labelledby="next-step-heading">
         <div className="home-learning-next__main">
-          <p className="eyebrow">Your next step</p>
+          <p className="eyebrow">
+            {isPathComplete ? "Company Analysis Basics complete" : "Your next step"}
+          </p>
           <h2 id="next-step-heading">{recommendation.title}</h2>
           <p>{recommendation.goal}</p>
           <Link className="primary-action" href={recommendation.href}>
-            {recommendation.action} lesson
+            {isPathComplete ? "Review Capstone" : `${recommendation.action} lesson`}
             <span aria-hidden="true">→</span>
           </Link>
         </div>

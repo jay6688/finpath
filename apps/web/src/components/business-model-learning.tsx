@@ -141,7 +141,7 @@ export function BusinessModelLearning({ profile }: Props) {
             </div>
             {comparisonAnswer ? (
               <p className={styles.complete}>
-                <strong>Lesson explored.</strong> More concepts coming after this reviewed path.
+                <strong>Lesson explored.</strong> Continue to the Capstone to put the reviewed evidence together.
               </p>
             ) : null}
           </li>

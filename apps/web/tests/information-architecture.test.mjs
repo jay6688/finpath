@@ -22,9 +22,10 @@ const canonicalLessons = [
   ["market-cap", "Market Cap"],
   ["pe-ratio", "P/E Ratio"],
   ["business-model", "Business Model"],
+  ["capstone", "Company Analysis Capstone"],
 ];
 
-test("all fourteen concepts have canonical Learn pages with learning identity", async () => {
+test("all fifteen concepts have canonical Learn pages with learning identity", async () => {
   const catalog = await readSource("lib/lesson-catalog.ts");
 
   for (const [slug, title] of canonicalLessons) {
@@ -59,7 +60,7 @@ test("lesson shell expresses Learn hierarchy, ordered navigation, and Explore cr
   }
 });
 
-test("previous and next lesson ordering follows the approved fourteen-concept sequence", () => {
+test("previous and next lesson ordering follows the approved fifteen-concept sequence", () => {
   assert.deepEqual(getAdjacentLessons("revenue"), {
     previous: null,
     next: {
@@ -89,7 +90,9 @@ test("previous and next lesson ordering follows the approved fourteen-concept se
   assert.equal(getAdjacentLessons("pe-ratio").previous?.id, "market-cap");
   assert.equal(getAdjacentLessons("pe-ratio").next?.id, "business-model");
   assert.equal(getAdjacentLessons("business-model").previous?.id, "pe-ratio");
-  assert.equal(getAdjacentLessons("business-model").next, null);
+  assert.equal(getAdjacentLessons("business-model").next?.id, "capstone");
+  assert.equal(getAdjacentLessons("capstone").previous?.id, "business-model");
+  assert.equal(getAdjacentLessons("capstone").next, null);
 });
 
 test("former company lesson routes permanently redirect to canonical Learn routes", async () => {

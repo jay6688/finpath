@@ -180,7 +180,8 @@ test("current is always the first recommended milestone not yet explored", () =>
   const eps = markConceptsExplored(threeStatements, ["eps-and-share-count"]);
   const marketCap = markConceptsExplored(eps, ["market-cap"]);
   const peRatio = markConceptsExplored(marketCap, ["pe-ratio"]);
-  const all = markConceptsExplored(peRatio, ["business-model"]);
+  const businessModel = markConceptsExplored(peRatio, ["business-model"]);
+  const all = markConceptsExplored(businessModel, ["capstone"]);
 
   assert.equal(deriveCurrentConcept(revenue), "revenue-growth");
   assert.equal(deriveCurrentConcept(growth), "profit");
@@ -195,6 +196,7 @@ test("current is always the first recommended milestone not yet explored", () =>
   assert.equal(deriveCurrentConcept(eps), "market-cap");
   assert.equal(deriveCurrentConcept(marketCap), "pe-ratio");
   assert.equal(deriveCurrentConcept(peRatio), "business-model");
+  assert.equal(deriveCurrentConcept(businessModel), "capstone");
   assert.equal(deriveCurrentConcept(all), null);
   assert.equal(deriveHomeRecommendation(all).action, "Review");
 });
@@ -253,7 +255,7 @@ test("Home and Learn expose derived states, real routes, and no fabricated durat
   assert.match(path, /aria-current=\{state === "current" \? "step"/);
   assert.match(path, /lessonCatalog\.map/);
   assert.match(path, /actionLabel\(state, lesson\.id === "revenue"\)/);
-  assert.match(path, /More concepts coming/);
+  assert.match(path, /Company Analysis Basics complete/);
   assert.match(catalog, /href: "\/learn\/company-analysis\/operating-cash-flow"/);
   assert.doesNotMatch(path, /href=.*More concepts coming/);
   assert.match(navigation, /href: "\/learn"/);
@@ -277,6 +279,7 @@ test("every progress state recommends its canonical Learn route", () => {
     ["market-cap", "/learn/company-analysis/market-cap"],
     ["pe-ratio", "/learn/company-analysis/pe-ratio"],
     ["business-model", "/learn/company-analysis/business-model"],
+    ["capstone", "/learn/company-analysis/capstone"],
   ];
 
   for (const [conceptId, href] of expected) {

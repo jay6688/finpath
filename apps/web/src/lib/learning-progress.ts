@@ -119,6 +119,7 @@ export function deriveCurrentConcept(
   if (!explored.has("market-cap")) return "market-cap";
   if (!explored.has("pe-ratio")) return "pe-ratio";
   if (!explored.has("business-model")) return "business-model";
+  if (!explored.has("capstone")) return "capstone";
   return null;
 }
 
@@ -213,6 +214,11 @@ const recommendations: Record<ConceptId, Omit<HomeRecommendation, "conceptId" | 
     goal: "Understand what the company actually sells and how Revenue is generated before putting all the numbers together.",
     href: "/learn/company-analysis/business-model",
   },
+  capstone: {
+    title: "Company Analysis Capstone",
+    goal: "Assemble Apple's reviewed business and financial evidence, then mark what remains unknown.",
+    href: "/learn/company-analysis/capstone",
+  },
 };
 
 export function deriveHomeRecommendation(
@@ -221,8 +227,8 @@ export function deriveHomeRecommendation(
   const current = deriveCurrentConcept(progress);
   if (!current) {
     return {
-      conceptId: "business-model",
-      ...recommendations["business-model"],
+      conceptId: "capstone",
+      ...recommendations.capstone,
       action: "Review",
     };
   }

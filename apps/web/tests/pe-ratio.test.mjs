@@ -52,7 +52,7 @@ test("Lesson 13 follows Market Cap and continues to Business Model without chang
   const lesson = getLesson("pe-ratio");
   assert.equal(lesson.number, 13);
   assert.equal(lesson.href, "/learn/company-analysis/pe-ratio");
-  assert.equal(lessonCatalog.length, 14);
+  assert.equal(lessonCatalog.length, 15);
   assert.equal(getAdjacentLessons("market-cap").next?.id, "pe-ratio");
   assert.equal(getAdjacentLessons("pe-ratio").previous?.id, "market-cap");
   assert.equal(getAdjacentLessons("pe-ratio").next?.id, "business-model");

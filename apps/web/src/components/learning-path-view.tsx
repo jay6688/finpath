@@ -21,6 +21,7 @@ function LearningState({ state }: { state: ConceptProgressState }) {
 
 export function LearningPathView() {
   const { progress } = useLearningProgress();
+  const isPathComplete = progress.exploredConceptIds.length === lessonCatalog.length;
 
   return (
     <div className="learn-shell">
@@ -28,7 +29,7 @@ export function LearningPathView() {
         <p className="eyebrow">Learning path</p>
         <h1>Company Analysis Basics</h1>
         <p>
-          Fourteen concepts, with reviewed real-company examples. Follow the
+          Fifteen concepts, with reviewed real-company examples. Follow the
           recommended order or revisit any lesson you have explored.
         </p>
       </header>
@@ -78,7 +79,15 @@ export function LearningPathView() {
       </div>
 
       <p className="learn-coming-later">
-        <strong>More concepts coming.</strong> The next concept is still being validated.
+        {isPathComplete ? (
+          <>
+            <strong>Company Analysis Basics complete.</strong> Review the Capstone whenever you want to practise evidence boundaries again.
+          </>
+        ) : (
+          <>
+            <strong>Complete the current path.</strong> The Capstone is the final synthesis lesson in Company Analysis Basics.
+          </>
+        )}
       </p>
     </div>
   );

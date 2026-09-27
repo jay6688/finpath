@@ -143,14 +143,14 @@ test("malformed reviewed narrative content is rejected during validation", () =>
   }
 });
 
-test("Lesson 14 extends version-1 progress and becomes the final review target", () => {
+test("Lesson 14 extends version-1 progress and now continues to the Capstone", () => {
   const lesson = getLesson("business-model");
   assert.equal(lesson.number, 14);
   assert.equal(lesson.href, "/learn/company-analysis/business-model");
-  assert.equal(lessonCatalog.length, 14);
+  assert.equal(lessonCatalog.length, 15);
   assert.equal(getAdjacentLessons("pe-ratio").next?.id, "business-model");
   assert.equal(getAdjacentLessons("business-model").previous?.id, "pe-ratio");
-  assert.equal(getAdjacentLessons("business-model").next, null);
+  assert.equal(getAdjacentLessons("business-model").next?.id, "capstone");
 
   let progress = createDefaultLearningProgress();
   for (const existing of lessonCatalog.slice(0, 13)) {
@@ -161,9 +161,9 @@ test("Lesson 14 extends version-1 progress and becomes the final review target",
   assert.equal(deriveHomeRecommendation(progress).conceptId, "business-model");
 
   const completed = markConceptsExplored(progress, ["business-model"]);
-  assert.equal(deriveCurrentConcept(completed), null);
-  assert.equal(deriveHomeRecommendation(completed).conceptId, "business-model");
-  assert.equal(deriveHomeRecommendation(completed).action, "Review");
+  assert.equal(deriveCurrentConcept(completed), "capstone");
+  assert.equal(deriveHomeRecommendation(completed).conceptId, "capstone");
+  assert.equal(deriveHomeRecommendation(completed).action, "Continue");
 
   const restored = normalizeLearningProgress({
     version: 1,
@@ -206,7 +206,7 @@ test("Lesson 14 uses reviewed local narrative content with durable switching and
     production,
     /buy recommendation|sell recommendation|better business|worse business|guaranteed return/i,
   );
-  assert.doesNotMatch(production, /getMarketPrice|MarketCapSnapshot|P\/E calculator|Capstone/i);
+  assert.doesNotMatch(production, /getMarketPrice|MarketCapSnapshot|P\/E calculator/i);
   assert.doesNotMatch(api, /business.model|narrative/i);
 });
 

@@ -97,6 +97,13 @@ export const lessonCatalog = [
     shortGoal: "Understand what a company offers, who pays and how Revenue reaches the business.",
     href: "/learn/company-analysis/business-model",
   },
+  {
+    id: "capstone",
+    number: 15,
+    title: "Company Analysis Capstone",
+    shortGoal: "Synthesize reviewed evidence without reaching beyond what it supports.",
+    href: "/learn/company-analysis/capstone",
+  },
 ] as const;
 
 export type ConceptId = (typeof lessonCatalog)[number]["id"];

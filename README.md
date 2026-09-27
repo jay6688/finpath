@@ -1,15 +1,15 @@
 # FinPath
 
-FinPath is a beginner-first financial learning platform. V0 proves a narrow,
-connected learning loop:
+FinPath is a beginner-first financial learning platform. Its current V1
+Company Analysis Basics path builds one connected learning loop:
 
 > Open FinPath → choose a reviewed company → learn how its income, cash flow and financial-position facts connect → trace every number and calculation to a source.
 
-The product does not tell users what to buy. V0 does not include authentication, an AI tutor, gamification, paper trading, news, trade execution, or PWA behavior.
+The product does not tell users what to buy. This V1 path does not include authentication, an AI tutor, gamification, paper trading, news, trade execution, or PWA behavior.
 
 ## Repository status
 
-This repository is currently at the **Lesson 14 Business Model milestone**. It contains:
+This repository is currently at the **V1 Company Analysis Basics Capstone implemented** milestone. It contains 15 lessons, including:
 
 - a runnable Next.js product shell and real-data Apple company page;
 - a FastAPI company endpoint backed by SEC ticker and Company Facts data;
@@ -36,6 +36,9 @@ This repository is currently at the **Lesson 14 Business Model milestone**. It c
 - reviewed AAPL, MSFT and WMT Business Model profiles backed by their annual
   Form 10-K narrative, with company-specific offerings, counterparties, money
   paths, business structure and explicit source boundaries;
+- an Apple-only Company Analysis Capstone that composes the complete reviewed
+  FY2025 evidence chain, preserves reported/derived/narrative boundaries, and
+  marks current valuation as not assessed without verified market-price evidence;
 - an existing separate SQLite cache containing only public SEC JSON;
 - sourced English and Chinese Revenue learning content;
 - deterministic SEC fixtures and an optional live smoke test;
@@ -51,9 +54,12 @@ The internal alignment model is documented in
 The UI never substitutes a hard-coded financial value when the API or SEC is unavailable.
 
 Lesson 3 already teaches the reported layers from Revenue through costs,
-operating expenses, tax and Net Income. FinPath therefore does not add a
-duplicate Profit Layers lesson. Business Model is the remaining concept lesson
-before a future V1 Capstone; the Capstone itself is not implemented.
+operating expenses, tax and Net Income, so FinPath does not add a duplicate
+Profit Layers lesson. Apple is the only V1 Capstone company because it is the
+only current company with the complete reviewed evidence chain required for
+that synthesis. Market data remains unapproved and unexposed. The next stage is
+V1-wide QA followed by real novice testing; the wider long-term FinPath product
+is not finished.
 
 ## Prerequisites
 
