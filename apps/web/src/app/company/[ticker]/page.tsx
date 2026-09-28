@@ -25,11 +25,38 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+function CompanyRegistryUnavailable() {
+  return (
+    <div className="company-shell explore-company-shell">
+      <nav className="breadcrumb" aria-label="Breadcrumb">
+        <Link href="/">Home</Link>
+        <span aria-hidden="true">/</span>
+        <Link href="/explore">Explore</Link>
+      </nav>
+
+      <section className="lesson-unavailable" role="alert">
+        <p className="eyebrow">Company data unavailable</p>
+        <h1>Company research is temporarily unavailable.</h1>
+        <p>
+          FinPath could not reach its public-data service. No financial values
+          are shown. Try again after the service reconnects.
+        </p>
+        <Link href="/explore">Return to Explore</Link>
+      </section>
+    </div>
+  );
+}
+
 export default async function CompanyResearchPage({
   params,
 }: PageProps<"/company/[ticker]">) {
   const { ticker } = await params;
-  const companies = await getSupportedCompanies();
+  let companies: Awaited<ReturnType<typeof getSupportedCompanies>>;
+  try {
+    companies = await getSupportedCompanies();
+  } catch {
+    return <CompanyRegistryUnavailable />;
+  }
   const company = findSupportedCompany(ticker, companies);
   if (!company) notFound();
 

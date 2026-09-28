@@ -39,6 +39,14 @@ test("Explore and company research are one reusable three-company architecture",
   assert.match(navigation, /pathname\.startsWith\("\/company\/"\)/);
 });
 
+test("company research fails closed when the company registry is unreachable", async () => {
+  const companyPage = await readSource("app/company/[ticker]/page.tsx");
+
+  assert.match(companyPage, /try\s*{[\s\S]*getSupportedCompanies/);
+  assert.match(companyPage, /Company research is temporarily unavailable/);
+  assert.match(companyPage, /No financial values\s+are shown/);
+});
+
 test("multi-company lessons use URL-backed company selection without forking progress", async () => {
   const [revenuePage, growthPage, balanceSheetPage, cashDebtPage, selector, progress] = await Promise.all([
     readSource("app/learn/company-analysis/revenue/page.tsx"),

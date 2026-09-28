@@ -3,10 +3,12 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  conceptIds,
   createDefaultLearningProgress,
   deriveConceptState,
   deriveCurrentConcept,
   deriveHomeRecommendation,
+  getBrowserStorage,
   LEARNING_PROGRESS_STORAGE_KEY,
   markConceptsExplored,
   readLearningProgress,
@@ -162,6 +164,66 @@ test("malformed, old-version, and unavailable storage fail to the honest default
     version: 1,
     exploredConceptIds: ["revenue"],
   });
+});
+
+test("a browser that blocks access to localStorage remains usable", () => {
+  const blockedWindow = {};
+  Object.defineProperty(blockedWindow, "localStorage", {
+    get() {
+      throw new DOMException("Access denied", "SecurityError");
+    },
+  });
+
+  assert.equal(getBrowserStorage(blockedWindow), null);
+  assert.deepEqual(
+    readLearningProgress(getBrowserStorage(blockedWindow)),
+    createDefaultLearningProgress(),
+  );
+  assert.equal(
+    writeLearningProgress(
+      getBrowserStorage(blockedWindow),
+      createDefaultLearningProgress(),
+    ),
+    false,
+  );
+});
+
+test("partial, nearly complete, duplicate, and unknown progress normalize predictably", () => {
+  const firstTen = conceptIds.slice(0, 10);
+  const firstFourteen = conceptIds.slice(0, 14);
+
+  assert.equal(
+    deriveCurrentConcept({ version: 1, exploredConceptIds: firstTen }),
+    "eps-and-share-count",
+  );
+  assert.equal(
+    deriveCurrentConcept({ version: 1, exploredConceptIds: firstFourteen }),
+    "capstone",
+  );
+
+  const storage = memoryStorage({
+    [LEARNING_PROGRESS_STORAGE_KEY]: JSON.stringify({
+      version: 1,
+      exploredConceptIds: [
+        ...conceptIds,
+        "revenue",
+        "unknown-concept",
+        "capstone",
+      ],
+    }),
+  });
+  const complete = readLearningProgress(storage);
+  assert.deepEqual(complete.exploredConceptIds, conceptIds);
+  assert.equal(deriveCurrentConcept(complete), null);
+  assert.equal(deriveHomeRecommendation(complete).action, "Review");
+});
+
+test("the progress provider listens for same-key changes from other tabs", async () => {
+  const provider = await readSource("components/learning-progress-provider.tsx");
+
+  assert.match(provider, /event\.key === LEARNING_PROGRESS_STORAGE_KEY/);
+  assert.match(provider, /window\.addEventListener\("storage", syncProgress\)/);
+  assert.match(provider, /window\.removeEventListener\("storage", syncProgress\)/);
 });
 
 test("current is always the first recommended milestone not yet explored", () => {

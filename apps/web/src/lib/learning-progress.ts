@@ -16,6 +16,16 @@ export type ConceptProgressState = "explored" | "current" | "available";
 export type StorageReader = Pick<Storage, "getItem">;
 export type StorageWriter = Pick<Storage, "setItem">;
 
+export function getBrowserStorage(
+  browser: Pick<Window, "localStorage">,
+): Storage | null {
+  try {
+    return browser.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 const knownConceptIds = new Set<string>(conceptIds);
 
 export function createDefaultLearningProgress(): LearningProgress {

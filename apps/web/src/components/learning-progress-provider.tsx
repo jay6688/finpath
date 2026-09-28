@@ -12,6 +12,7 @@ import {
 
 import {
   createDefaultLearningProgress,
+  getBrowserStorage,
   LEARNING_PROGRESS_STORAGE_KEY,
   markConceptsExplored,
   readLearningProgress,
@@ -31,11 +32,11 @@ export function LearningProgressProvider({ children }: { children: ReactNode }) 
   const [progress, setProgress] = useState(createDefaultLearningProgress);
 
   useEffect(() => {
-    setProgress(readLearningProgress(window.localStorage));
+    setProgress(readLearningProgress(getBrowserStorage(window)));
 
     function syncProgress(event: StorageEvent) {
       if (event.key === LEARNING_PROGRESS_STORAGE_KEY) {
-        setProgress(readLearningProgress(window.localStorage));
+        setProgress(readLearningProgress(getBrowserStorage(window)));
       }
     }
 
@@ -46,7 +47,7 @@ export function LearningProgressProvider({ children }: { children: ReactNode }) 
   const markExplored = useCallback((conceptIds: readonly ConceptId[]) => {
     setProgress((current) => {
       const next = markConceptsExplored(current, conceptIds);
-      writeLearningProgress(window.localStorage, next);
+      writeLearningProgress(getBrowserStorage(window), next);
       return next;
     });
   }, []);
