@@ -1,6 +1,8 @@
 # Market Cap Alignment Foundation
 
-**Status:** Internal foundation implemented; no public route, lesson or UI
+**Status:** Internal provider-backed foundation implemented; the V1 lesson uses
+reviewed shares plus a learner-entered educational price, with no public
+provider-backed market-price or Market Cap route
 **Evidence reviewed:** 2026-09-22
 
 ## Decision

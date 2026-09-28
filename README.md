@@ -57,9 +57,9 @@ Lesson 3 already teaches the reported layers from Revenue through costs,
 operating expenses, tax and Net Income, so FinPath does not add a duplicate
 Profit Layers lesson. Apple is the only V1 Capstone company because it is the
 only current company with the complete reviewed evidence chain required for
-that synthesis. Market data remains unapproved and unexposed. The next stage is
-V1-wide QA followed by real novice testing; the wider long-term FinPath product
-is not finished.
+that synthesis. Market data remains unapproved and unexposed. The V1 release
+candidate has completed engineering QA; the next stage is real novice testing.
+The wider long-term FinPath product is not finished.
 
 ## Prerequisites
 
@@ -146,13 +146,13 @@ Start the web app in the second:
 corepack pnpm dev:web
 ```
 
-Both servers bind only to `127.0.0.1`. Normal V0 development does not expose
+Both servers bind only to `127.0.0.1`. Normal V1 development does not expose
 them to the local network and should not require a Windows Firewall exception.
 
 The root `.env` configures the API. The browser requests the Next.js page, and
 the Next.js server calls FastAPI at a process-level `FINPATH_API_BASE_URL` when
 one is supplied, otherwise at the built-in `http://127.0.0.1:8000` default. The
-browser does not call FastAPI directly, so V0 does not enable CORS middleware.
+browser does not call FastAPI directly, so FinPath does not enable CORS middleware.
 
 ## Checks
 
@@ -201,5 +201,7 @@ project settings, and the public validation checklist are documented in
 - [`docs/data-contract.md`](docs/data-contract.md)
 - [`docs/market-data-provider.md`](docs/market-data-provider.md)
 - [`docs/market-cap-alignment.md`](docs/market-cap-alignment.md)
+- [`docs/v1-qa-report.md`](docs/v1-qa-report.md)
+- [`docs/novice-test-plan.md`](docs/novice-test-plan.md)
 - [`docs/design/research.md`](docs/design/research.md)
 - [`docs/design/product-visual-direction.md`](docs/design/product-visual-direction.md)

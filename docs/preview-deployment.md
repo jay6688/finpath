@@ -1,6 +1,6 @@
 # Preview deployment
 
-FinPath V0 uses two Vercel projects connected to the same private GitHub
+FinPath V1 uses two Vercel projects connected to the same private GitHub
 repository. This keeps the existing application boundary intact:
 
 ```text
@@ -80,7 +80,7 @@ rollback is needed.
 After both projects are deployed, verify:
 
 1. `/health` returns the FinPath API health response over HTTPS.
-2. `/` and `/company/aapl` load over HTTPS.
+2. `/`, `/learn`, `/explore`, all three company routes and all 15 lesson routes load over HTTPS.
 3. FY2025 Revenue is `$416.2B` and the five-year history appears.
 4. The latest source link opens the official SEC filing index.
 5. the production page does not request `localhost`.
