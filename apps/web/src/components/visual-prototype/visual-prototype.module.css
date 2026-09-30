@@ -2125,3 +2125,485 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Stage 0 Lesson 12: an educational sandbox, isolated from production routes. */
+.sandboxCanvas {
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 34px 0 72px;
+}
+
+.sandboxHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 0.34fr);
+  gap: 54px;
+  align-items: end;
+  padding: 42px 0 36px;
+}
+
+.sandboxHeading h1 {
+  margin: 0;
+  font-family: var(--prototype-serif);
+  font-size: clamp(58px, 7vw, 92px);
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.94;
+}
+
+.sandboxHeading > div > p:last-child {
+  max-width: 660px;
+  margin: 22px 0 0;
+  color: #3e5165;
+  font-family: var(--prototype-serif);
+  font-size: 23px;
+  line-height: 1.45;
+}
+
+.sandboxHeading aside {
+  border-top: 3px solid var(--prototype-amber);
+  padding: 18px 0 2px;
+}
+
+.sandboxHeading aside strong {
+  display: block;
+  font-size: 15px;
+}
+
+.sandboxHeading aside p {
+  margin: 8px 0 0;
+  color: var(--prototype-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.sandboxFormula {
+  overflow: hidden;
+  border: 1px solid var(--prototype-line);
+  border-radius: 18px;
+  background: var(--prototype-surface);
+  box-shadow: 0 22px 58px rgb(16 35 63 / 8%);
+}
+
+.sandboxFormulaIntro {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(300px, 0.52fr);
+  column-gap: 52px;
+  padding: 30px 34px 28px;
+  border-bottom: 1px solid var(--prototype-line);
+  background:
+    linear-gradient(105deg, rgb(232 245 238 / 78%), rgb(255 255 255 / 65%)),
+    repeating-linear-gradient(125deg, transparent 0 29px, rgb(8 122 75 / 4%) 30px 31px);
+}
+
+.sandboxFormulaIntro .kicker {
+  grid-column: 1 / -1;
+}
+
+.sandboxFormulaIntro h2 {
+  margin: 0;
+  font-family: var(--prototype-serif);
+  font-size: 35px;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.sandboxFormulaIntro > p:last-child {
+  align-self: end;
+  margin: 0;
+  color: #405269;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.sandboxEquation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr) 42px minmax(0, 1fr);
+  align-items: stretch;
+  padding: 26px;
+  background: #f8faf9;
+}
+
+.sandboxEquation article {
+  min-width: 0;
+  min-height: 382px;
+  border: 1px solid var(--prototype-line);
+  border-radius: 12px;
+  padding: 22px;
+  background: #fff;
+}
+
+.sandboxReported {
+  border-top: 4px solid var(--prototype-green) !important;
+}
+
+.sandboxInput {
+  border: 2px dashed #d4a451 !important;
+  background:
+    linear-gradient(150deg, #fffdf7, var(--prototype-amber-soft)) !important;
+}
+
+.sandboxDerived {
+  border-top: 4px solid var(--prototype-blue) !important;
+}
+
+.sandboxRole {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  min-height: 34px;
+  margin-bottom: 25px;
+  color: var(--prototype-muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.sandboxRole span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.sandboxRole strong {
+  font-size: inherit;
+}
+
+.sandboxReported > p,
+.sandboxDerived > p {
+  margin: 0 0 8px;
+  color: var(--prototype-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sandboxValue,
+.sandboxResult {
+  display: block;
+  overflow-wrap: anywhere;
+  font-family: var(--prototype-serif);
+  font-size: clamp(28px, 2.4vw, 39px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+
+.sandboxValue small {
+  color: var(--prototype-muted);
+  font-family: var(--prototype-sans);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0;
+}
+
+.sandboxReported dl {
+  display: grid;
+  gap: 9px;
+  margin: 30px 0 22px;
+}
+
+.sandboxReported dl > div {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--prototype-line);
+  padding-bottom: 8px;
+  font-size: 12px;
+}
+
+.sandboxReported dt {
+  color: var(--prototype-muted);
+}
+
+.sandboxReported dd {
+  margin: 0;
+  text-align: right;
+}
+
+.sandboxReported > a {
+  color: var(--prototype-green);
+  font-size: 13px;
+  font-weight: 750;
+  text-underline-offset: 4px;
+}
+
+.sandboxOperator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #738094;
+  font-family: var(--prototype-serif);
+  font-size: 30px;
+}
+
+.sandboxInput label {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--prototype-serif);
+  font-size: 24px;
+}
+
+.sandboxPriceField {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  border: 2px solid var(--prototype-amber);
+  border-radius: 9px;
+  background: #fff;
+}
+
+.sandboxPriceField > span {
+  padding-left: 14px;
+  color: #7f5414;
+  font-family: var(--prototype-serif);
+  font-size: 26px;
+}
+
+.sandboxPriceField input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  padding: 13px 12px 13px 5px;
+  outline: 0;
+  background: transparent;
+  color: var(--prototype-ink);
+  font: 500 30px/1 var(--prototype-serif);
+}
+
+.sandboxPriceField:focus-within {
+  outline: 3px solid rgb(199 133 29 / 24%);
+  outline-offset: 2px;
+}
+
+.sandboxWarning,
+.sandboxError {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.sandboxWarning {
+  color: #674a1c;
+}
+
+.sandboxError {
+  color: #9e2f26;
+  font-weight: 700;
+}
+
+.sandboxInput button {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 22px;
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 14px;
+  background: var(--prototype-ink);
+  color: #fff;
+  cursor: pointer;
+  font: 750 13px/1.25 var(--prototype-sans);
+}
+
+.sandboxInput button:focus-visible,
+.sandboxReported > a:focus-visible {
+  outline: 3px solid var(--prototype-blue);
+  outline-offset: 3px;
+}
+
+.sandboxResult {
+  color: var(--prototype-blue);
+  font-size: clamp(36px, 3.3vw, 52px);
+}
+
+.sandboxExact {
+  margin-top: 10px !important;
+  overflow-wrap: anywhere;
+  color: #31465d !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.sandboxTrace {
+  display: grid;
+  gap: 7px;
+  margin: 28px 0 18px;
+  border-left: 2px solid var(--prototype-blue);
+  padding-left: 14px;
+  color: #31465d;
+  font-size: 12px;
+}
+
+.sandboxTrace b {
+  color: var(--prototype-blue);
+}
+
+.sandboxDerived > small {
+  display: block;
+  color: var(--prototype-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.sandboxEmptyResult {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  color: var(--prototype-muted);
+  text-align: center;
+}
+
+.sandboxEmptyResult span {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px dashed #91a5ba;
+  border-radius: 50%;
+  font: 500 30px/1 var(--prototype-serif);
+}
+
+.sandboxEmptyResult p {
+  max-width: 190px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sandboxBoundary {
+  max-width: 760px;
+  margin: 34px 0 0 auto;
+  border-left: 3px solid var(--prototype-green);
+  padding: 5px 0 5px 24px;
+}
+
+.sandboxBoundary h2 {
+  margin: 0;
+  font-family: var(--prototype-serif);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.sandboxBoundary > p:last-child {
+  margin: 11px 0 0;
+  color: var(--prototype-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 980px) {
+  .sandboxCanvas {
+    width: min(100% - 40px, 860px);
+  }
+
+  .sandboxEquation {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .sandboxEquation article {
+    min-height: 0;
+  }
+
+  .sandboxOperator {
+    min-height: 28px;
+  }
+}
+
+@media (max-width: 760px) {
+  .prototypeNav {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .sandboxCanvas {
+    width: min(100% - 28px, 620px);
+    padding: 24px 0 94px;
+  }
+
+  .sandboxHeading {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding: 30px 2px 24px;
+  }
+
+  .sandboxHeading h1 {
+    font-size: 60px;
+  }
+
+  .sandboxHeading > div > p:last-child {
+    font-size: 20px;
+  }
+
+  .sandboxFormulaIntro {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 24px 18px;
+  }
+
+  .sandboxFormulaIntro h2 {
+    font-size: 28px;
+  }
+
+  .sandboxEquation {
+    padding: 14px;
+  }
+
+  .sandboxEquation article {
+    padding: 19px;
+  }
+
+  .sandboxRole {
+    margin-bottom: 20px;
+  }
+
+  .sandboxValue {
+    font-size: 30px;
+  }
+
+  .sandboxBoundary {
+    margin-top: 28px;
+    padding-left: 18px;
+  }
+}
+
+@media (max-width: 380px) {
+  .prototypeNav a {
+    font-size: 11px;
+  }
+
+  .sandboxHeading h1 {
+    font-size: 50px;
+  }
+
+  .sandboxHeading > div > p:last-child {
+    font-size: 18px;
+  }
+
+  .sandboxFormulaIntro h2,
+  .sandboxBoundary h2 {
+    font-size: 24px;
+  }
+
+  .sandboxEquation {
+    padding: 10px;
+  }
+
+  .sandboxEquation article {
+    padding: 16px;
+  }
+
+  .sandboxValue {
+    font-size: 26px;
+  }
+
+  .sandboxResult {
+    font-size: 36px;
+  }
+}

@@ -5,20 +5,41 @@ import test from "node:test";
 const readSource = (relativePath) =>
   readFile(new URL(`../src/${relativePath}`, import.meta.url), "utf8");
 
-test("Stage 0 keeps three visual prototypes isolated from production routes", async () => {
-  const [home, profit, apple, frame] = await Promise.all([
+test("Stage 0 keeps four visual prototypes isolated from production routes", async () => {
+  const [home, profit, apple, marketCap, frame] = await Promise.all([
     readSource("app/prototype/visual-redesign/page.tsx"),
     readSource("app/prototype/visual-redesign/profit/page.tsx"),
     readSource("app/prototype/visual-redesign/apple/page.tsx"),
+    readSource("app/prototype/visual-redesign/market-cap/page.tsx"),
     readSource("components/visual-prototype/prototype-frame.tsx"),
   ]);
 
   assert.match(home, /StageZeroHome/);
   assert.match(profit, /StageZeroProfit/);
   assert.match(apple, /StageZeroApple/);
+  assert.match(marketCap, /StageZeroMarketCap/);
   assert.match(frame, /Stage 0 visual prototype/);
   assert.doesNotMatch(frame, /News|Tutor|Portfolio|Practice/);
   assert.doesNotMatch(frame, /<main/);
+});
+
+test("Market Cap prototype preserves the reviewed Lesson 12 sandbox boundaries", async () => {
+  const [page, component] = await Promise.all([
+    readSource("app/prototype/visual-redesign/market-cap/page.tsx"),
+    readSource("components/visual-prototype/stage-zero-market-cap.tsx"),
+  ]);
+
+  assert.match(page, /getCompanySharesOutstanding/);
+  assert.match(page, /validateSharesOutstandingForLesson/);
+  assert.match(component, /calculateEducationalMarketCap/);
+  assert.match(component, /parseEducationalPrice/);
+  assert.match(component, /Learning Sandbox/);
+  assert.match(component, /Your imaginary price/);
+  assert.match(component, /This is not Apple market data/);
+  assert.match(component, /type="number"/);
+  assert.match(component, /reported SEC shares/i);
+  assert.match(component, /FinPath-derived educational Market Cap/);
+  assert.doesNotMatch(component, /Marketstack|current Market Cap|P\/E Ratio/i);
 });
 
 test("prototype financial surfaces use validated repository data instead of mockup values", async () => {

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import styles from "./visual-prototype.module.css";
 
-type PrototypeSection = "home" | "learn" | "explore";
+type PrototypeSection = "home" | "learn" | "explore" | "sandbox";
 
 type PrototypeFrameProps = {
   active: PrototypeSection;
@@ -26,6 +26,11 @@ const destinations: Array<{
     href: "/prototype/visual-redesign/apple",
     id: "explore",
     label: "Explore",
+  },
+  {
+    href: "/prototype/visual-redesign/market-cap",
+    id: "sandbox",
+    label: "Sandbox",
   },
 ];
 
