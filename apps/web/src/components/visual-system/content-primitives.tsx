@@ -1,14 +1,10 @@
 import type { ReactNode } from "react";
 
+import {
+  metricEvidenceLabels,
+  type MetricEvidenceRole,
+} from "./evidence-roles";
 import styles from "./content-primitives.module.css";
-
-export type EvidenceRole =
-  | "reported"
-  | "derived"
-  | "narrative"
-  | "verification"
-  | "learner-input"
-  | "unknown";
 
 export function SectionEyebrow({ children }: { children: ReactNode }) {
   return <p className={styles.eyebrow}>{children}</p>;
@@ -18,13 +14,16 @@ type MetricValueProps = {
   label: string;
   value: string;
   supportingText?: string;
-  role?: EvidenceRole;
+  role?: MetricEvidenceRole;
 };
 
 export function MetricValue({ label, value, supportingText, role = "unknown" }: MetricValueProps) {
   return (
     <div className={styles.metric} data-evidence-role={role}>
-      <span className={styles.metricLabel}>{label}</span>
+      <span className={styles.metricHeader}>
+        <span className={styles.metricLabel}>{label}</span>
+        <span className={styles.metricRole}>{metricEvidenceLabels[role]}</span>
+      </span>
       <strong className={styles.metricValue}>{value}</strong>
       {supportingText ? <span className={styles.metricSupport}>{supportingText}</span> : null}
     </div>

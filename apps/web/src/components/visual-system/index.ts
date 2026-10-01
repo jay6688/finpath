@@ -11,7 +11,8 @@ export {
   ResearchSection,
   SectionEyebrow,
 } from "./content-primitives";
-export type { EvidenceRole } from "./content-primitives";
+export { metricEvidenceLabels } from "./evidence-roles";
+export type { EvidenceRole, MetricEvidenceRole } from "./evidence-roles";
 
 export {
   FinancialEquation,

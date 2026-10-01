@@ -163,6 +163,28 @@ test("the foundation exports explicit FinPath domain primitives", () => {
   }
 });
 
+test("MetricValue names every supported numeric evidence role without color alone", async () => {
+  const { metricEvidenceLabels } = await import(
+    "../src/components/visual-system/evidence-roles.ts"
+  );
+  const component = read("src/components/visual-system/content-primitives.tsx");
+  const styles = read("src/components/visual-system/content-primitives.module.css");
+
+  assert.deepEqual(metricEvidenceLabels, {
+    reported: "Reported",
+    derived: "FinPath derived",
+    verification: "Verification",
+    "learner-input": "Learner input",
+    unknown: "Role unavailable",
+  });
+  assert.doesNotMatch(Object.keys(metricEvidenceLabels).join(" "), /narrative/);
+  assert.match(component, /styles\.metricRole[^]*metricEvidenceLabels\[role\]/);
+
+  for (const role of Object.keys(metricEvidenceLabels)) {
+    assert.match(styles, new RegExp(`data-evidence-role=["']${role}["']`));
+  }
+});
+
 test("financial visuals consume validated display values instead of calculating finance", () => {
   const diagram = read("src/components/visual-system/financial-diagram.tsx");
   const equation = read("src/components/visual-system/financial-equation.tsx");

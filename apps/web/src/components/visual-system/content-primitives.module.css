@@ -8,22 +8,44 @@
 }
 
 .metric {
-  border-inline-start: 0.2rem solid var(--fp-role-unknown);
+  --metric-role: var(--fp-role-unknown);
+  --metric-role-soft: var(--fp-role-unknown-soft);
+  border-inline-start: 0.2rem solid var(--metric-role);
   display: grid;
   gap: var(--fp-space-1);
   padding-inline-start: var(--fp-space-3);
 }
 
 .metric[data-evidence-role="reported"] {
-  border-color: var(--fp-role-reported);
+  --metric-role: var(--fp-role-reported);
+  --metric-role-soft: var(--fp-role-reported-soft);
 }
 
 .metric[data-evidence-role="derived"] {
-  border-color: var(--fp-role-derived);
+  --metric-role: var(--fp-role-derived);
+  --metric-role-soft: var(--fp-role-derived-soft);
+}
+
+.metric[data-evidence-role="verification"] {
+  --metric-role: var(--fp-role-verification);
+  --metric-role-soft: var(--fp-role-verification-soft);
 }
 
 .metric[data-evidence-role="learner-input"] {
-  border-color: var(--fp-role-learner-input);
+  --metric-role: var(--fp-role-learner-input);
+  --metric-role-soft: var(--fp-role-learner-input-soft);
+}
+
+.metric[data-evidence-role="unknown"] {
+  --metric-role: var(--fp-role-unknown);
+  --metric-role-soft: var(--fp-role-unknown-soft);
+}
+
+.metricHeader {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fp-space-1) var(--fp-space-2);
 }
 
 .metricLabel {
@@ -32,6 +54,17 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.metricRole {
+  border: 1px solid var(--metric-role);
+  border-radius: 999px;
+  background: var(--metric-role-soft);
+  color: var(--fp-text-primary);
+  font-size: var(--fp-type-technical-metadata);
+  font-weight: 650;
+  line-height: 1.35;
+  padding: 0.08rem 0.42rem;
 }
 
 .metricValue {
