@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { AppNavigation } from "@/components/app-navigation";
 import { LearningProgressProvider } from "@/components/learning-progress-provider";
 
+import "@/styles/visual-system.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

@@ -1,0 +1,30 @@
+.shell {
+  color: var(--fp-text-primary);
+  font-family: var(--fp-font-ui);
+  padding-inline: var(--fp-layout-gutter);
+}
+
+.inner {
+  margin-inline: auto;
+  max-width: var(--fp-width-content);
+}
+
+.learn {
+  background: var(--fp-learn-canvas);
+}
+
+.research {
+  background: var(--fp-research-canvas);
+}
+
+.research .inner {
+  max-width: var(--fp-width-research);
+}
+
+.evidence {
+  background: var(--fp-evidence-canvas);
+}
+
+.sandbox {
+  background: var(--fp-sandbox-canvas);
+}

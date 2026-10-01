@@ -1,0 +1,115 @@
+.eyebrow {
+  color: var(--fp-brand-strong);
+  font-size: var(--fp-type-eyebrow);
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.metric {
+  border-inline-start: 0.2rem solid var(--fp-role-unknown);
+  display: grid;
+  gap: var(--fp-space-1);
+  padding-inline-start: var(--fp-space-3);
+}
+
+.metric[data-evidence-role="reported"] {
+  border-color: var(--fp-role-reported);
+}
+
+.metric[data-evidence-role="derived"] {
+  border-color: var(--fp-role-derived);
+}
+
+.metric[data-evidence-role="learner-input"] {
+  border-color: var(--fp-role-learner-input);
+}
+
+.metricLabel {
+  color: var(--fp-text-secondary);
+  font-size: var(--fp-type-metric-label);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.metricValue {
+  color: var(--fp-text-primary);
+  font-family: var(--fp-font-data);
+  font-size: var(--fp-type-metric-value);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.metricSupport {
+  color: var(--fp-text-secondary);
+  font-size: var(--fp-type-secondary-body);
+}
+
+.evidenceAnchor {
+  align-items: center;
+  color: var(--fp-brand-strong);
+  display: inline-flex;
+  font-size: var(--fp-type-secondary-body);
+  font-weight: 700;
+  min-height: var(--fp-control-height);
+  text-underline-offset: 0.2em;
+}
+
+.evidenceAnchor:focus-visible {
+  border-radius: var(--fp-radius-control);
+  outline: 0.2rem solid var(--fp-focus);
+  outline-offset: 0.2rem;
+}
+
+.annotation {
+  border-inline-start: 0.2rem solid var(--fp-brand);
+  color: var(--fp-text-secondary);
+  font-family: var(--fp-font-teaching);
+  font-size: var(--fp-type-annotation);
+  padding: var(--fp-space-2) 0 var(--fp-space-2) var(--fp-space-4);
+}
+
+.annotationHeading {
+  color: var(--fp-text-primary);
+  font-family: var(--fp-font-ui);
+  font-size: var(--fp-type-metric-label);
+  font-weight: 750;
+  margin: 0 0 var(--fp-space-2);
+  text-transform: uppercase;
+}
+
+.sandbox {
+  background: var(--fp-sandbox-canvas);
+  border: 1px solid var(--fp-sandbox-border);
+  border-radius: var(--fp-radius-immersive);
+  padding: clamp(var(--fp-space-4), 4vw, var(--fp-space-7));
+}
+
+.sandboxHeading {
+  display: grid;
+  gap: var(--fp-space-2);
+  margin-block-end: var(--fp-space-5);
+}
+
+.sandboxHeading h2,
+.researchSection h2 {
+  font-family: var(--fp-font-teaching);
+  font-size: var(--fp-type-section-title);
+  margin: 0;
+}
+
+.sandboxBoundary {
+  border-block-start: 1px solid var(--fp-sandbox-border);
+  color: var(--fp-text-secondary);
+  font-size: var(--fp-type-secondary-body);
+  margin: var(--fp-space-5) 0 0;
+  padding-block-start: var(--fp-space-3);
+}
+
+.researchSection {
+  display: grid;
+  gap: var(--fp-space-4);
+}

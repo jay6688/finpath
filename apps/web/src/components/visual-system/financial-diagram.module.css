@@ -1,0 +1,144 @@
+.diagram {
+  color: var(--fp-text-primary);
+  margin: 0;
+}
+
+.diagram figcaption {
+  display: grid;
+  gap: var(--fp-space-1);
+  margin-block-end: var(--fp-space-5);
+}
+
+.diagram figcaption strong {
+  font-family: var(--fp-font-teaching);
+  font-size: var(--fp-type-section-title);
+}
+
+.diagram figcaption span {
+  color: var(--fp-text-secondary);
+  font-size: var(--fp-type-secondary-body);
+}
+
+.plot {
+  align-items: end;
+  display: grid;
+  gap: var(--fp-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  min-width: 0;
+}
+
+.magnitude {
+  display: grid;
+  gap: var(--fp-space-2);
+  min-width: 0;
+}
+
+.bar {
+  background: var(--fp-diagram-adjustment);
+  border-radius: var(--fp-radius-control) var(--fp-radius-control) 0 0;
+  display: block;
+  height: max(0.25rem, calc(var(--fp-diagram-magnitude) * 0.16rem));
+  max-height: 16rem;
+  min-height: 0.25rem;
+  transition: height var(--fp-motion-data) var(--fp-ease-standard);
+}
+
+.magnitude[data-category="revenue"] .bar {
+  background: var(--fp-diagram-revenue);
+}
+
+.magnitude[data-category="cost"] .bar {
+  background: var(--fp-diagram-cost);
+}
+
+.magnitude[data-category="expense"] .bar {
+  background: var(--fp-diagram-expense);
+}
+
+.magnitude[data-category="subtotal"] .bar {
+  background: var(--fp-diagram-subtotal);
+}
+
+.magnitude[data-category="final"] .bar {
+  background: var(--fp-diagram-final);
+}
+
+.magnitude[data-state="pending"] {
+  opacity: 0.48;
+}
+
+.magnitude[data-state="current"] .bar {
+  outline: 0.2rem solid var(--fp-text-primary);
+  outline-offset: 0.15rem;
+}
+
+.magnitudeLabel {
+  color: var(--fp-text-secondary);
+  font-size: var(--fp-type-metric-label);
+}
+
+.magnitude strong {
+  font-family: var(--fp-font-data);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.conceptNode {
+  background: var(--fp-surface);
+  border: 1px solid var(--fp-border-subtle);
+  border-radius: var(--fp-radius-surface);
+  display: grid;
+  gap: var(--fp-space-1);
+  min-width: 0;
+  padding: var(--fp-space-3) var(--fp-space-4);
+}
+
+.conceptNode[data-state="complete"] {
+  background: var(--fp-role-verification-soft);
+  border-color: var(--fp-role-verification);
+}
+
+.conceptNode[data-state="current"] {
+  border: 0.15rem solid var(--fp-brand);
+}
+
+.conceptNode[data-state="future"] {
+  color: var(--fp-text-tertiary);
+}
+
+.conceptNode span {
+  color: var(--fp-text-secondary);
+  font-size: var(--fp-type-secondary-body);
+}
+
+.connector {
+  color: var(--fp-brand);
+  display: grid;
+  place-items: center;
+}
+
+.connector svg {
+  fill: none;
+  height: 1.5rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  width: 1.5rem;
+}
+
+.connector[data-direction="horizontal"] svg {
+  rotate: -90deg;
+}
+
+.srOnly {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}

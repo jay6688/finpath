@@ -1,0 +1,115 @@
+:root {
+  /* Brand and text */
+  --fp-brand: #126b5c;
+  --fp-brand-strong: #0b5146;
+  --fp-brand-soft: #e5f2ee;
+  --fp-text-primary: #142b31;
+  --fp-text-secondary: #455d63;
+  --fp-text-tertiary: #66777b;
+  --fp-text-inverse: #ffffff;
+
+  /* Product modes */
+  --fp-canvas: #f1f5f4;
+  --fp-surface: #ffffff;
+  --fp-surface-raised: #fcfdfc;
+  --fp-learn-canvas: #f7f5ee;
+  --fp-learn-surface: #fffdf8;
+  --fp-research-canvas: #edf3f6;
+  --fp-research-surface: #ffffff;
+  --fp-research-strong: #17324d;
+  --fp-evidence-canvas: #f5f7f7;
+  --fp-sandbox-canvas: #fff8e8;
+  --fp-sandbox-border: #d8a649;
+
+  /* Evidence roles are categorical, not positive or negative judgements. */
+  --fp-role-reported: #126b5c;
+  --fp-role-reported-soft: #e5f2ee;
+  --fp-role-derived: #1e5aa8;
+  --fp-role-derived-soft: #e8f0fb;
+  --fp-role-narrative: #725c9a;
+  --fp-role-narrative-soft: #f0ecf7;
+  --fp-role-verification: #2e6d69;
+  --fp-role-verification-soft: #e6f1ef;
+  --fp-role-learner-input: #915b10;
+  --fp-role-learner-input-soft: #fff3d8;
+  --fp-role-unknown: #5f6d72;
+  --fp-role-unknown-soft: #edf0f1;
+
+  /* Financial diagram categories are descriptive, not evaluative. */
+  --fp-diagram-revenue: #15966a;
+  --fp-diagram-cost: #c96559;
+  --fp-diagram-expense: #bf8124;
+  --fp-diagram-adjustment: #7d6b9c;
+  --fp-diagram-subtotal: #477d9a;
+  --fp-diagram-final: #276bc2;
+
+  /* Typography roles use system and locally available fonts only. */
+  --fp-font-ui: "Public Sans", "Segoe UI", Arial, sans-serif;
+  --fp-font-teaching: Georgia, "Times New Roman", serif;
+  --fp-font-data: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --fp-type-display: clamp(2.6rem, 7vw, 5rem);
+  --fp-type-lesson-title: clamp(2.15rem, 6vw, 4rem);
+  --fp-type-section-title: clamp(1.4rem, 3vw, 2rem);
+  --fp-type-research-company-title: clamp(2rem, 5vw, 3.5rem);
+  --fp-type-metric-value: clamp(1.75rem, 6vw, 3.5rem);
+  --fp-type-metric-label: 0.78rem;
+  --fp-type-body: 1rem;
+  --fp-type-secondary-body: 0.9rem;
+  --fp-type-eyebrow: 0.75rem;
+  --fp-type-technical-metadata: 0.75rem;
+  --fp-type-annotation: 1rem;
+
+  /* Spacing and layout */
+  --fp-space-1: 0.25rem;
+  --fp-space-2: 0.5rem;
+  --fp-space-3: 0.75rem;
+  --fp-space-4: 1rem;
+  --fp-space-5: 1.5rem;
+  --fp-space-6: 2rem;
+  --fp-space-7: 3rem;
+  --fp-space-8: 4rem;
+  --fp-width-reading: 46rem;
+  --fp-width-content: 76rem;
+  --fp-width-research: 88rem;
+  --fp-layout-gutter: 1rem;
+  --fp-section-gap: 1.5rem;
+  --fp-control-height: 2.75rem;
+
+  /* Boundaries and depth */
+  --fp-border-subtle: #cfdad8;
+  --fp-border-strong: #9eb2ae;
+  --fp-focus: #1e5aa8;
+  --fp-radius-control: 0.375rem;
+  --fp-radius-surface: 0.75rem;
+  --fp-radius-immersive: 1.125rem;
+  --fp-shadow-raised: 0 0.75rem 2rem rgb(20 43 49 / 8%);
+  --fp-shadow-overlay: 0 1.25rem 3rem rgb(20 43 49 / 14%);
+
+  /* Motion supports comprehension; it is never required for meaning. */
+  --fp-motion-quick: 120ms;
+  --fp-motion-stage: 180ms;
+  --fp-motion-data: 220ms;
+  --fp-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --fp-layout-gutter: 1.5rem;
+    --fp-section-gap: 2rem;
+  }
+}
+
+@media (min-width: 75rem) {
+  :root {
+    --fp-layout-gutter: 3rem;
+    --fp-section-gap: 3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --fp-motion-quick: 1ms;
+    --fp-motion-stage: 1ms;
+    --fp-motion-data: 1ms;
+  }
+}
