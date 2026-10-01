@@ -3,7 +3,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { AppNavigation } from "@/components/app-navigation";
+import { FinPathMark } from "@/components/finpath-mark";
 import { LearningProgressProvider } from "@/components/learning-progress-provider";
+
+import styles from "./app-shell.module.css";
 
 import "@/styles/visual-system.css";
 import "./globals.css";
@@ -18,25 +21,25 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
-      <body>
-        <a className="skip-link" href="#main-content">
+    <html lang="en" data-scroll-behavior="smooth">
+      <body className={styles.body}>
+        <a className={styles.skipLink} href="#main-content">
           Skip to content
         </a>
         <LearningProgressProvider>
-          <header className="site-header">
-            <div className="site-header__inner">
-              <Link className="brand" href="/" aria-label="FinPath home">
-                <span className="brand__mark" aria-hidden="true">
-                  F
-                </span>
+          <header className={styles.header}>
+            <div className={styles.headerInner}>
+              <Link className={styles.brand} href="/" aria-label="FinPath home">
+                <FinPathMark className={styles.brandMark} />
                 <span>FinPath</span>
               </Link>
               <AppNavigation variant="desktop" />
-              <span className="shell-note">Learn with real financial records</span>
+              <span className={styles.context}>Financial learning · traceable evidence</span>
             </div>
           </header>
-          <main id="main-content">{children}</main>
+          <main className={styles.main} id="main-content" tabIndex={-1}>
+            {children}
+          </main>
           <AppNavigation variant="mobile" />
         </LearningProgressProvider>
       </body>

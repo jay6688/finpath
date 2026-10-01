@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import styles from "./app-navigation.module.css";
+
 const destinations = [
   { href: "/", label: "Home", matches: (pathname: string) => pathname === "/" },
   {
@@ -41,7 +43,7 @@ export function AppNavigation({ variant }: AppNavigationProps) {
 
   return (
     <nav
-      className={variant === "desktop" ? "desktop-navigation" : "mobile-navigation"}
+      className={variant === "desktop" ? styles.desktop : styles.mobile}
       aria-label={variant === "desktop" ? "Primary navigation" : "Mobile navigation"}
     >
       {links}
