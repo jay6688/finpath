@@ -1,6 +1,4 @@
 import Link from "next/link";
-import type { CSSProperties } from "react";
-
 import type {
   CompanyBalanceSheet,
   CompanyEarningsPerShare,
@@ -43,15 +41,17 @@ function formatBillions(value: number, exact = false) {
 
 function MetricCard({
   eyebrow,
+  emphasis = false,
   label,
   value,
 }: {
   eyebrow: string;
+  emphasis?: boolean;
   label: string;
   value: string;
 }) {
   return (
-    <article className={styles.researchMetric}>
+    <article className={styles.researchMetric} data-emphasis={emphasis}>
       <span>{eyebrow}</span>
       <h2>{label}</h2>
       <strong>{value}</strong>
@@ -87,6 +87,31 @@ export function StageZeroApple({
     incomeStatement?.statement.fiscalYear ?? latest?.fiscalYear ?? company.reviewedFiscalYear;
   const series = overview?.series ?? [];
   const maxRevenue = Math.max(...series.map((fact) => fact.value), 1);
+  const chartWidth = 720;
+  const chartHeight = 272;
+  const chartLeft = 58;
+  const chartRight = 28;
+  const chartTop = 24;
+  const chartBottom = 42;
+  const plotWidth = chartWidth - chartLeft - chartRight;
+  const plotHeight = chartHeight - chartTop - chartBottom;
+  const revenuePoints = series.map((fact, index) => ({
+    ...fact,
+    x:
+      chartLeft +
+      (series.length === 1
+        ? plotWidth / 2
+        : (index / (series.length - 1)) * plotWidth),
+    y: chartTop + plotHeight - (fact.value / maxRevenue) * plotHeight,
+  }));
+  const revenueLine = revenuePoints
+    .map((point) => `${point.x},${point.y}`)
+    .join(" ");
+  const revenueArea = revenuePoints.length
+    ? `M ${revenuePoints[0].x} ${chartTop + plotHeight} L ${revenuePoints
+        .map((point) => `${point.x} ${point.y}`)
+        .join(" L ")} L ${revenuePoints[revenuePoints.length - 1].x} ${chartTop + plotHeight} Z`
+    : "";
   const selectedQuery = `?company=${company.slug}`;
 
   return (
@@ -127,6 +152,7 @@ export function StageZeroApple({
         {latest ? (
           <MetricCard
             eyebrow={`FY${latest.fiscalYear} · reported`}
+            emphasis
             label="Revenue"
             value={formatBillions(latest.value)}
           />
@@ -134,6 +160,7 @@ export function StageZeroApple({
         {netIncome !== null ? (
           <MetricCard
             eyebrow={`FY${fiscalYear} · reported`}
+            emphasis
             label="Net Income"
             value={formatBillions(netIncome)}
           />
@@ -173,21 +200,44 @@ export function StageZeroApple({
           </header>
 
           {series.length ? (
-            <div className={styles.revenueBars} aria-label="Annual Revenue history">
-              {series.map((fact) => (
-                <div className={styles.revenueBar} key={fact.fiscalYear}>
-                  <strong>{formatBillions(fact.value)}</strong>
-                  <span
-                    aria-hidden="true"
-                    style={
-                      {
-                        "--revenue-height": `${Math.max(18, Math.round((fact.value / maxRevenue) * 100))}%`,
-                      } as CSSProperties
-                    }
+            <div className={styles.revenueCurve} aria-label="Annual Revenue history">
+              <svg aria-hidden="true" viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+                <defs>
+                  <linearGradient id="prototype-revenue-fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stopColor="#2b8fe8" stopOpacity="0.24" />
+                    <stop offset="1" stopColor="#2b8fe8" stopOpacity="0.02" />
+                  </linearGradient>
+                </defs>
+                {[0, 0.5, 1].map((ratio) => (
+                  <line
+                    className={styles.revenueGridline}
+                    key={ratio}
+                    x1={chartLeft}
+                    x2={chartLeft + plotWidth}
+                    y1={chartTop + plotHeight * ratio}
+                    y2={chartTop + plotHeight * ratio}
                   />
-                  <small>FY{fact.fiscalYear}</small>
-                </div>
-              ))}
+                ))}
+                <path className={styles.revenueArea} d={revenueArea} />
+                <polyline className={styles.revenueLine} points={revenueLine} />
+                {revenuePoints.map((point) => (
+                  <circle
+                    className={styles.revenuePoint}
+                    cx={point.x}
+                    cy={point.y}
+                    key={point.fiscalYear}
+                    r="5"
+                  />
+                ))}
+              </svg>
+              <ol>
+                {series.map((fact) => (
+                  <li key={fact.fiscalYear}>
+                    <strong>{formatBillions(fact.value)}</strong>
+                    <small>FY{fact.fiscalYear}</small>
+                  </li>
+                ))}
+              </ol>
             </div>
           ) : (
             <p className={styles.sectionUnavailable}>Revenue history is unavailable.</p>
@@ -271,6 +321,19 @@ export function StageZeroApple({
           ) : (
             <strong>Official source link unavailable.</strong>
           )}
+        </article>
+
+        <article className={styles.valuationDiscipline}>
+          <p className={styles.kicker}>Valuation</p>
+          <strong>Not assessed</strong>
+          <h2>No verified market price is connected.</h2>
+          <p>
+            Without a date-aligned price, FinPath does not show a current Market
+            Cap or P/E. That blank is intentional.
+          </p>
+          <Link href="/prototype/visual-redesign/market-cap">
+            Open the Learning Sandbox <span aria-hidden="true">→</span>
+          </Link>
         </article>
 
         <aside className={styles.researchLearning}>

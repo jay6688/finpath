@@ -2607,3 +2607,676 @@
     font-size: 36px;
   }
 }
+
+/* Stage 0.5 fidelity pass: richer financial objects without changing product routes. */
+.conceptMapHeading {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+}
+
+.conceptMapHeading .handNote {
+  position: static;
+  width: 190px;
+}
+
+.conceptMapHeading > small {
+  max-width: 132px;
+  color: var(--prototype-muted);
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.4;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.conceptMap {
+  position: absolute;
+  inset: 78px 20px 18px;
+}
+
+.conceptMap > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.mapContour {
+  fill: rgb(255 255 255 / 38%);
+  stroke: rgb(20 99 139 / 12%);
+  stroke-width: 2;
+}
+
+.mapConnection {
+  fill: none;
+  stroke: rgb(8 122 75 / 42%);
+  stroke-dasharray: 5 6;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.conceptMap circle {
+  fill: #fff;
+  stroke: var(--prototype-green);
+  stroke-width: 2;
+}
+
+.conceptMap > a {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  min-width: 122px;
+  min-height: 52px;
+  border: 1px solid rgb(16 35 63 / 13%);
+  border-radius: 9px;
+  padding: 8px 11px;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 9px 24px rgb(20 50 58 / 9%);
+  color: var(--prototype-ink);
+  text-decoration: none;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.conceptMap > a > span {
+  display: grid;
+  flex: 0 0 26px;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e9eef1;
+  color: #56677a;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.conceptMap > a[data-state="explored"] > span {
+  background: var(--prototype-green);
+  color: #fff;
+}
+
+.conceptMap > a[data-state="current"] {
+  border-color: rgb(8 122 75 / 42%);
+  box-shadow: 0 10px 28px rgb(8 122 75 / 13%);
+}
+
+.conceptMap > a[data-state="current"] > span {
+  background: #d5ede0;
+  color: var(--prototype-green);
+}
+
+.conceptMap > a div {
+  display: grid;
+  gap: 2px;
+}
+
+.conceptMap > a strong {
+  font-size: 12px;
+}
+
+.conceptMap > a small {
+  color: var(--prototype-muted);
+  font-size: 9px;
+}
+
+.conceptMap > a[data-map-node="business"] { top: 34%; left: 2%; }
+.conceptMap > a[data-map-node="revenue"] { top: 8%; left: 34%; }
+.conceptMap > a[data-map-node="profit"] { top: 30%; right: 1%; }
+.conceptMap > a[data-map-node="cash"] { top: 64%; right: 8%; }
+.conceptMap > a[data-map-node="position"] { bottom: 1%; left: 29%; }
+.conceptMap > a[data-map-node="per-share"] { top: 60%; left: 7%; }
+.conceptMap > a[data-map-node="valuation"] { right: 2%; bottom: 1%; }
+
+@media (hover: hover) {
+  .conceptMap > a:hover {
+    border-color: rgb(8 122 75 / 44%);
+    transform: translateY(-2px);
+  }
+}
+
+.profitWaterfall {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(42px, 1fr));
+  gap: 5px;
+  min-width: 0;
+  min-height: 340px;
+  padding: 50px 0 0;
+}
+
+.profitOverview {
+  grid-template-columns: 1fr;
+  gap: 18px;
+  min-height: 0;
+}
+
+.profitVisualIntro {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(320px, 1fr);
+  column-gap: 42px;
+  align-items: end;
+}
+
+.profitVisualIntro .kicker {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.profitVisualIntro h2 {
+  grid-column: 1;
+  grid-row: 2 / span 2;
+}
+
+.profitVisualIntro > p:not(.kicker) {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+}
+
+.profitVisualIntro > a {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.waterfallGrid {
+  position: absolute;
+  inset: 50px 0 74px;
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
+  pointer-events: none;
+}
+
+.waterfallGrid span {
+  border-top: 1px solid rgb(16 35 63 / 7%);
+}
+
+.profitWaterfallStep {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: 230px auto;
+  min-width: 0;
+}
+
+.waterfallPlot {
+  position: relative;
+  min-width: 0;
+  border-bottom: 1px solid rgb(16 35 63 / 14%);
+}
+
+.waterfallMagnitude {
+  position: absolute;
+  right: 5px;
+  bottom: var(--offset);
+  left: 5px;
+  height: max(3px, var(--magnitude));
+  border-radius: 4px 4px 2px 2px;
+  background: var(--waterfall-color, #4e708e);
+  opacity: 0;
+  transform: scaleY(0.12);
+  transform-origin: bottom;
+  transition: opacity 180ms ease, transform 220ms ease;
+}
+
+.profitWaterfallStep[data-visible="true"] .waterfallMagnitude {
+  opacity: 0.95;
+  transform: scaleY(1);
+}
+
+.waterfallConnector {
+  position: absolute;
+  z-index: 2;
+  bottom: var(--connector);
+  left: 55%;
+  width: calc(100% + 5px);
+  border-top: 1px dashed rgb(20 68 91 / 48%);
+  opacity: 0;
+}
+
+.profitWaterfallStep[data-visible="true"] .waterfallConnector {
+  opacity: 1;
+}
+
+.profitWaterfallStep:last-child .waterfallConnector {
+  display: none;
+}
+
+.waterfallPending {
+  position: absolute;
+  bottom: 18px;
+  left: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border: 1px solid #aab5bf;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.waterfallLabel {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  padding: 10px 4px 0;
+}
+
+.waterfallLabel small {
+  min-height: 24px;
+  color: var(--prototype-muted);
+  font-size: 7px;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.waterfallLabel strong {
+  min-height: 31px;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.waterfallLabel b {
+  font-family: var(--prototype-serif);
+  font-size: 12px;
+  letter-spacing: -0.02em;
+}
+
+.profitWaterfallStep[data-visible="false"] .waterfallLabel {
+  opacity: 0.42;
+}
+
+.profitWaterfallStep[data-tone="revenue"] { --waterfall-color: #15966a; }
+.profitWaterfallStep[data-tone="cost"] { --waterfall-color: #e37d6f; }
+.profitWaterfallStep[data-tone="gross"] { --waterfall-color: #44a8a4; }
+.profitWaterfallStep[data-tone="operating"] { --waterfall-color: #d89b37; }
+.profitWaterfallStep[data-tone="operating-income"] { --waterfall-color: #447fb8; }
+.profitWaterfallStep[data-tone="other"] { --waterfall-color: #8b79a8; }
+.profitWaterfallStep[data-tone="pretax"] { --waterfall-color: #587c98; }
+.profitWaterfallStep[data-tone="tax"] { --waterfall-color: #c58235; }
+.profitWaterfallStep[data-tone="net"] { --waterfall-color: #276bc2; }
+
+.researchMetric[data-emphasis="true"] {
+  min-height: 132px;
+  border-color: rgb(24 108 154 / 18%);
+  background: linear-gradient(145deg, #fff, #f1f8fb);
+}
+
+.researchMetric[data-emphasis="true"] strong {
+  font-size: 31px;
+}
+
+.revenueCurve {
+  position: relative;
+  margin-top: 16px;
+}
+
+.revenueCurve > svg {
+  display: block;
+  width: 100%;
+  height: 272px;
+}
+
+.revenueGridline {
+  stroke: rgb(16 35 63 / 8%);
+  stroke-width: 1;
+}
+
+.revenueArea {
+  fill: url("#prototype-revenue-fill");
+}
+
+.revenueLine {
+  fill: none;
+  stroke: #277fbd;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.revenuePoint {
+  fill: #fff;
+  stroke: #277fbd;
+  stroke-width: 4;
+}
+
+.revenueCurve ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 8px;
+  margin: -30px 0 0;
+  padding: 0 28px 0 58px;
+  list-style: none;
+}
+
+.revenueCurve li {
+  display: grid;
+  gap: 3px;
+  text-align: center;
+}
+
+.revenueCurve li strong {
+  font-family: var(--prototype-serif);
+  font-size: 12px;
+}
+
+.revenueCurve li small {
+  color: var(--prototype-muted);
+  font-size: 9px;
+}
+
+.valuationDiscipline {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e6d5ac;
+  border-radius: 12px;
+  padding: 22px;
+  background: linear-gradient(145deg, #fffdf7, #fff6dc);
+}
+
+.valuationDiscipline::after {
+  position: absolute;
+  right: -24px;
+  bottom: -32px;
+  width: 110px;
+  height: 110px;
+  border: 20px solid rgb(197 130 35 / 10%);
+  border-radius: 50%;
+  content: "";
+}
+
+.valuationDiscipline > strong {
+  display: inline-block;
+  border: 1px solid #dbb76c;
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #805511;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.valuationDiscipline h2 {
+  margin: 17px 0 8px;
+  font-family: var(--prototype-serif);
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.valuationDiscipline > p:not(.kicker) {
+  color: var(--prototype-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.valuationDiscipline > a {
+  position: relative;
+  z-index: 1;
+  color: #805511;
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.researchLowerGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sandboxIdentity {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.sandboxIdentity > svg {
+  width: 48px;
+  height: 48px;
+  fill: none;
+  stroke: #9a691b;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.sandboxEquation {
+  position: relative;
+  gap: 0;
+  background:
+    linear-gradient(180deg, #f8faf9, #f4f8f6),
+    repeating-linear-gradient(90deg, transparent 0 44px, rgb(8 122 75 / 3%) 45px 46px);
+}
+
+.sandboxEquation::before {
+  position: absolute;
+  z-index: 0;
+  top: 54px;
+  right: 8%;
+  left: 8%;
+  border-top: 2px dashed rgb(67 91 107 / 22%);
+  content: "";
+}
+
+.sandboxEquation article,
+.sandboxOperator {
+  position: relative;
+  z-index: 1;
+}
+
+.sandboxEquation article {
+  border-radius: 0;
+  box-shadow: 0 12px 24px rgb(24 46 58 / 5%);
+}
+
+.sandboxEquation article:first-of-type {
+  border-radius: 12px 0 0 12px;
+}
+
+.sandboxEquation article:last-of-type {
+  border-radius: 0 12px 12px 0;
+}
+
+.sandboxEquation[data-complete="true"] .sandboxDerived {
+  border-color: rgb(39 107 194 / 34%);
+  background: linear-gradient(150deg, #fff, #edf5fe);
+  box-shadow: 0 14px 34px rgb(39 107 194 / 12%);
+}
+
+@media (max-width: 1100px) {
+  .profitVisualIntro { max-width: none; }
+}
+
+@media (max-width: 760px) {
+  .pathIllustration {
+    min-height: 430px;
+    padding: 28px 20px;
+  }
+
+  .conceptMapHeading .handNote {
+    width: 155px;
+    font-size: 13px;
+  }
+
+  .conceptMap {
+    inset: 80px 6px 8px;
+  }
+
+  .conceptMap > a {
+    min-width: 96px;
+    min-height: 46px;
+    padding: 6px 8px;
+  }
+
+  .conceptMap > a > span {
+    flex-basis: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .conceptMap > a strong { font-size: 10px; }
+  .conceptMap > a small { font-size: 8px; }
+  .conceptMap > a[data-map-node="business"] { top: 32%; left: 0; }
+  .conceptMap > a[data-map-node="revenue"] { top: 6%; left: 29%; }
+  .conceptMap > a[data-map-node="profit"] { top: 28%; right: 0; }
+  .conceptMap > a[data-map-node="cash"] { top: 56%; right: 0; }
+  .conceptMap > a[data-map-node="position"] { bottom: 0; left: 28%; }
+  .conceptMap > a[data-map-node="per-share"] { top: 59%; left: 0; }
+  .conceptMap > a[data-map-node="valuation"] { right: 0; bottom: 0; }
+
+  .profitOverview {
+    padding: 26px 20px;
+  }
+
+  .profitVisualIntro {
+    display: block;
+  }
+
+  .profitWaterfall {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    min-height: 0;
+    padding: 52px 0 0;
+  }
+
+  .waterfallGrid {
+    display: none;
+  }
+
+  .profitWaterfallStep {
+    grid-template-rows: auto;
+    grid-template-columns: minmax(76px, 34%) 1fr;
+    min-height: 74px;
+  }
+
+  .waterfallPlot {
+    min-height: 74px;
+    border-right: 1px solid rgb(16 35 63 / 12%);
+    border-bottom: 0;
+  }
+
+  .waterfallMagnitude {
+    top: 23px;
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: var(--magnitude);
+    max-width: 100%;
+    height: 24px;
+    border-radius: 3px;
+    transform: scaleX(0.12);
+    transform-origin: left;
+  }
+
+  .profitWaterfallStep[data-visible="true"] .waterfallMagnitude {
+    transform: scaleX(1);
+  }
+
+  .waterfallConnector {
+    top: 45px;
+    right: -1px;
+    bottom: auto;
+    left: auto;
+    width: 22%;
+  }
+
+  .waterfallPending {
+    top: 31px;
+    bottom: auto;
+    left: 8px;
+  }
+
+  .waterfallLabel {
+    gap: 2px;
+    align-self: center;
+    padding: 9px 0 9px 14px;
+    border-bottom: 1px solid rgb(16 35 63 / 7%);
+  }
+
+  .waterfallLabel small,
+  .waterfallLabel strong {
+    min-height: 0;
+  }
+
+  .waterfallLabel strong { font-size: 11px; }
+  .waterfallLabel b { font-size: 15px; }
+
+  .researchLowerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .revenueCurve > svg {
+    height: 220px;
+  }
+
+  .revenueCurve ol {
+    margin-top: -20px;
+    padding-right: 10px;
+    padding-left: 28px;
+  }
+
+  .revenueCurve li strong { font-size: 10px; }
+  .revenueCurve li small { font-size: 8px; }
+
+  .sandboxIdentity {
+    grid-template-columns: 42px 1fr;
+  }
+
+  .sandboxIdentity > svg {
+    width: 38px;
+    height: 38px;
+  }
+
+  .sandboxEquation {
+    gap: 0;
+  }
+
+  .sandboxEquation::before {
+    top: 8%;
+    right: auto;
+    bottom: 8%;
+    left: 37px;
+    border-top: 0;
+    border-left: 2px dashed rgb(67 91 107 / 22%);
+  }
+
+  .sandboxEquation article:first-of-type,
+  .sandboxEquation article:last-of-type,
+  .sandboxEquation article {
+    border-radius: 10px;
+  }
+
+  .sandboxOperator {
+    z-index: 2;
+    width: 38px;
+    min-height: 38px;
+    margin: -5px 0 -5px 4px;
+    border: 1px solid var(--prototype-line);
+    border-radius: 50%;
+    background: #fff;
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 380px) {
+  .conceptMap > a {
+    min-width: 88px;
+  }
+
+  .conceptMapHeading > small {
+    max-width: 105px;
+    font-size: 8px;
+  }
+
+  .profitWaterfallStep {
+    grid-template-columns: 74px 1fr;
+  }
+
+  .revenueCurve li strong {
+    font-size: 9px;
+  }
+}

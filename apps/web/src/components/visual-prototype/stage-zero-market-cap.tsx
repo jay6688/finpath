@@ -75,9 +75,15 @@ export function StageZeroMarketCap({ response }: StageZeroMarketCapProps) {
             what the relationship means.
           </p>
         </div>
-        <aside>
-          <strong>This is not Apple market data</strong>
-          <p>No price provider or current market value is connected here.</p>
+        <aside className={styles.sandboxIdentity}>
+          <svg aria-hidden="true" viewBox="0 0 48 48">
+            <path d="M18 6h12M20 6v10L9 35a5 5 0 0 0 4 7h22a5 5 0 0 0 4-7L28 16V6" />
+            <path d="M14 32h20M18 27h12" />
+          </svg>
+          <div>
+            <strong>This is not Apple market data</strong>
+            <p>No price provider or current market value is connected here.</p>
+          </div>
         </aside>
       </header>
 
@@ -93,7 +99,12 @@ export function StageZeroMarketCap({ response }: StageZeroMarketCapProps) {
           </p>
         </div>
 
-        <form className={styles.sandboxEquation} noValidate onSubmit={calculate}>
+        <form
+          className={styles.sandboxEquation}
+          data-complete={Boolean(calculation)}
+          noValidate
+          onSubmit={calculate}
+        >
           <article className={styles.sandboxReported}>
             <div className={styles.sandboxRole}>
               <span>01</span>

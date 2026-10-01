@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 
 import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
 import type {
@@ -86,8 +86,11 @@ export function StageZeroProfit({ incomeStatement }: StageZeroProfitProps) {
   const activeStage = stages[activeStageIndex];
   const revenue = linesById.get("total-net-sales");
   const costOfSales = linesById.get("total-cost-of-sales");
+  const grossMargin = linesById.get("gross-margin");
   const operatingExpenses = linesById.get("total-operating-expenses");
+  const operatingIncome = linesById.get("operating-income");
   const otherExpense = linesById.get("other-income-expense-net");
+  const incomeBeforeTax = linesById.get("income-before-income-taxes");
   const incomeTax = linesById.get("income-tax-provision");
   const netIncome = linesById.get("net-income");
   const allRevealed = furthestStageIndex === stages.length - 1;
@@ -95,8 +98,11 @@ export function StageZeroProfit({ incomeStatement }: StageZeroProfitProps) {
   if (
     !revenue ||
     !costOfSales ||
+    !grossMargin ||
     !operatingExpenses ||
+    !operatingIncome ||
     !otherExpense ||
+    !incomeBeforeTax ||
     !incomeTax ||
     !netIncome
   ) {
@@ -105,48 +111,88 @@ export function StageZeroProfit({ incomeStatement }: StageZeroProfitProps) {
 
   const visualSteps = [
     {
-      id: "revenue",
-      label: "Revenue",
+      id: "total-net-sales",
       line: revenue,
       revealAt: 0,
+      kind: "reported starting line",
       tone: "revenue",
+      offset: 0,
+      connector: revenue.value,
     },
     {
-      id: "cost",
-      label: "Cost of sales",
+      id: "total-cost-of-sales",
       line: costOfSales,
       revealAt: 1,
+      kind: "reported deduction",
       tone: "cost",
+      offset: grossMargin.value,
+      connector: grossMargin.value,
     },
     {
-      id: "operating",
-      label: "Operating expenses",
+      id: "gross-margin",
+      line: grossMargin,
+      revealAt: 1,
+      kind: "reported subtotal",
+      tone: "gross",
+      offset: 0,
+      connector: grossMargin.value,
+    },
+    {
+      id: "total-operating-expenses",
       line: operatingExpenses,
       revealAt: 2,
+      kind: "reported deduction",
       tone: "operating",
+      offset: operatingIncome.value,
+      connector: operatingIncome.value,
     },
     {
-      id: "other-expense",
-      label: "Other income/(expense), net",
+      id: "operating-income",
+      line: operatingIncome,
+      revealAt: 2,
+      kind: "reported subtotal",
+      tone: "operating-income",
+      offset: 0,
+      connector: operatingIncome.value,
+    },
+    {
+      id: "other-income-expense-net",
       line: otherExpense,
       revealAt: 3,
+      kind: "reported signed adjustment",
       tone: "other",
+      offset: incomeBeforeTax.value,
+      connector: incomeBeforeTax.value,
     },
     {
-      id: "tax",
-      label: "Provision for income taxes",
+      id: "income-before-income-taxes",
+      line: incomeBeforeTax,
+      revealAt: 3,
+      kind: "reported subtotal",
+      tone: "pretax",
+      offset: 0,
+      connector: incomeBeforeTax.value,
+    },
+    {
+      id: "income-tax-provision",
       line: incomeTax,
       revealAt: 4,
+      kind: "reported deduction",
       tone: "tax",
+      offset: netIncome.value,
+      connector: netIncome.value,
     },
     {
       id: "net-income",
-      label: "Net income",
       line: netIncome,
       revealAt: 4,
+      kind: "reported final line",
       tone: "net",
+      offset: 0,
+      connector: netIncome.value,
     },
   ] as const;
+  const revenueScale = revenue.value;
 
   function revealStage(index: number) {
     if (index > furthestStageIndex + 1) return;
@@ -192,20 +238,47 @@ export function StageZeroProfit({ incomeStatement }: StageZeroProfitProps) {
           </a>
         </div>
 
-        <div className={styles.profitCascade}>
+        <div className={styles.profitWaterfall} role="list" aria-label="Apple FY2025 reported Profit step-down">
           <p className={styles.profitHandNote}>The final line is an accounting result, not cash.</p>
-          {visualSteps.map((step) => {
+          <div className={styles.waterfallGrid} aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          {visualSteps.map((step, index) => {
             const stageVisible = step.revealAt <= furthestStageIndex;
+            const magnitude = (Math.abs(step.line.value) / revenueScale) * 100;
+            const offset = (step.offset / revenueScale) * 100;
+            const connector = (step.connector / revenueScale) * 100;
             return (
-              <div
-                className={styles.profitBlock}
+              <article
+                aria-label={stageVisible ? `${lineCopy[step.line.id].reportedLabel}: ${formatBillions(step.line.value)}` : `${lineCopy[step.line.id].reportedLabel}: not revealed yet`}
+                className={styles.profitWaterfallStep}
+                data-kind={step.line.role}
                 data-tone={step.tone}
                 data-visible={stageVisible}
                 key={step.id}
+                role="listitem"
+                style={
+                  {
+                    "--magnitude": `${magnitude}%`,
+                    "--offset": `${offset}%`,
+                    "--connector": `${connector}%`,
+                  } as CSSProperties
+                }
               >
-                <span>{step.label}</span>
-                <strong>{stageVisible ? formatBillions(step.line.value) : "Reveal next"}</strong>
-              </div>
+                <div className={styles.waterfallPlot} aria-hidden="true">
+                  <span className={styles.waterfallConnector} />
+                  <span className={styles.waterfallMagnitude} />
+                  {!stageVisible ? <span className={styles.waterfallPending} /> : null}
+                </div>
+                <div className={styles.waterfallLabel}>
+                  <small>{String(index + 1).padStart(2, "0")} · {step.kind}</small>
+                  <strong>{lineCopy[step.line.id].reportedLabel}</strong>
+                  <b>{stageVisible ? formatBillions(step.line.value) : "Next line"}</b>
+                </div>
+              </article>
             );
           })}
         </div>

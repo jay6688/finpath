@@ -15,14 +15,18 @@ type StageZeroHomeProps = {
   companyNames: string[];
 };
 
-const pathConcepts: ConceptId[] = [
-  "business-model",
-  "revenue",
-  "profit",
-  "operating-cash-flow",
-  "balance-sheet",
-  "eps-and-share-count",
-  "market-cap",
+const conceptConnections: Array<{
+  key: string;
+  conceptId: ConceptId;
+  label: string;
+}> = [
+  { key: "business", conceptId: "business-model", label: "Business" },
+  { key: "revenue", conceptId: "revenue", label: "Revenue" },
+  { key: "profit", conceptId: "profit", label: "Profit" },
+  { key: "cash", conceptId: "operating-cash-flow", label: "Cash Flow" },
+  { key: "position", conceptId: "balance-sheet", label: "Position" },
+  { key: "per-share", conceptId: "eps-and-share-count", label: "Per Share" },
+  { key: "valuation", conceptId: "market-cap", label: "Valuation" },
 ];
 
 const productPromises = [
@@ -68,27 +72,38 @@ export function StageZeroHome({ companyNames }: StageZeroHomeProps) {
           </div>
         </div>
 
-        <div className={styles.pathIllustration} aria-label="Company Analysis Basics learning path">
-          <p className={styles.handNote}>From a business to its numbers</p>
-          <div className={styles.pathLine} aria-hidden="true" />
-          <ol>
-            {pathConcepts.map((conceptId) => {
+        <div className={styles.pathIllustration} aria-label="Company Analysis Basics concept connections">
+          <div className={styles.conceptMapHeading}>
+            <p className={styles.handNote}>A company is one connected system</p>
+            <small>Concept connections, not lesson order</small>
+          </div>
+          <div className={styles.conceptMap}>
+            <svg aria-hidden="true" viewBox="0 0 640 430">
+              <path className={styles.mapContour} d="M72 178C126 64 260 26 372 72c95 39 185 145 166 244-14 76-100 100-203 85-115-17-246-46-278-126-13-33-7-65 15-97Z" />
+              <path className={styles.mapConnection} d="M116 214C174 163 219 139 279 146m0 0c57 7 102 35 145 81m-145-81c-10 70-3 113 38 162m107-81c-16 55-44 84-107 81m0 0c-64 2-114-12-157-52m264-29c35 38 50 70 46 109m-153-28c28 33 44 62 45 92" />
+              <circle cx="279" cy="146" r="5" />
+              <circle cx="317" cy="308" r="5" />
+            </svg>
+            {conceptConnections.map(({ key, conceptId, label }) => {
               const lesson = lessonCatalog.find((item) => item.id === conceptId);
               if (!lesson) return null;
               const state = deriveConceptState(conceptId, progress);
               return (
-                <li data-state={state} key={conceptId}>
-                  <span aria-hidden="true">
-                    {state === "explored" ? "✓" : lesson.number}
-                  </span>
+                <Link
+                  data-map-node={key}
+                  data-state={state}
+                  href={lesson.href}
+                  key={conceptId}
+                >
+                  <span aria-hidden="true">{state === "explored" ? "✓" : lesson.number}</span>
                   <div>
-                    <strong>{lesson.title}</strong>
+                    <strong>{label}</strong>
                     <small>{stateLabel(state)}</small>
                   </div>
-                </li>
+                </Link>
               );
             })}
-          </ol>
+          </div>
         </div>
       </section>
 
