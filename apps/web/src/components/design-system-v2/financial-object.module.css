@@ -1,0 +1,16 @@
+.object { display: inline-flex; align-items: center; gap: .75rem; color: var(--fp-v2-ink); font-family: var(--fp-v2-font-ui); }
+.object > span { display: grid; gap: .12rem; }
+.object strong { font-size: .9rem; }
+.object small { max-width: 15rem; color: var(--fp-v2-ink-soft); font-size: .7rem; line-height: 1.3; }
+.glyph { flex: 0 0 auto; color: var(--fp-object-color, var(--fp-v2-ink)); overflow: visible; }
+.glyph rect { fill: var(--fp-v2-paper); stroke: currentColor; stroke-width: 1.75; vector-effect: non-scaling-stroke; }
+.glyph path, .glyph circle { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.75; vector-effect: non-scaling-stroke; }
+.glyph[data-optical-size="compact"] rect, .glyph[data-optical-size="compact"] path, .glyph[data-optical-size="compact"] circle { stroke-width: 1.5; }
+.object[data-tone="jade"] { --fp-object-color: var(--fp-v2-jade); }
+.object[data-tone="cobalt"] { --fp-object-color: var(--fp-v2-cobalt); }
+.object[data-tone="coral"] { --fp-object-color: var(--fp-v2-coral); }
+.object[data-tone="amber"] { --fp-object-color: var(--fp-v2-amber); }
+.object[data-tone="violet"] { --fp-object-color: var(--fp-v2-violet); }
+.object[data-selected="true"] .glyph rect { fill: color-mix(in srgb, var(--fp-object-color) 11%, var(--fp-v2-paper)); stroke-width: 2.5; }
+.object[data-unavailable="true"] { opacity: .55; }
+@media (forced-colors: active) { .glyph rect { fill: Canvas; } }
