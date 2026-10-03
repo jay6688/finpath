@@ -149,7 +149,7 @@ test("Capstone source keeps synthesis deterministic, Apple-only, and completion 
   assert.match(navigation, /Company Analysis Basics complete/);
   assert.match(navigation, /progress\.exploredConceptIds\.includes\("capstone"\)/);
   assert.match(navigation, /Finish the Capstone to complete this path/);
-  assert.match(home, /Company Analysis Basics complete/);
+  assert.match(home, /Learning path complete/);
   assert.match(path, /Company Analysis Basics complete/);
   assert.doesNotMatch(production, /current P\/E[^]*\$|current Market Cap[^]*\$/i);
   assert.doesNotMatch(production, /\bLLM\b|generateText|chatCompletion/i);

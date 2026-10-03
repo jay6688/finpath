@@ -5,16 +5,17 @@ import test from "node:test";
 const readSource = (relativePath) =>
   readFile(new URL(`../src/${relativePath}`, import.meta.url), "utf8");
 
-test("Home presents the approved hybrid path without fake destinations", async () => {
+test("Home presents the V2 financial system with real progress and destinations", async () => {
   const home = await readSource("components/learning-home.tsx");
   const navigation = await readSource("components/app-navigation.tsx");
-  const styles = await readSource("app/globals.css");
+  const styles = await readSource("components/app-shell.module.css");
 
-  assert.match(home, /Understand one financial idea at a time/);
+  assert.match(home, /Explore how company numbers connect/);
+  assert.match(home, /REAL COMPANIES/);
+  assert.match(home, /HomeFinancialSystem/);
   assert.match(home, /Your next step/);
-  assert.match(home, /View learning path/);
   assert.match(home, /concepts explored/);
-  assert.doesNotMatch(home, /home-path-preview/);
+  assert.doesNotMatch(home, /previous concept|next concept|\b[1-7] of 7\b/i);
   assert.doesNotMatch(home, /APPLE FIRST|About 7 minutes|about 5 min/i);
   assert.doesNotMatch(navigation, /News|Tutor|Practice|Progress/);
   assert.match(navigation, /label: "Home"/);
@@ -22,7 +23,7 @@ test("Home presents the approved hybrid path without fake destinations", async (
   assert.match(navigation, /label: "Explore"/);
   assert.match(
     styles,
-    /\.mobile-navigation\s*\{[^}]*grid-template-columns: repeat\(3, 1fr\)/,
+    /\.mobileNavigation\s*\{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/,
   );
 });
 

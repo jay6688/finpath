@@ -1,6 +1,6 @@
 # FinPath Visual System V2
 
-Status: production foundation, approved creative direction. Production pages remain unchanged until a separate migration is approved.
+Status: production foundation, approved creative direction. The global shell and Home are the first approved production migration; Learn, Explore, company research, and lessons remain on their existing content system.
 
 ## Product grammar
 
@@ -124,9 +124,11 @@ Historical V1 documentation is preserved unchanged.
 - `src/styles/visual-system-v2.css`: global additive semantic foundation.
 - `src/components/design-system-v2/*.tsx`: domain-explicit components and contracts.
 - colocated `*.module.css`: component visuals and states.
-- `src/app/design-lab/visual-system-v2`: internal page composition only.
+- `src/components/home-financial-system.tsx`: production Home composition for the object graph and focused relationship lens.
 
-Legacy `globals.css`, V1 components, Stage 3 prototype components, and production routes remain untouched except for importing the additive V2 token file at the root. Stage 3 CSS is evidence, not a copied dependency. The proof route is not in production navigation.
+Legacy `globals.css` and V1 content components remain for unmigrated routes. Stage 3 CSS is evidence, not a copied dependency. No proof or design-lab route is exposed in production navigation.
+
+The Home graph begins with Revenue as a stable conceptual entry point because it is a clear bridge from business activity into the financial statements. This default is not derived from lesson progress, does not imply a canonical concept order, and is not persisted. Graph focus and curriculum progress remain separate state domains.
 
 ## Anti-patterns
 
