@@ -3,92 +3,153 @@
 import Link from "next/link";
 
 import { useLearningProgress } from "@/components/learning-progress-provider";
+import { lessonChapters } from "@/lib/lesson-chapters";
+import { lessonCatalog } from "@/lib/lesson-catalog";
 import {
   deriveConceptState,
+  deriveHomeRecommendation,
   type ConceptProgressState,
 } from "@/lib/learning-progress";
-import { lessonCatalog } from "@/lib/lesson-catalog";
+
+import styles from "./learning-path-view.module.css";
 
 function actionLabel(state: ConceptProgressState, firstLesson = false): string {
   if (state === "explored") return "Review";
   if (state === "current") return firstLesson ? "Start" : "Continue";
-  return "Open now";
+  return "Open";
 }
 
 function LearningState({ state }: { state: ConceptProgressState }) {
-  return <span className="learning-state">{state}</span>;
+  const labels: Record<ConceptProgressState, string> = {
+    explored: "Complete",
+    current: "Current",
+    available: "Available",
+  };
+  return <span className={styles.lessonState}>{labels[state]}</span>;
 }
 
 export function LearningPathView() {
   const { progress } = useLearningProgress();
-  const isPathComplete = progress.exploredConceptIds.length === lessonCatalog.length;
+  const recommendation = deriveHomeRecommendation(progress);
+  const completedCount = progress.exploredConceptIds.length;
+  const isPathComplete = completedCount === lessonCatalog.length;
+  const currentLesson = lessonCatalog.find(
+    (lesson) => lesson.id === recommendation.conceptId,
+  )!;
 
   return (
-    <div className="learn-shell">
-      <header className="learn-header">
-        <p className="eyebrow">Learning path</p>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <p className={styles.modeLabel}>
+          Learn <span aria-hidden="true">·</span> Guided understanding
+        </p>
         <h1>Company Analysis Basics</h1>
         <p>
-          Fifteen concepts, with reviewed real-company examples. Follow the
-          recommended order or revisit any lesson you have explored.
+          Build a company view one connection at a time. Each lesson explains an
+          idea, then grounds it in reviewed real-company evidence.
         </p>
       </header>
 
-      <div className="learn-layout">
-        <ol className="learn-path" aria-label="Company Analysis Basics concepts">
-          {lessonCatalog.map((lesson) => {
-            const state = deriveConceptState(lesson.id, progress);
-            return (
-              <li
-                aria-current={state === "current" ? "step" : undefined}
-                data-state={state}
-                key={lesson.id}
-              >
-                <span className="learn-path__marker" aria-hidden="true">
-                  {String(lesson.number).padStart(2, "0")}
-                </span>
-                <article>
-                  <header>
-                    <h2>{lesson.title}</h2>
-                    <LearningState state={state} />
-                  </header>
-                  <p>{lesson.shortGoal}</p>
-                  <Link href={lesson.href}>
-                    {actionLabel(state, lesson.id === "revenue")} lesson
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                </article>
-              </li>
-            );
-          })}
-        </ol>
-
-        <aside className="learn-aside" aria-labelledby="learn-explore-heading">
-          <p className="eyebrow">Explore freely</p>
-          <h2 id="learn-explore-heading">Research stays separate.</h2>
-          <p>
-            Lessons explain financial concepts. Explore lets you inspect a company&apos;s
-            real reported record directly.
-          </p>
-          <Link href="/company/aapl">Explore Apple →</Link>
-          <small>
-            Learning progress is saved in this browser for now. It is not synced
-            to an account.
-          </small>
+      <div className={styles.layout}>
+        <aside className={styles.currentPanel} aria-labelledby="current-lesson-heading">
+          <div className={styles.currentIdentity}>
+            <p>{isPathComplete ? "Path complete" : "Your current lesson"}</p>
+            <span>Lesson {currentLesson.number} of {lessonCatalog.length}</span>
+          </div>
+          <h2 id="current-lesson-heading">{recommendation.title}</h2>
+          <p className={styles.currentGoal}>{recommendation.goal}</p>
+          <div className={styles.progressSummary}>
+            <p><strong>{completedCount} / {lessonCatalog.length}</strong> complete</p>
+            <progress
+              aria-label={`${completedCount} of ${lessonCatalog.length} lessons complete`}
+              max={lessonCatalog.length}
+              value={completedCount}
+            />
+          </div>
+          <Link className={styles.primaryAction} href={recommendation.href}>
+            {isPathComplete ? "Review Capstone" : `${recommendation.action} lesson`}
+            <span aria-hidden="true">→</span>
+          </Link>
+          <small>Progress is saved in this browser and is not synced to an account.</small>
         </aside>
-      </div>
 
-      <p className="learn-coming-later">
-        {isPathComplete ? (
-          <>
-            <strong>Company Analysis Basics complete.</strong> Review the Capstone whenever you want to practise evidence boundaries again.
-          </>
-        ) : (
-          <>
-            <strong>Complete the current path.</strong> The Capstone is the final synthesis lesson in Company Analysis Basics.
-          </>
-        )}
-      </p>
+        <section className={styles.path} aria-labelledby="learning-path-heading">
+          <header className={styles.pathHeader}>
+            <p>Seven chapters <span aria-hidden="true">·</span> Fifteen lessons</p>
+            <h2 id="learning-path-heading">See how each idea connects.</h2>
+          </header>
+
+          <div className={styles.chapters}>
+            {lessonChapters.map((chapter, chapterIndex) => {
+              const chapterCompleted = chapter.lessons.filter((lesson) =>
+                progress.exploredConceptIds.includes(lesson.id),
+              ).length;
+              const headingId = `chapter-${chapter.id}`;
+
+              return (
+                <section
+                  className={styles.chapter}
+                  data-tone={chapter.tone}
+                  aria-labelledby={headingId}
+                  key={chapter.id}
+                >
+                  <header className={styles.chapterHeader}>
+                    <div className={styles.chapterTrace} aria-hidden="true">
+                      <span>{String(chapterIndex + 1).padStart(2, "0")}</span>
+                      <i />
+                    </div>
+                    <p>{chapter.objectLabel}</p>
+                    <h3 id={headingId}>{chapter.title}</h3>
+                    <p>{chapter.purpose}</p>
+                    <span className={styles.chapterProgress}>
+                      {chapterCompleted} / {chapter.lessons.length} complete
+                    </span>
+                  </header>
+
+                  <ol className={styles.lessonList} start={chapter.lessons[0].number}>
+                    {chapter.lessons.map((lesson) => {
+                      const state = deriveConceptState(lesson.id, progress);
+                      return (
+                        <li
+                          aria-current={state === "current" ? "step" : undefined}
+                          data-state={state}
+                          key={lesson.id}
+                        >
+                          <Link href={lesson.href}>
+                            <span className={styles.lessonNumber} aria-hidden="true">
+                              {String(lesson.number).padStart(2, "0")}
+                            </span>
+                            <span className={styles.lessonCopy}>
+                              <strong>{lesson.title}</strong>
+                              <span>{lesson.shortGoal}</span>
+                            </span>
+                            <LearningState state={state} />
+                            <span className={styles.lessonAction}>
+                              {actionLabel(state, lesson.id === "revenue")}{" "}
+                              <span aria-hidden="true">→</span>
+                            </span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </section>
+              );
+            })}
+          </div>
+
+          <aside className={styles.modeNote} aria-labelledby="learn-explore-heading">
+            <div>
+              <p>Learn explains the connections.</p>
+              <h2 id="learn-explore-heading">Research stays separate.</h2>
+              <p>Explore lets you inspect a company&apos;s reviewed record directly.</p>
+            </div>
+            <Link href="/company/aapl">
+              Explore Apple <span aria-hidden="true">→</span>
+            </Link>
+          </aside>
+        </section>
+      </div>
     </div>
   );
 }
