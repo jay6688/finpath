@@ -36,10 +36,10 @@ test("V2 exports the approved financial-domain primitives and object family", as
   assert.match(glyph, /<desc/);
 });
 
-test("Concept Lens keeps graph items directly operable as semantic buttons", async () => {
+test("Concept Lens keeps directed graph items directly operable as semantic buttons", async () => {
   const source = await readSource("src/components/design-system-v2/concept-lens.tsx");
 
-  assert.match(source, /role="listitem"[^]*<button type="button"/);
+  assert.match(source, /role="listitem"[^]*<RelationshipTrace[^]*<button type="button"/);
   assert.doesNotMatch(source, /<button[^>]+role="listitem"/);
   assert.match(source, /disabled=\{object\.unavailable\}/);
 });
@@ -78,7 +78,8 @@ test("Metric Dossier composes meaning, periods, trace, status, Learn, and Passpo
 
   assert.match(source, /meaning:\s*string/);
   assert.match(source, /periods:/);
-  assert.match(source, /role=\"radiogroup\"/);
+  assert.match(source, /<fieldset/);
+  assert.match(source, /type="radio"/);
   assert.match(source, /Reported/);
   assert.match(source, /Learn/);
   assert.match(source, /NumberPassport/);

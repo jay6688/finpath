@@ -16,6 +16,7 @@
 .objectFamily figure { min-width: 0; display: grid; place-items: center; gap: .65rem; margin: 0; padding: 1rem .5rem; background: var(--fp-v2-paper); }
 .objectFamily figure:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .objectFamily figcaption { font-size: .65rem; text-align: center; }
+.opticalSizes { min-height: 20px; display: flex; align-items: center; gap: .35rem; color: var(--fp-v2-ink-soft); }
 .proofSection { display: grid; gap: .75rem; }
 .mode { margin-left: .25rem; }
 @media (min-width: 48rem) {

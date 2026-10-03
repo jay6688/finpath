@@ -55,10 +55,13 @@ export default async function VisualSystemV2Page() {
       label: `FY${fact.fiscalYear}`,
       displayValue: money(fact.value, fact.fiscalYear === apple.reviewedFiscalYear),
       normalizedPercent: (fact.value / maxRevenue) * 100,
-      passport: { status: "Reported", reportingPeriod: `Year ended ${fact.endDate}`, form: fact.form, filedAt: fact.filedAt, officialSourceUrl: fact.sourceUrl },
+      passport: { valueRole: "Reported", availability: fact.sourceUrl ? "available" : "unavailable", reportingPeriod: `Year ended ${fact.endDate}`, form: fact.form, filedAt: fact.filedAt, officialSourceUrl: fact.sourceUrl },
     }));
 
-    return <VisualSystemV2Proof ledgerLines={ledgerLines} dossierPeriods={dossierPeriods} />;
+    const referencePeriod = revenueSeries.find((fact) => fact.value === maxRevenue);
+    const dossierGeometryReference = `Bar heights use ${referencePeriod ? `FY${referencePeriod.fiscalYear}` : "the largest reviewed period"} Revenue (${money(maxRevenue)}) as 100%.`;
+
+    return <VisualSystemV2Proof ledgerLines={ledgerLines} dossierPeriods={dossierPeriods} dossierGeometryReference={dossierGeometryReference} />;
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : "Reviewed proof data is unavailable.";
     return <section className={styles.unavailable} role="status"><p>Internal Design System V2 proof</p><h1>Reviewed data is unavailable.</h1><span>{message}</span><strong>No financial fallback values are substituted.</strong></section>;

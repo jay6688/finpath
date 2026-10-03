@@ -1,12 +1,11 @@
-import type { ReactNode } from "react";
-
 import styles from "./relationship-trace.module.css";
 
-export function RelationshipTrace({ label, children, direction = "horizontal" }: { label: string; children?: ReactNode; direction?: "horizontal" | "vertical" }) {
+export function RelationshipTrace({ sourceLabel, destinationLabel, label }: { sourceLabel: string; destinationLabel: string; label: string }) {
   return (
-    <div className={styles.trace} data-direction={direction} role="group" aria-label={label}>
-      <span className={styles.line} aria-hidden="true"><i /></span>
-      {children ? <span className={styles.annotation}>{children}</span> : null}
+    <div className={styles.trace} role="group" aria-label={`${sourceLabel} to ${destinationLabel}: ${label}`}>
+      <span className={styles.endpoints}><strong>{sourceLabel}</strong><i aria-hidden="true">→</i><strong>{destinationLabel}</strong></span>
+      <span className={styles.line} aria-hidden="true" />
+      <span className={styles.annotation}>{label}</span>
     </div>
   );
 }

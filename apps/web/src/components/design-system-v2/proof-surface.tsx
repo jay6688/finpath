@@ -20,11 +20,11 @@ const financialObjects: FinancialObjectDatum[] = [
 ];
 
 const relationships: RelationshipDatum[] = [
-  { from: "profit", to: "revenue", label: "Revenue starts the Profit path" },
+  { from: "business", to: "revenue", label: "Business activity produces Revenue" },
+  { from: "revenue", to: "profit", label: "Revenue starts the Profit path" },
   { from: "profit", to: "cash-flow", label: "Profit is not cash flow" },
   { from: "profit", to: "per-share", label: "Profit contributes to earnings per share" },
-  { from: "revenue", to: "business", label: "Business activity produces Revenue" },
-  { from: "financial-position", to: "cash-flow", label: "Cash movement changes financial position" },
+  { from: "cash-flow", to: "financial-position", label: "Cash movement changes financial position" },
   { from: "per-share", to: "valuation", label: "Per-share records can inform valuation" },
 ];
 
@@ -38,7 +38,7 @@ const learnRoutes: Partial<Record<FinancialObjectKind, string>> = {
   valuation: "/learn/company-analysis/pe-ratio",
 };
 
-export function VisualSystemV2Proof({ ledgerLines, dossierPeriods }: { ledgerLines: LedgerLine[]; dossierPeriods: DossierPeriod[] }) {
+export function VisualSystemV2Proof({ ledgerLines, dossierPeriods, dossierGeometryReference }: { ledgerLines: LedgerLine[]; dossierPeriods: DossierPeriod[]; dossierGeometryReference: string }) {
   const [concept, setConcept] = useState<FinancialObjectKind>("profit");
   const [ledgerLine, setLedgerLine] = useState("other-income-expense-net");
   const [period, setPeriod] = useState(dossierPeriods.at(-1)?.id ?? "");
@@ -58,7 +58,7 @@ export function VisualSystemV2Proof({ ledgerLines, dossierPeriods }: { ledgerLin
 
         <section className={styles.objectFamily} aria-labelledby="object-family-title">
           <header><p>Object family</p><h2 id="object-family-title">Seven roles. One visual grammar.</h2></header>
-          <div>{financialObjects.map((object) => <figure key={object.id}><FinancialObjectGlyph kind={object.id} label={object.label} size={64} /><figcaption>{object.label}</figcaption></figure>)}</div>
+          <div>{financialObjects.map((object) => <figure key={object.id}><FinancialObjectGlyph kind={object.id} label={object.label} size={64} /><span className={styles.opticalSizes} aria-hidden="true"><FinancialObjectGlyph kind={object.id} decorative size={20} /><FinancialObjectGlyph kind={object.id} decorative size={16} /></span><figcaption>{object.label}</figcaption></figure>)}</div>
         </section>
 
         <section className={styles.proofSection}>
@@ -73,7 +73,7 @@ export function VisualSystemV2Proof({ ledgerLines, dossierPeriods }: { ledgerLin
 
         <section className={styles.proofSection}>
           <span className={styles.mode}>Explore · Object + Trace + Passport</span>
-          <MetricDossier company={{ name: "Apple Inc.", ticker: "AAPL" }} metric="Revenue" meaning="Money Apple reported from customers before costs and expenses." periods={dossierPeriods} selectedPeriodId={period} onPeriodSelect={setPeriod} learnHref="/learn/company-analysis/revenue?company=apple" relatedTrace="Annual reported records share one scale. Choose a period to attach its exact passport." />
+          <MetricDossier company={{ name: "Apple Inc.", ticker: "AAPL" }} metric="Revenue" meaning="Money Apple reported from customers before costs and expenses." valueRole="Reported" periods={dossierPeriods} selectedPeriodId={period} onPeriodSelect={setPeriod} learnHref="/learn/company-analysis/revenue?company=apple" relatedTrace="Annual reported records share one scale. Choose a period to attach its exact passport." geometryReference={dossierGeometryReference} />
         </section>
       </div>
     </div>

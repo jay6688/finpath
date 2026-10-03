@@ -37,7 +37,7 @@ The serif is for conceptual hierarchy, not every heading. Sans is for controls, 
 
 ## Financial object family
 
-`FinancialObjectGlyph` uses one rounded frame, one stroke system, a central-node or axis idea, and shared trace terminals. Business, Revenue, Profit, Cash Flow, Financial Position, Per Share, and Valuation vary their internal relationship rather than becoming seven unrelated illustrations. SVG title and description provide text equivalents. The geometry remains readable at 48px, is simplified enough for 20px use, and survives monochrome/forced-color presentation.
+`FinancialObjectGlyph` uses one rounded frame, one stroke system, a central-node or axis idea, and shared trace terminals. Business, Revenue, Profit, Cash Flow, Financial Position, Per Share, and Valuation vary their internal relationship rather than becoming seven unrelated illustrations. A standalone informative glyph supplies an SVG title and description. The same glyph is `aria-hidden` when it sits beside the authoritative `FinancialObject` label and meaning, preventing duplicate announcements. The geometry is optically checked at 16px and 20px, remains legible at 48px, and survives monochrome/forced-color presentation.
 
 No external icon dependency or company brand asset is introduced.
 
@@ -49,7 +49,7 @@ Pairs a family glyph with its domain label and short meaning. Tone is categorica
 
 ### ConceptLens
 
-Receives an explicit relationship graph and a controlled focused object. It reveals directly selectable neighbours and says `Focus: Profit` plus `Connected to: …`. It has no index, previous, or next semantics. Mobile is a focused lens; tablet and desktop may expose more of the graph without turning it into a lesson sequence.
+Receives an explicit directed relationship graph and a controlled focused object. Every focused edge preserves its `from`, `to`, label, and direction; parallel edges are not collapsed into a generic neighbour list. Each visible relationship has its own trace and directly selectable counterpart. It has no index, previous, or next semantics. Mobile is a focused lens; tablet and desktop may expose more of the graph without turning it into a lesson sequence.
 
 ### RelationshipTrace
 
@@ -65,11 +65,13 @@ Receives validated display values and `percentOfRevenue` geometry. Revenue is th
 
 One metric remains one research object: concise meaning, current reported state, annual trace, period selection, Reported status, contextual Learn bridge, related trace, and attached Number Passport. Number, Trend, and Evidence are not equal tabs.
 
-Periods are keyboard-operable radio controls. The host supplies reviewed display values, source records, and normalized presentation percentages. Server components can prepare the reviewed records and pass serializable data into the interactive client boundary.
+Periods are native radio inputs, retaining browser keyboard, focus, pointer, touch, selected, and unavailable behavior. The host supplies reviewed display values, source records, normalized presentation percentages, and a human-readable geometry reference naming the record that represents 100%. Server components can prepare the reviewed records and pass serializable data into the interactive client boundary.
 
 ### NumberPassport
 
-The Passport belongs to the selected number. Closed is a quiet attached provenance rail. Its explicit states are closed, opening, open, and closing. Open preserves the research object while revealing only supported status, reporting period, form, filing date, official source, and source location when available. Missing metadata is omitted, not invented. Unavailable evidence is labelled and non-interactive.
+The Passport belongs to the selected number. Value/evidence role (`Reported`, `Derived`, or `Verification`) and evidence availability (`available` or `unavailable`) are independent fields: unavailable evidence never changes a reported value into a fourth role. The V2 Revenue Dossier intentionally restricts its values to `Reported`.
+
+Closed is a quiet attached provenance rail and does not reserve a desktop evidence column. Its explicit states are closed, opening, open, and closing. Open may consume adjacent desktop space while preserving the selected metric and period; on mobile it continues beneath the research trace. It reveals only supported value role, reporting period, form, filing date, official source, and source location when available. Missing metadata is omitted, not invented. An unavailable Passport remains operable so its explicit unavailability can be disclosed.
 
 ## Interaction and accessibility
 
@@ -89,8 +91,8 @@ This foundation is accessibility-oriented but is not a claim of screen-reader ce
 The system uses a mobile base, a 48rem tablet change, and a 75rem wide-desktop change. The targets are 320, 390, 768, and 1440—not a collection of arbitrary breakpoints.
 
 - At 320/390, Concept Lens shows one focus and directly selectable neighbours; Ledger labels and measures stack without changing scale.
-- At 768, promise and financial-system proof can coexist and the Dossier begins attaching its Passport beside the trace.
-- At 1440, research surfaces gain breadth, not decorative emptiness. The Passport remains attached and the trace keeps one scale.
+- At 768, promise and financial-system proof can coexist. A closed Passport remains a full-width attached rail; an open Passport may attach beside the trace.
+- At 1440, research surfaces gain breadth, not decorative emptiness. The Passport remains attached without reserving an empty closed column, and the trace keeps one declared scale.
 
 Responsive components change composition. They do not duplicate financial truth or shrink a desktop map into a phone.
 
@@ -102,7 +104,7 @@ Ivory supports teaching and relationship inspection. Paper holds reviewed record
 
 | Stage 1 decision | Disposition | V2 decision |
 | --- | --- | --- |
-| Evidence roles and explicit labels | **KEEP** | Reported, derived, verification, learner input, narrative, and unavailable stay semantically distinct. |
+| Evidence roles and explicit labels | **KEEP** | Reported, derived, and verification remain value/evidence roles. Available and unavailable are a separate evidence-availability axis; learner input and narrative remain explicitly labelled content types. |
 | Serif/sans role split | **KEEP** | Retained and strengthened with a numerical role. |
 | Reduced motion and visible focus | **KEEP** | Retained as global timing plus component behavior. |
 | Semantic color discipline | **KEEP** | Retained; categorical color never means good/bad. |

@@ -3,6 +3,7 @@
 .passport > button span { display: flex; gap: .55rem; align-items: baseline; }
 .passport small { color: var(--fp-v2-ink-soft); font-size: .65rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
 .passport strong { font-size: .78rem; }
+.passport em { color: var(--fp-v2-ink-soft); font-size: .65rem; font-style: normal; }
 .passport button i { font-size: 1rem; font-style: normal; }
 .passport button:focus-visible, .passport a:focus-visible { outline: 3px solid var(--fp-v2-focus); outline-offset: 3px; }
 .passport button:disabled { cursor: not-allowed; }

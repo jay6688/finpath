@@ -6,5 +6,7 @@ export type { LedgerLine } from "./quantitative-ledger";
 export { MetricDossier } from "./metric-dossier";
 export type { DossierPeriod } from "./metric-dossier";
 export { NumberPassport } from "./number-passport";
-export type { PassportRecord } from "./number-passport";
+export type { EvidenceAvailability, PassportRecord, ValueEvidenceRole } from "./number-passport";
+export { getFocusedRelationships } from "./relationship-model";
+export type { FocusedRelationship } from "./relationship-model";
 export type { FinancialObjectDatum, FinancialObjectKind, RelationshipDatum } from "./types";

@@ -30,11 +30,16 @@ function InnerMark({ kind }: { kind: FinancialObjectKind }) {
   }
 }
 
-export function FinancialObjectGlyph({ kind, label, size = 48 }: { kind: FinancialObjectKind; label: string; size?: number }) {
+type GlyphProps = { kind: FinancialObjectKind; size?: number } & (
+  | { decorative: true; label?: never }
+  | { decorative?: false; label: string }
+);
+
+export function FinancialObjectGlyph({ kind, label, size = 48, decorative = false }: GlyphProps) {
   return (
-    <svg className={styles.glyph} width={size} height={size} viewBox="0 0 48 48" role="img">
-      <title>{label}</title>
-      <desc>{glyphDescriptions[kind]}</desc>
+    <svg className={styles.glyph} width={size} height={size} viewBox="0 0 48 48" role={decorative ? undefined : "img"} aria-hidden={decorative || undefined} focusable="false" data-optical-size={size <= 20 ? "compact" : "default"}>
+      {decorative ? null : <title>{label}</title>}
+      {decorative ? null : <desc>{glyphDescriptions[kind]}</desc>}
       <rect x="3" y="3" width="42" height="42" rx="10" />
       <InnerMark kind={kind} />
     </svg>
@@ -44,7 +49,7 @@ export function FinancialObjectGlyph({ kind, label, size = 48 }: { kind: Financi
 export function FinancialObject({ object, selected = false }: { object: FinancialObjectDatum; selected?: boolean }) {
   return (
     <span className={styles.object} data-selected={selected} data-tone={object.tone} data-unavailable={object.unavailable || undefined}>
-      <FinancialObjectGlyph kind={object.id} label={object.label} />
+      <FinancialObjectGlyph kind={object.id} decorative />
       <span><strong>{object.label}</strong><small>{object.summary}</small></span>
     </span>
   );
