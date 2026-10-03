@@ -87,6 +87,30 @@ test("Learn landing uses chapters, semantic progress, and canonical routes witho
   assert.deepEqual(renderedHrefs, lessonCatalog.map((lesson) => lesson.href));
 });
 
+test("shared lesson chrome keeps one lesson H1 and frames untouched legacy bodies", async () => {
+  const [shell, progress, sequence, chromeStyles] = await Promise.all([
+    readSource("components/lesson-shell.tsx"),
+    readSource("components/lesson-progress-summary.tsx"),
+    readSource("components/lesson-sequence-navigation.tsx"),
+    readSource("components/lesson-chrome.module.css"),
+  ]);
+
+  assert.equal((shell.match(/<h1/g) ?? []).length, 1);
+  assert.match(shell, /href="\/learn"/);
+  assert.match(shell, /getLessonChapter\(conceptId\)/);
+  assert.match(shell, /Lesson \{lesson\.number\} of \{lessonCatalog\.length\}/);
+  assert.match(shell, /<LessonProgressSummary/);
+  assert.match(progress, /useLearningProgress/);
+  assert.match(progress, /<progress/);
+  assert.match(sequence, /getAdjacentLessons\(currentConceptId\)/);
+  assert.match(sequence, /markExplored\(\[currentConceptId\]\)/);
+  assert.match(chromeStyles, /var\(--fp-v2-/);
+  assert.doesNotMatch(
+    `${shell}\n${progress}\n${sequence}`,
+    /MetricDossier|NumberPassport|QuantitativeLedger/,
+  );
+});
+
 test("representative lesson routes retain their legacy body components", async () => {
   const representativeBodies = [
     ["revenue", "RevenueLessonContent"],

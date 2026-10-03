@@ -1,13 +1,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { LessonProgressSummary } from "@/components/lesson-progress-summary";
 import { LessonSequenceNavigation } from "@/components/lesson-sequence-navigation";
+import type { SupportedCompany } from "@/lib/api";
+import { getLessonChapter } from "@/lib/lesson-chapters";
 import {
   getLesson,
   lessonCatalog,
   type ConceptId,
 } from "@/lib/lesson-catalog";
-import type { SupportedCompany } from "@/lib/api";
+
+import styles from "./lesson-chrome.module.css";
 
 type LessonShellProps = {
   children: ReactNode;
@@ -29,35 +33,45 @@ export function LessonShell({
   showExploreCompany = true,
 }: LessonShellProps) {
   const lesson = getLesson(conceptId);
+  const chapter = getLessonChapter(conceptId);
 
   return (
-    <div className="company-shell profit-page-shell lesson-page-shell">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
+    <div className={`company-shell profit-page-shell lesson-page-shell ${styles.page}`}>
+      <nav className={styles.breadcrumb} aria-label="Breadcrumb">
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
         <Link href="/learn">Learn</Link>
         <span aria-hidden="true">/</span>
-        <Link href="/learn">Company Analysis Basics</Link>
-        <span aria-hidden="true">/</span>
         <strong>{lesson.title}</strong>
       </nav>
 
-      <header className="lesson-context-header">
-        <div>
-          <p className="eyebrow">Company Analysis Basics</p>
-          <p className="lesson-context-header__position">
+      <header className={styles.chrome}>
+        <div className={styles.identity}>
+          <p className={styles.modeLabel}>
+            Learn <span aria-hidden="true">·</span> Guided understanding
+          </p>
+          <p className={styles.position}>
+            <span>Company Analysis Basics</span>
+            <span aria-hidden="true">·</span>
             Lesson {lesson.number} of {lessonCatalog.length}
+            <span aria-hidden="true">·</span>
+            <span>{chapter.title}</span>
           </p>
           <h1>{lesson.title}</h1>
+          <p className={styles.goal}>{lesson.shortGoal}</p>
         </div>
-        <p className="lesson-context-header__example">
-          <span>Real example</span>
-          <strong>{example}</strong>
-          {exampleSelector}
-        </p>
+
+        <aside className={styles.context} aria-label="Lesson context">
+          <LessonProgressSummary conceptId={conceptId} />
+          <div className={styles.example}>
+            <span>Reviewed example</span>
+            <strong>{example}</strong>
+            {exampleSelector}
+          </div>
+        </aside>
       </header>
 
-      {children}
+      <div className={styles.body}>{children}</div>
 
       <LessonSequenceNavigation
         completeCurrentOnNext={completeCurrentOnNext}
