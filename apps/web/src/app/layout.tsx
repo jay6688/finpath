@@ -9,6 +9,7 @@ import { LearningProgressProvider } from "@/components/learning-progress-provide
 import styles from "./app-shell.module.css";
 
 import "@/styles/visual-system.css";
+import "@/styles/visual-system-v2.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

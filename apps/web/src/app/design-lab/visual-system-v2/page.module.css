@@ -1,0 +1,4 @@
+.unavailable { max-width: 44rem; margin: 12vh auto; padding: 2rem; color: var(--fp-v2-ink); background: var(--fp-v2-ivory); border-left: 4px solid var(--fp-v2-coral); font-family: var(--fp-v2-font-ui); }
+.unavailable p { color: var(--fp-v2-coral); font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.unavailable h1 { font: 400 var(--fp-v2-type-object)/1 var(--fp-v2-font-concept); }
+.unavailable span, .unavailable strong { display: block; margin-top: 1rem; }

@@ -1,0 +1,26 @@
+.proof { min-height: 100vh; color: var(--fp-v2-ink); background: var(--fp-v2-neutral); font-family: var(--fp-v2-font-ui); }
+.identity { max-width: var(--fp-v2-research); display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: auto; padding: 1rem var(--fp-v2-gutter); }
+.identity > div { display: flex; align-items: center; gap: .55rem; }
+.mark { width: 2.25rem; height: 2.25rem; display: grid; place-items: center; color: var(--fp-v2-paper); background: var(--fp-v2-ink); border-radius: .45rem; font-size: .68rem; font-weight: 800; letter-spacing: -.03em; }
+.identity p { margin: 0; color: var(--fp-v2-ink-soft); font-size: .68rem; text-align: right; }
+.main { display: grid; gap: clamp(3rem, 8vw, 7rem); padding: clamp(2rem, 7vw, 6rem) var(--fp-v2-gutter); }
+.intro, .objectFamily, .proofSection { width: 100%; max-width: var(--fp-v2-research); margin: auto; }
+.intro { max-width: var(--fp-v2-content); text-align: center; }
+.intro p, .objectFamily header p, .mode { color: var(--fp-v2-jade); font-size: .72rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+.intro h1 { max-width: 58rem; margin: .6rem auto 1rem; font: 400 var(--fp-v2-type-display)/.98 var(--fp-v2-font-concept); letter-spacing: -.035em; }
+.intro span { color: var(--fp-v2-ink-soft); line-height: 1.55; }
+.objectFamily { display: grid; gap: 1.5rem; }
+.objectFamily header p { margin: 0; }
+.objectFamily h2 { margin: .35rem 0 0; font: 400 var(--fp-v2-type-section)/1.1 var(--fp-v2-font-concept); }
+.objectFamily > div { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--fp-v2-line); border: 1px solid var(--fp-v2-line); }
+.objectFamily figure { min-width: 0; display: grid; place-items: center; gap: .65rem; margin: 0; padding: 1rem .5rem; background: var(--fp-v2-paper); }
+.objectFamily figure:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.objectFamily figcaption { font-size: .65rem; text-align: center; }
+.proofSection { display: grid; gap: .75rem; }
+.mode { margin-left: .25rem; }
+@media (min-width: 48rem) {
+  .objectFamily > div { grid-template-columns: repeat(7, 1fr); }
+  .objectFamily figure:last-child:nth-child(odd) { grid-column: auto; }
+}
+@media (min-width: 75rem) { .main { padding-bottom: 9rem; } }
+@media (prefers-reduced-motion: reduce) { .proof { scroll-behavior: auto; } }
