@@ -17,7 +17,10 @@ export function NumberPassport({ record }: { record: CompanyRevenueRecord }) {
           <small>Attached provenance</small>
           <strong>Number Passport · FY{fact.fiscalYear}</strong>
         </span>
-        <span className={styles.passportAction}>Open record</span>
+        <span className={styles.passportAction}>
+          <span className={styles.closedAction}>Open record</span>
+          <span className={styles.openAction}>Close record</span>
+        </span>
       </summary>
 
       <div className={styles.passportBody}>

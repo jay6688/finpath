@@ -147,7 +147,11 @@ export default async function CompanyResearchPage({
   }
 
   return (
-    <CompanyResearchWorkspace company={company} revenueData={revenueData}>
+    <CompanyResearchWorkspace
+      company={company}
+      isDossier={isApple}
+      revenueData={revenueData}
+    >
       {isApple ? (
         <MetricDossier
           company={company}

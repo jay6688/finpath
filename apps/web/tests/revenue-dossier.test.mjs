@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { selectRevenueRecord } from "../src/lib/revenue-dossier.ts";
+import {
+  moveRevenueSelection,
+  selectRevenueRecord,
+} from "../src/lib/revenue-dossier.ts";
 
 const readSource = (relativePath) =>
   readFile(new URL(`../src/${relativePath}`, import.meta.url), "utf8");
@@ -41,6 +44,12 @@ test("period selection returns one intact Revenue record", () => {
   assert.throws(() => selectRevenueRecord(records, 2022), /not available/i);
 });
 
+test("keyboard period movement follows the native radio sequence", () => {
+  assert.equal(moveRevenueSelection(records, 2023, 1), 2024);
+  assert.equal(moveRevenueSelection(records, 2024, -1), 2023);
+  assert.equal(moveRevenueSelection(records, 2024, 1), 2023);
+});
+
 test("reviewed Revenue records bind every annual value to its own evidence", async () => {
   const data = await readSource("lib/company-revenue-data.ts");
 
@@ -59,11 +68,13 @@ test("company workspace migrates Apple Revenue while retaining transitional comp
   ]);
 
   assert.match(companyPage, /company\.ticker === "AAPL"/);
+  assert.match(companyPage, /isDossier=\{isApple\}/);
   assert.match(companyPage, /<MetricDossier/);
   assert.match(companyPage, /<LegacyCompanyResearch/);
   assert.match(companyPage, /getCompanyRevenueData\(company\)/);
   assert.match(workspace, /Reviewed company workspace/);
   assert.match(workspace, /Explore/);
+  assert.match(workspace, /Transitional workspace/);
   assert.match(workspaceStyles, /var\(--fp-v2-/);
   assert.doesNotMatch(`${companyPage}\n${workspace}`, /Apple logo|Microsoft logo|Walmart logo/i);
 });
@@ -88,11 +99,14 @@ test("Apple Revenue is one accessible Object to Trace to Passport dossier", asyn
   assert.match(selector, /<legend/);
   assert.match(selector, /type="radio"/);
   assert.match(selector, /checked=\{/);
+  assert.match(selector, /onKeyDown/);
+  assert.match(selector, /moveRevenueSelection/);
   assert.match(selector, /Scale: USD billions/);
   assert.match(selector, /baseline \$0B/i);
 
   assert.match(passport, /<details/);
   assert.match(passport, /<summary/);
+  assert.match(passport, /Close record/);
   assert.match(passport, /Value role/);
   assert.match(passport, /Reported/);
   assert.match(passport, /Evidence availability/);

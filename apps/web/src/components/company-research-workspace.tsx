@@ -15,10 +15,12 @@ const sourceStateLabel = {
 export function CompanyResearchWorkspace({
   children,
   company,
+  isDossier,
   revenueData,
 }: {
   children: ReactNode;
   company: SupportedCompany;
+  isDossier: boolean;
   revenueData: CompanyRevenueData;
 }) {
   const reportingFact = revenueData.latest;
@@ -58,8 +60,10 @@ export function CompanyResearchWorkspace({
       </header>
 
       <div className={styles.contextRail}>
-        <span>Independent research</span>
-        <strong>Object → Trace → Passport</strong>
+        <span>{isDossier ? "Independent research" : "Transitional workspace"}</span>
+        <strong>
+          {isDossier ? "Object → Trace → Passport" : "Existing reviewed research body"}
+        </strong>
         <Link href="/explore">All companies</Link>
       </div>
 

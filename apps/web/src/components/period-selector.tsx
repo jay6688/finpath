@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
 import type { CompanyRevenueRecord } from "@/lib/company-revenue-data";
+import { moveRevenueSelection } from "@/lib/revenue-dossier";
 
 import styles from "./metric-dossier.module.css";
 
@@ -57,6 +58,33 @@ export function PeriodSelector({
                     checked={isSelected}
                     name="revenue-period"
                     onChange={() => onSelect(fact.fiscalYear)}
+                    onKeyDown={(event) => {
+                      if (event.key === " " || event.key === "Enter") {
+                        event.preventDefault();
+                        onSelect(fact.fiscalYear);
+                        return;
+                      }
+                      const direction =
+                        event.key === "ArrowRight" || event.key === "ArrowDown"
+                          ? 1
+                          : event.key === "ArrowLeft" || event.key === "ArrowUp"
+                            ? -1
+                            : null;
+                      if (direction === null) return;
+                      event.preventDefault();
+                      const nextFiscalYear = moveRevenueSelection(
+                        records,
+                        fact.fiscalYear,
+                        direction,
+                      );
+                      const fieldset = event.currentTarget.closest("fieldset");
+                      fieldset
+                        ?.querySelector<HTMLInputElement>(
+                          `input[value="${nextFiscalYear}"]`,
+                        )
+                        ?.focus();
+                      onSelect(nextFiscalYear);
+                    }}
                     type="radio"
                     value={fact.fiscalYear}
                   />

@@ -240,6 +240,9 @@
 .passport > summary small { color: var(--fp-v2-ink-soft); font-size: .62rem; text-transform: uppercase; }
 .passport > summary strong { font-size: .78rem; }
 .passportAction { color: var(--fp-v2-cobalt); font-size: .68rem; font-weight: 850; }
+.openAction { display: none; }
+.passport[open] .closedAction { display: none; }
+.passport[open] .openAction { display: inline; }
 
 .passport > summary:focus-visible {
   outline: 3px solid var(--fp-v2-focus);
@@ -312,6 +315,11 @@
   .traceHeading { flex-direction: row; align-items: end; justify-content: space-between; }
   .traceHeading > span { align-self: auto; }
   .support { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+}
+
+@media (min-width: 23rem) and (max-width: 47.99rem) {
+  .plotScroller { overflow-x: hidden; }
+  .plots { min-width: 0; }
 }
 
 @media (min-width: 75rem) {
