@@ -11,32 +11,33 @@ import {
 } from "react";
 
 import {
-  createDefaultLearningProgress,
+  createPendingLearningProgressState,
   getBrowserStorage,
   LEARNING_PROGRESS_STORAGE_KEY,
   markConceptsExplored,
-  readLearningProgress,
+  resolveLearningProgressState,
   writeLearningProgress,
   type ConceptId,
-  type LearningProgress,
+  type LearningProgressState,
 } from "@/lib/learning-progress";
 
-type LearningProgressContextValue = {
-  progress: LearningProgress;
+type LearningProgressContextValue = LearningProgressState & {
   markExplored: (conceptIds: readonly ConceptId[]) => void;
 };
 
 const LearningProgressContext = createContext<LearningProgressContextValue | null>(null);
 
 export function LearningProgressProvider({ children }: { children: ReactNode }) {
-  const [progress, setProgress] = useState(createDefaultLearningProgress);
+  const [progressState, setProgressState] = useState(
+    createPendingLearningProgressState,
+  );
 
   useEffect(() => {
-    setProgress(readLearningProgress(getBrowserStorage(window)));
+    setProgressState(resolveLearningProgressState(getBrowserStorage(window)));
 
     function syncProgress(event: StorageEvent) {
       if (event.key === LEARNING_PROGRESS_STORAGE_KEY) {
-        setProgress(readLearningProgress(getBrowserStorage(window)));
+        setProgressState(resolveLearningProgressState(getBrowserStorage(window)));
       }
     }
 
@@ -45,16 +46,18 @@ export function LearningProgressProvider({ children }: { children: ReactNode }) 
   }, []);
 
   const markExplored = useCallback((conceptIds: readonly ConceptId[]) => {
-    setProgress((current) => {
-      const next = markConceptsExplored(current, conceptIds);
+    setProgressState((current) => {
+      if (!current.isHydrated) return current;
+
+      const next = markConceptsExplored(current.progress, conceptIds);
       writeLearningProgress(getBrowserStorage(window), next);
-      return next;
+      return { isHydrated: true, progress: next };
     });
   }, []);
 
-  const value = useMemo(
-    () => ({ progress, markExplored }),
-    [markExplored, progress],
+  const value = useMemo<LearningProgressContextValue>(
+    () => ({ ...progressState, markExplored }),
+    [markExplored, progressState],
   );
 
   return (

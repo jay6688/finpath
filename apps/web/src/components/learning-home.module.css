@@ -168,6 +168,12 @@
   text-decoration: none;
 }
 
+.pendingAction {
+  color: var(--fp-v2-ink-soft);
+  background: var(--fp-v2-neutral);
+  border-color: var(--fp-v2-line);
+}
+
 .companyEntry > .railAction {
   color: var(--fp-v2-ink);
   background: transparent;

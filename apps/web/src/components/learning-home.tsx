@@ -16,14 +16,20 @@ export type HomeCompany = {
 };
 
 export function LearningHome({ companies }: { companies: HomeCompany[] }) {
-  const { progress } = useLearningProgress();
-  const recommendation = deriveHomeRecommendation(progress);
-  const exploredCount = progress.exploredConceptIds.length;
+  const learningProgress = useLearningProgress();
+  const recommendation = learningProgress.isHydrated
+    ? deriveHomeRecommendation(learningProgress.progress)
+    : null;
+  const exploredCount = learningProgress.isHydrated
+    ? learningProgress.progress.exploredConceptIds.length
+    : null;
   const isPathComplete = exploredCount === lessonCatalog.length;
   const primaryCompany = companies.find((company) => company.ticker === "AAPL") ?? companies[0];
   const exploreHref = primaryCompany ? `/company/${primaryCompany.slug}` : "/explore";
   const exploreLabel = primaryCompany ? `Explore ${primaryCompany.name}` : "Explore companies";
-  const progressPercentage = (exploredCount / lessonCatalog.length) * 100;
+  const progressPercentage = exploredCount === null
+    ? 0
+    : (exploredCount / lessonCatalog.length) * 100;
 
   return (
     <div className={styles.page}>
@@ -40,25 +46,56 @@ export function LearningHome({ companies }: { companies: HomeCompany[] }) {
       </div>
 
       <div className={styles.activityRails}>
-        <section className={styles.nextStep} aria-labelledby="next-step-heading">
+        <section
+          className={styles.nextStep}
+          aria-busy={!learningProgress.isHydrated || undefined}
+          aria-labelledby="next-step-heading"
+        >
           <div className={styles.railIdentity}>
             <span>Learn</span>
             <strong>Guided understanding</strong>
           </div>
           <div className={styles.nextContent}>
-            <p>{isPathComplete ? "Learning path complete" : "Your next step"}</p>
-            <h2 id="next-step-heading">{recommendation.title}</h2>
-            <p>{recommendation.goal}</p>
+            <p>
+              {!learningProgress.isHydrated
+                ? "Your learning path"
+                : isPathComplete
+                  ? "Learning path complete"
+                  : "Your next step"}
+            </p>
+            <h2 id="next-step-heading">
+              {recommendation?.title ?? "Loading saved progress…"}
+            </h2>
+            <p>
+              {recommendation?.goal ?? "Your saved place will appear here."}
+            </p>
           </div>
-          <div className={styles.progress} aria-label={`${exploredCount} of ${lessonCatalog.length} concepts explored`}>
-            <strong><span>{exploredCount}</span> / {lessonCatalog.length}</strong>
-            <span>concepts explored</span>
-            <div aria-hidden="true"><span style={{ width: `${progressPercentage}%` }} /></div>
-          </div>
-          <Link className={styles.railAction} href={recommendation.href}>
-            {isPathComplete ? "Review Capstone" : `${recommendation.action} lesson`}
-            <span aria-hidden="true">→</span>
-          </Link>
+          {exploredCount === null ? (
+            <div className={styles.progress} role="status">
+              <strong>Progress pending</strong>
+              <span>Checking this browser</span>
+              <div aria-hidden="true"><span /></div>
+            </div>
+          ) : (
+            <div className={styles.progress} aria-label={`${exploredCount} of ${lessonCatalog.length} concepts explored`}>
+              <strong><span>{exploredCount}</span> / {lessonCatalog.length}</strong>
+              <span>concepts explored</span>
+              <div aria-hidden="true"><span style={{ width: `${progressPercentage}%` }} /></div>
+            </div>
+          )}
+          {recommendation ? (
+            <Link className={styles.railAction} href={recommendation.href}>
+              {isPathComplete ? "Review Capstone" : `${recommendation.action} lesson`}
+              <span aria-hidden="true">→</span>
+            </Link>
+          ) : (
+            <span
+              aria-hidden="true"
+              className={`${styles.railAction} ${styles.pendingAction}`}
+            >
+              Lesson action pending
+            </span>
+          )}
         </section>
 
         <section className={styles.companyEntry} aria-labelledby="company-entry-heading">

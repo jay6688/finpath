@@ -71,7 +71,10 @@ test("Learn landing uses chapters, semantic progress, and canonical routes witho
   ]);
 
   assert.match(landing, /lessonChapters\.map/);
-  assert.match(landing, /deriveHomeRecommendation\(progress\)/);
+  assert.match(
+    landing,
+    /isHydrated[^]*deriveHomeRecommendation\(learningProgress\.progress\)/,
+  );
   assert.match(landing, /<progress/);
   assert.match(landing, /aria-current=\{state === "current" \? "step"/);
   assert.match(landing, /Review Capstone/);

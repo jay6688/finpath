@@ -19,7 +19,9 @@ function actionLabel(state: ConceptProgressState, firstLesson = false): string {
   return "Open";
 }
 
-function LearningState({ state }: { state: ConceptProgressState }) {
+function LearningState({ state }: { state: ConceptProgressState | null }) {
+  if (!state) return <span className={styles.lessonState}>Progress pending</span>;
+
   const labels: Record<ConceptProgressState, string> = {
     explored: "Complete",
     current: "Current",
@@ -29,13 +31,17 @@ function LearningState({ state }: { state: ConceptProgressState }) {
 }
 
 export function LearningPathView() {
-  const { progress } = useLearningProgress();
-  const recommendation = deriveHomeRecommendation(progress);
-  const completedCount = progress.exploredConceptIds.length;
+  const learningProgress = useLearningProgress();
+  const recommendation = learningProgress.isHydrated
+    ? deriveHomeRecommendation(learningProgress.progress)
+    : null;
+  const completedCount = learningProgress.isHydrated
+    ? learningProgress.progress.exploredConceptIds.length
+    : null;
   const isPathComplete = completedCount === lessonCatalog.length;
-  const currentLesson = lessonCatalog.find(
-    (lesson) => lesson.id === recommendation.conceptId,
-  )!;
+  const currentLesson = recommendation
+    ? lessonCatalog.find((lesson) => lesson.id === recommendation.conceptId)
+    : null;
 
   return (
     <div className={styles.page}>
@@ -51,29 +57,64 @@ export function LearningPathView() {
       </header>
 
       <div className={styles.layout}>
-        <aside className={styles.currentPanel} aria-labelledby="current-lesson-heading">
+        <aside
+          className={styles.currentPanel}
+          aria-busy={!learningProgress.isHydrated || undefined}
+          aria-labelledby="current-lesson-heading"
+        >
           <div className={styles.currentIdentity}>
             <p>
-              {isPathComplete
-                ? "Company Analysis Basics complete."
-                : "Your current lesson"}
+              {!learningProgress.isHydrated
+                ? "Your learning path"
+                : isPathComplete
+                  ? "Company Analysis Basics complete."
+                  : "Your current lesson"}
             </p>
-            <span>Lesson {currentLesson.number} of {lessonCatalog.length}</span>
+            <span>
+              {currentLesson
+                ? `Lesson ${currentLesson.number} of ${lessonCatalog.length}`
+                : "Progress pending"}
+            </span>
           </div>
-          <h2 id="current-lesson-heading">{recommendation.title}</h2>
-          <p className={styles.currentGoal}>{recommendation.goal}</p>
+          <h2 id="current-lesson-heading">
+            {recommendation?.title ?? "Loading saved progress…"}
+          </h2>
+          <p className={styles.currentGoal}>
+            {recommendation?.goal ?? "Your saved place will appear here."}
+          </p>
           <div className={styles.progressSummary}>
-            <p><strong>{completedCount} / {lessonCatalog.length}</strong> complete</p>
-            <progress
-              aria-label={`${completedCount} of ${lessonCatalog.length} lessons complete`}
-              max={lessonCatalog.length}
-              value={completedCount}
-            />
+            {completedCount === null ? (
+              <>
+                <p><strong>Progress pending</strong></p>
+                <progress
+                  aria-label="Loading saved learning progress"
+                  max={lessonCatalog.length}
+                />
+              </>
+            ) : (
+              <>
+                <p><strong>{completedCount} / {lessonCatalog.length}</strong> complete</p>
+                <progress
+                  aria-label={`${completedCount} of ${lessonCatalog.length} lessons complete`}
+                  max={lessonCatalog.length}
+                  value={completedCount}
+                />
+              </>
+            )}
           </div>
-          <Link className={styles.primaryAction} href={recommendation.href}>
-            {isPathComplete ? "Review Capstone" : `${recommendation.action} lesson`}
-            <span aria-hidden="true">→</span>
-          </Link>
+          {recommendation ? (
+            <Link className={styles.primaryAction} href={recommendation.href}>
+              {isPathComplete ? "Review Capstone" : `${recommendation.action} lesson`}
+              <span aria-hidden="true">→</span>
+            </Link>
+          ) : (
+            <span
+              aria-hidden="true"
+              className={`${styles.primaryAction} ${styles.pendingAction}`}
+            >
+              Lesson action pending
+            </span>
+          )}
           <small>Progress is saved in this browser and is not synced to an account.</small>
         </aside>
 
@@ -85,9 +126,11 @@ export function LearningPathView() {
 
           <div className={styles.chapters}>
             {lessonChapters.map((chapter, chapterIndex) => {
-              const chapterCompleted = chapter.lessons.filter((lesson) =>
-                progress.exploredConceptIds.includes(lesson.id),
-              ).length;
+              const chapterCompleted = learningProgress.isHydrated
+                ? chapter.lessons.filter((lesson) =>
+                    learningProgress.progress.exploredConceptIds.includes(lesson.id),
+                  ).length
+                : null;
               const headingId = `chapter-${chapter.id}`;
 
               return (
@@ -106,13 +149,17 @@ export function LearningPathView() {
                     <h3 id={headingId}>{chapter.title}</h3>
                     <p>{chapter.purpose}</p>
                     <span className={styles.chapterProgress}>
-                      {chapterCompleted} / {chapter.lessons.length} complete
+                      {chapterCompleted === null
+                        ? "Progress pending"
+                        : `${chapterCompleted} / ${chapter.lessons.length} complete`}
                     </span>
                   </header>
 
                   <ol className={styles.lessonList} start={chapter.lessons[0].number}>
                     {chapter.lessons.map((lesson) => {
-                      const state = deriveConceptState(lesson.id, progress);
+                      const state = learningProgress.isHydrated
+                        ? deriveConceptState(lesson.id, learningProgress.progress)
+                        : null;
                       return (
                         <li
                           aria-current={state === "current" ? "step" : undefined}
@@ -129,7 +176,7 @@ export function LearningPathView() {
                             </span>
                             <LearningState state={state} />
                             <span className={styles.lessonAction}>
-                              {actionLabel(state, lesson.id === "revenue")}{" "}
+                              {state ? actionLabel(state, lesson.id === "revenue") : "Open"}{" "}
                               <span aria-hidden="true">→</span>
                             </span>
                           </Link>

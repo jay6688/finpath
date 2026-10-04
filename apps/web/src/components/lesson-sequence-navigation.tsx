@@ -24,11 +24,13 @@ export function LessonSequenceNavigation({
   selectedCompany,
   showExploreCompany = true,
 }: LessonSequenceNavigationProps) {
-  const { markExplored, progress } = useLearningProgress();
+  const learningProgress = useLearningProgress();
+  const { markExplored } = learningProgress;
   const { previous, next } = getAdjacentLessons(currentConceptId);
   const isCurrentPathComplete =
+    learningProgress.isHydrated &&
     currentConceptId === "capstone" &&
-    progress.exploredConceptIds.includes("capstone");
+    learningProgress.progress.exploredConceptIds.includes("capstone");
   const companyQuery = selectedCompany ? `?company=${selectedCompany.slug}` : "";
   const companyAwareLessons = new Set<ConceptId>([
     "revenue",
@@ -83,11 +85,13 @@ export function LessonSequenceNavigation({
                   : "More concepts coming"}
             </span>
             <strong>
-              {isCurrentPathComplete
-                ? "Company Analysis Basics complete"
-                : currentConceptId === "capstone"
-                  ? "Finish the Capstone to complete this path."
-                  : "The next concept is still being validated."}
+              {!learningProgress.isHydrated && currentConceptId === "capstone"
+                ? "Loading saved progress…"
+                : isCurrentPathComplete
+                  ? "Company Analysis Basics complete"
+                  : currentConceptId === "capstone"
+                    ? "Finish the Capstone to complete this path."
+                    : "The next concept is still being validated."}
             </strong>
           </div>
         )}

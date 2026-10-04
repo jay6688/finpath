@@ -10,7 +10,29 @@ import { lessonCatalog } from "@/lib/lesson-catalog";
 import styles from "./lesson-chrome.module.css";
 
 export function LessonProgressSummary({ conceptId }: { conceptId: ConceptId }) {
-  const { progress } = useLearningProgress();
+  const learningProgress = useLearningProgress();
+
+  if (!learningProgress.isHydrated) {
+    return (
+      <div
+        aria-busy="true"
+        className={styles.lessonProgress}
+        data-state="pending"
+        role="status"
+      >
+        <div>
+          <span>Learning progress</span>
+          <strong>Loading saved progress…</strong>
+        </div>
+        <progress
+          aria-label="Loading saved learning progress"
+          max={lessonCatalog.length}
+        />
+      </div>
+    );
+  }
+
+  const { progress } = learningProgress;
   const completedCount = progress.exploredConceptIds.length;
   const state = deriveConceptState(conceptId, progress);
   const isPathComplete = completedCount === lessonCatalog.length;

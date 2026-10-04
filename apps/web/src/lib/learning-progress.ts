@@ -11,6 +11,10 @@ export type LearningProgress = {
   exploredConceptIds: ConceptId[];
 };
 
+export type LearningProgressState =
+  | { isHydrated: false; progress: null }
+  | { isHydrated: true; progress: LearningProgress };
+
 export type ConceptProgressState = "explored" | "current" | "available";
 
 export type StorageReader = Pick<Storage, "getItem">;
@@ -33,6 +37,10 @@ export function createDefaultLearningProgress(): LearningProgress {
     version: LEARNING_PROGRESS_VERSION,
     exploredConceptIds: [],
   };
+}
+
+export function createPendingLearningProgressState(): LearningProgressState {
+  return { isHydrated: false, progress: null };
 }
 
 export function normalizeLearningProgress(value: unknown): LearningProgress {
@@ -77,6 +85,15 @@ export function readLearningProgress(
   } catch {
     return createDefaultLearningProgress();
   }
+}
+
+export function resolveLearningProgressState(
+  storage: StorageReader | null | undefined,
+): LearningProgressState {
+  return {
+    isHydrated: true,
+    progress: readLearningProgress(storage),
+  };
 }
 
 export function writeLearningProgress(

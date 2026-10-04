@@ -312,11 +312,12 @@ test("Home and Learn expose derived states, real routes, and no fabricated durat
     readSource("lib/lesson-chapters.ts"),
   ]);
 
-  assert.match(home, /deriveHomeRecommendation\(progress\)/);
+  assert.match(home, /isHydrated[^]*deriveHomeRecommendation\(learningProgress\.progress\)/);
   assert.match(home, /concepts explored/);
   assert.doesNotMatch(home, /home-path-preview/);
   assert.match(path, /aria-current=\{state === "current" \? "step"/);
   assert.match(path, /lessonChapters\.map/);
+  assert.match(path, /isHydrated[^]*deriveHomeRecommendation\(learningProgress\.progress\)/);
   assert.match(path, /actionLabel\(state, lesson\.id === "revenue"\)/);
   assert.match(path, /Review Capstone/);
   assert.match(chapters, /lessonIds\.map\(getLesson\)/);
