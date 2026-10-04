@@ -23,8 +23,15 @@ export type CompanyRevenueData = {
   dataError: string | null;
   latest: AnnualFinancialFact | null;
   overview: CompanyOverview | null;
+  records: CompanyRevenueRecord[];
   revenueEvidence: ReportedEvidence | null;
   reviewedRevenue: ReviewedPresentation | null;
+};
+
+export type CompanyRevenueRecord = {
+  fact: AnnualFinancialFact;
+  valueRole: "reported";
+  evidence: ReportedEvidence | null;
 };
 
 const appleReviewedLabels = Object.fromEntries(
@@ -75,7 +82,6 @@ export async function getCompanyRevenueData(
 
   const latest = overview?.series.at(-1) ?? null;
   let reviewedRevenue: ReviewedPresentation | null = null;
-  let revenueEvidence: ReportedEvidence | null = null;
 
   if (incomeStatement) {
     reviewedRevenue = buildReviewedPresentation({
@@ -95,27 +101,33 @@ export async function getCompanyRevenueData(
     });
   }
 
-  if (overview && latest) {
-    try {
-      revenueEvidence = buildReportedEvidence({
-        metric: { id: "revenue", label: "Revenue" },
-        company: overview.company,
-        currency: overview.metric.currency,
-        taxonomyTag: overview.metric.taxonomyTag,
-        fact: latest,
-        dataStatus: overview.dataStatus,
-        reviewedPresentation: reviewedRevenue,
-      });
-    } catch {
-      // The number remains visible; unsafe evidence formatting is withheld.
-    }
-  }
+  const records: CompanyRevenueRecord[] = overview
+    ? overview.series.map((fact) => {
+        let evidence: ReportedEvidence | null = null;
+        try {
+          evidence = buildReportedEvidence({
+            metric: { id: "revenue", label: "Revenue" },
+            company: overview.company,
+            currency: overview.metric.currency,
+            taxonomyTag: overview.metric.taxonomyTag,
+            fact,
+            dataStatus: overview.dataStatus,
+            reviewedPresentation: reviewedRevenue,
+          });
+        } catch {
+          // Keep the reported record; withhold evidence that cannot be validated.
+        }
+        return { fact, valueRole: "reported", evidence };
+      })
+    : [];
+  const revenueEvidence = records.at(-1)?.evidence ?? null;
 
   return {
     company,
     dataError,
     latest,
     overview,
+    records,
     revenueEvidence,
     reviewedRevenue,
   };
