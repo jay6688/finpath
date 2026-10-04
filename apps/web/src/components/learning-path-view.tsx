@@ -53,7 +53,11 @@ export function LearningPathView() {
       <div className={styles.layout}>
         <aside className={styles.currentPanel} aria-labelledby="current-lesson-heading">
           <div className={styles.currentIdentity}>
-            <p>{isPathComplete ? "Path complete" : "Your current lesson"}</p>
+            <p>
+              {isPathComplete
+                ? "Company Analysis Basics complete."
+                : "Your current lesson"}
+            </p>
             <span>Lesson {currentLesson.number} of {lessonCatalog.length}</span>
           </div>
           <h2 id="current-lesson-heading">{recommendation.title}</h2>
