@@ -21,16 +21,18 @@ test("company query selection is durable and invalid values fall back safely", (
   assert.equal(resolveCompanyQuery("nvda", companies).ticker, "AAPL");
 });
 
-test("Explore and company research are one reusable three-company architecture", async () => {
-  const [explore, companyPage, api, navigation] = await Promise.all([
+test("Explore and company research are one reusable registry-backed architecture", async () => {
+  const [explore, directory, companyPage, api, navigation] = await Promise.all([
     readSource("app/explore/page.tsx"),
+    readSource("components/explore-directory.tsx"),
     readSource("app/company/[ticker]/page.tsx"),
     readSource("lib/api.ts"),
     readSource("components/app-navigation.tsx"),
   ]);
 
   assert.match(explore, /getSupportedCompanies/);
-  assert.match(explore, /Research a real company/);
+  assert.match(directory, /Pick a real company and inspect how its financial records connect/);
+  assert.match(directory, /companies\.map/);
   assert.match(companyPage, /getCompanyRevenueData/);
   assert.match(companyPage, /available reviewed financial data/i);
   assert.match(api, /\/v1\/companies`/);
