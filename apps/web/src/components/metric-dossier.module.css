@@ -137,11 +137,12 @@
 .plotScroller {
   min-width: 0;
   overflow-x: auto;
+  scroll-snap-type: x proximity;
   scrollbar-width: thin;
 }
 
 .plots {
-  min-width: 15rem;
+  min-width: 18rem;
   height: 15rem;
   padding-inline: var(--fp-v2-space-2);
   display: flex;
@@ -169,6 +170,7 @@
   border: 2px solid transparent;
   border-radius: var(--fp-v2-radius-control) var(--fp-v2-radius-control) 0 0;
   cursor: pointer;
+  scroll-snap-align: start;
 }
 
 .period input {
@@ -207,12 +209,12 @@
 }
 
 .period[data-selected="true"] .barTrack i { opacity: 1; }
-.period strong { margin-top: .3rem; font-size: .68rem; }
-.period small { font-size: .58rem; white-space: nowrap; }
+.period strong { margin-top: .3rem; font-size: .72rem; }
+.period small { font-size: .64rem; white-space: nowrap; }
 
 .selectedMarker {
   margin-top: .1rem;
-  font-size: .52rem;
+  font-size: .58rem;
   font-weight: 800;
 }
 
@@ -281,6 +283,12 @@
 }
 .passportBody a:focus-visible { outline: 3px solid var(--fp-v2-focus); outline-offset: 3px; }
 .sourceUnavailable { margin: 0; color: var(--fp-v2-ink-soft); font-size: .7rem; }
+.sourceRelationship {
+  margin: calc(var(--fp-v2-space-3) * -1) 0 var(--fp-v2-space-3);
+  color: var(--fp-v2-ink-soft);
+  font-size: .68rem;
+  line-height: 1.45;
+}
 
 .support {
   padding: var(--fp-v2-space-5);
@@ -315,11 +323,6 @@
   .traceHeading { flex-direction: row; align-items: end; justify-content: space-between; }
   .traceHeading > span { align-self: auto; }
   .support { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
-}
-
-@media (min-width: 23rem) and (max-width: 47.99rem) {
-  .plotScroller { overflow-x: hidden; }
-  .plots { min-width: 0; }
 }
 
 @media (min-width: 75rem) {

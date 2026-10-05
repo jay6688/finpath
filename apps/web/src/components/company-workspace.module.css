@@ -97,6 +97,43 @@
   outline-offset: 3px;
 }
 
+.additionalRecords {
+  margin-top: var(--fp-v2-space-6);
+  padding-top: var(--fp-v2-space-5);
+  border-top: 1px solid var(--fp-v2-line);
+}
+
+.additionalRecordsHeader {
+  max-width: 44rem;
+  padding-inline: var(--fp-v2-space-2);
+}
+
+.additionalRecordsHeader p {
+  margin: 0;
+  color: var(--fp-v2-jade);
+  font-size: var(--fp-v2-type-label);
+  font-weight: 850;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.additionalRecordsHeader h2 {
+  margin: var(--fp-v2-space-2) 0;
+  font-family: var(--fp-v2-font-concept);
+  font-size: clamp(1.45rem, 4vw, 2rem);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.additionalRecordsHeader span {
+  color: var(--fp-v2-ink-soft);
+  font-size: .78rem;
+}
+
+.additionalRecordsBody {
+  display: flow-root;
+}
+
 @media (min-width: 48rem) {
   .canvas { padding-top: var(--fp-v2-space-5); }
   .workspaceHeader {
@@ -109,4 +146,5 @@
 @media (min-width: 75rem) {
   .workspaceHeader { padding-inline: var(--fp-v2-space-7); }
   .contextRail { padding-inline: var(--fp-v2-space-6); }
+  .additionalRecordsHeader { padding-inline: var(--fp-v2-space-5); }
 }

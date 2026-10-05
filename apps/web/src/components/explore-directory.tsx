@@ -58,7 +58,7 @@ export function ExploreDirectory({
                   <p>Reviewed through FY{company.reviewedFiscalYear}</p>
                 </div>
                 <div className={styles.coverage}>
-                  <span>Research available</span>
+                  <span>Reviewed coverage</span>
                   <ul aria-label={`${company.name} reviewed concepts`}>
                     {concepts.map((concept) => <li key={concept}>{concept}</li>)}
                   </ul>

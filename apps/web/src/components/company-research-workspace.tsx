@@ -71,3 +71,28 @@ export function CompanyResearchWorkspace({
     </div>
   );
 }
+
+export function AdditionalReviewedRecords({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <section
+      className={styles.additionalRecords}
+      aria-labelledby="additional-reviewed-records-heading"
+    >
+      <header className={styles.additionalRecordsHeader}>
+        <p>Transitional compatibility</p>
+        <h2 id="additional-reviewed-records-heading">
+          Additional reviewed records
+        </h2>
+        <span>
+          These existing research surfaces remain available while their V2
+          migrations are still pending.
+        </span>
+      </header>
+      <div className={styles.additionalRecordsBody}>{children}</div>
+    </section>
+  );
+}

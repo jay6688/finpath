@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { CompanyResearchWorkspace } from "@/components/company-research-workspace";
+import {
+  AdditionalReviewedRecords,
+  CompanyResearchWorkspace,
+} from "@/components/company-research-workspace";
 import { EarningsPerShareSnapshot } from "@/components/earnings-per-share-snapshot";
 import { FinancialPositionSnapshot } from "@/components/financial-position-snapshot";
 import { MetricDossier } from "@/components/metric-dossier";
@@ -127,7 +130,7 @@ export default async function CompanyResearchPage({
   let balanceSheet: CompanyBalanceSheet | null = null;
   let earningsPerShare: CompanyEarningsPerShare | null = null;
 
-  if (!isApple && company.capabilities.balanceSheet) {
+  if (company.capabilities.balanceSheet) {
     try {
       balanceSheet = await getCompanyBalanceSheet(company.ticker, company.reviewedFiscalYear);
       validateBalanceSheetForLesson(balanceSheet.statement, balanceSheet.company);
@@ -135,7 +138,7 @@ export default async function CompanyResearchPage({
       balanceSheet = null;
     }
   }
-  if (!isApple && company.capabilities.earningsPerShare) {
+  if (company.capabilities.earningsPerShare) {
     try {
       earningsPerShare = validateEarningsPerShareForLesson(
         await getCompanyEarningsPerShare(company.ticker, company.reviewedFiscalYear),
@@ -153,11 +156,23 @@ export default async function CompanyResearchPage({
       revenueData={revenueData}
     >
       {isApple ? (
-        <MetricDossier
-          company={company}
-          dataError={revenueData.dataError}
-          records={revenueData.records}
-        />
+        <>
+          <MetricDossier
+            company={company}
+            dataError={revenueData.dataError}
+            records={revenueData.records}
+          />
+          <AdditionalReviewedRecords>
+            <FinancialPositionSnapshot
+              balanceSheet={balanceSheet}
+              company={company}
+            />
+            <EarningsPerShareSnapshot
+              company={company}
+              earningsPerShare={earningsPerShare}
+            />
+          </AdditionalReviewedRecords>
+        </>
       ) : (
         <LegacyCompanyResearch
           balanceSheet={balanceSheet}

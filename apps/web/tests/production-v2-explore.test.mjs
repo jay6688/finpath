@@ -18,6 +18,8 @@ test("Explore landing uses the runtime registry as an integrated research direct
   assert.match(directory, /companies\.map/);
   assert.match(directory, /Pick a real company and inspect how its financial records connect/);
   assert.match(directory, /company\.capabilities/);
+  assert.match(directory, /Reviewed coverage/);
+  assert.doesNotMatch(directory, /Research available/);
   assert.match(styles, /@media \(min-width: 48rem\)/);
   assert.match(styles, /@media \(min-width: 75rem\)/);
 });

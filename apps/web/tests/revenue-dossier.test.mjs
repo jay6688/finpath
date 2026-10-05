@@ -6,6 +6,7 @@ import {
   moveRevenueSelection,
   selectRevenueRecord,
 } from "../src/lib/revenue-dossier.ts";
+import { buildReportedEvidence } from "../src/lib/evidence.ts";
 
 const readSource = (relativePath) =>
   readFile(new URL(`../src/${relativePath}`, import.meta.url), "utf8");
@@ -60,6 +61,87 @@ test("reviewed Revenue records bind every annual value to its own evidence", asy
   assert.doesNotMatch(data, /416161000000|fallbackRevenue|hardcoded/i);
 });
 
+test("reviewed FY2025 presentation is isolated from historical comparative records", () => {
+  const company = {
+    ticker: "AAPL",
+    name: "Apple Inc.",
+    cik: "0000320193",
+  };
+  const reviewedPresentation = {
+    binding: {
+      fiscalYear: 2025,
+      reportingContext: {
+        kind: "duration",
+        startDate: "2024-09-29",
+        endDate: "2025-09-27",
+      },
+      form: "10-K",
+      filedAt: "2025-10-31",
+      accession: "0000320193-25-000079",
+    },
+    statementName: "Consolidated Statements of Operations",
+    reportedLabel: "Total net sales",
+    taxonomyTag: "RevenueFromContractWithCustomerExcludingAssessedTax",
+    contextLines: [],
+  };
+  const shared = {
+    metric: { id: "revenue", label: "Revenue" },
+    company,
+    currency: "USD",
+    taxonomyTag: "RevenueFromContractWithCustomerExcludingAssessedTax",
+    dataStatus: { state: "cached", retrievedAt: "2026-10-01T01:50:06Z" },
+    reviewedPresentation,
+  };
+  const historical = buildReportedEvidence({
+    ...shared,
+    fact: {
+      fiscalYear: 2023,
+      startDate: "2022-09-25",
+      endDate: "2023-09-30",
+      value: 383_285_000_000,
+      form: "10-K",
+      filedAt: "2025-10-31",
+      accession: "0000320193-25-000079",
+      sourceUrl:
+        "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/0000320193-25-000079-index.htm",
+    },
+  });
+  const current = buildReportedEvidence({
+    ...shared,
+    fact: {
+      fiscalYear: 2025,
+      startDate: "2024-09-29",
+      endDate: "2025-09-27",
+      value: 416_161_000_000,
+      form: "10-K",
+      filedAt: "2025-10-31",
+      accession: "0000320193-25-000079",
+      sourceUrl:
+        "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/0000320193-25-000079-index.htm",
+    },
+  });
+
+  assert.equal(historical.reviewedPresentation, undefined);
+  assert.equal(historical.reportedFact.fiscalYear, 2023);
+  assert.equal(historical.filing.fiscalYear, 2023);
+  assert.equal(historical.filing.filedAt, "2025-10-31");
+  assert.equal(historical.filing.accession, "0000320193-25-000079");
+  assert.equal(current.reviewedPresentation, reviewedPresentation);
+});
+
+test("Passport separates the selected reporting period from its supporting filing", async () => {
+  const passport = await readSource("components/number-passport.tsx");
+
+  assert.match(passport, /Selected reporting period/);
+  assert.match(passport, /Source filing/);
+  assert.match(passport, /Open supporting SEC filing/);
+  assert.match(passport, /comparative data in a later filing/i);
+  assert.doesNotMatch(
+    passport,
+    /Open FY\{fact\.fiscalYear\} official SEC filing/,
+  );
+});
+
 test("company workspace migrates Apple Revenue while retaining transitional company bodies", async () => {
   const [companyPage, workspace, workspaceStyles] = await Promise.all([
     readSource("app/company/[ticker]/page.tsx"),
@@ -72,7 +154,22 @@ test("company workspace migrates Apple Revenue while retaining transitional comp
   assert.match(companyPage, /<MetricDossier/);
   assert.match(companyPage, /<LegacyCompanyResearch/);
   assert.match(companyPage, /getCompanyRevenueData\(company\)/);
+  assert.match(companyPage, /if \(company\.capabilities\.balanceSheet\)/);
+  assert.match(companyPage, /if \(company\.capabilities\.earningsPerShare\)/);
+  assert.doesNotMatch(companyPage, /!isApple && company\.capabilities/);
+  assert.match(
+    companyPage,
+    /isApple\s*\?\s*\([\s\S]*<MetricDossier[\s\S]*<AdditionalReviewedRecords[\s\S]*<FinancialPositionSnapshot[\s\S]*<EarningsPerShareSnapshot/,
+  );
+  const appleBranch =
+    companyPage.match(/\{isApple \? \(([\s\S]*?)\) : \(/)?.[1] ?? "";
+  assert.match(appleBranch, /<MetricDossier/);
+  assert.doesNotMatch(
+    appleBranch,
+    /RevenueMetricSnapshot|RevenueExactRecords|LegacyCompanyResearch/,
+  );
   assert.match(workspace, /Reviewed company workspace/);
+  assert.match(workspace, /Additional reviewed records/);
   assert.match(workspace, /Explore/);
   assert.match(workspace, /Transitional workspace/);
   assert.match(workspaceStyles, /var\(--fp-v2-/);
@@ -110,8 +207,14 @@ test("Apple Revenue is one accessible Object to Trace to Passport dossier", asyn
   assert.match(passport, /Value role/);
   assert.match(passport, /Reported/);
   assert.match(passport, /Evidence availability/);
-  assert.match(passport, /Official SEC filing/);
+  assert.match(passport, /supporting SEC filing/i);
   assert.doesNotMatch(passport, /Source location/);
+
+  assert.match(selector, /Math\.max\(\.\.\.records\.map/);
+  assert.match(selector, /\(fact\.value \/ maximum\) \* 100/);
+  const barRule = styles.match(/\.barTrack i \{([\s\S]*?)\}/)?.[1] ?? "";
+  assert.match(barRule, /height:\s*var\(--bar-height\)/);
+  assert.doesNotMatch(barRule, /min-(?:block-size|height)/);
 
   assert.match(styles, /@media \(min-width: 48rem\)/);
   assert.match(styles, /@media \(min-width: 75rem\)/);

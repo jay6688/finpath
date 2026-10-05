@@ -35,11 +35,11 @@ export function NumberPassport({ record }: { record: CompanyRevenueRecord }) {
             <dd>{evidenceAvailable ? "Available" : "Unavailable"}</dd>
           </div>
           <div>
-            <dt>Reporting period</dt>
+            <dt>Selected reporting period</dt>
             <dd>Year ended {fact.endDate}</dd>
           </div>
           <div>
-            <dt>Form</dt>
+            <dt>Source filing</dt>
             <dd>{fact.form}</dd>
           </div>
           <div>
@@ -52,14 +52,18 @@ export function NumberPassport({ record }: { record: CompanyRevenueRecord }) {
           </div>
         </dl>
 
+        <p className={styles.sourceRelationship}>
+          This period may appear as comparative data in a later filing.
+        </p>
+
         {sourceUrl ? (
           <a href={sourceUrl} rel="noreferrer" target="_blank">
-            Open FY{fact.fiscalYear} official SEC filing
+            Open supporting SEC filing
             <span aria-hidden="true"> ↗</span>
           </a>
         ) : (
           <p className={styles.sourceUnavailable}>
-            Official SEC filing link unavailable for this record.
+            Supporting SEC filing link unavailable for this record.
           </p>
         )}
       </div>
