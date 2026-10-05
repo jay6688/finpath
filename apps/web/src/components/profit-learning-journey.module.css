@@ -132,7 +132,7 @@
   font-weight: 500;
 }
 
-.resultExplanation p:not(.eyebrow) {
+.resultExplanation > p:not(:first-child) {
   max-width: 48rem;
   margin: .35rem 0 0;
   color: var(--fp-v2-ink-soft);

@@ -29,6 +29,11 @@ test("the Ledger renders one exact 100 percent composition without a cosmetic mi
   assert.match(ledger, /presentationShareOfRevenue/);
   assert.match(ledger, /locatorPositionPercentOfRevenue/);
   assert.match(ledger, /<SignedAdjustmentMarker/);
+  assert.match(ledger, /scaleNote/);
+  assert.match(
+    ledger,
+    /signed-adjustment"[^]*formatAdjustment\(transformation\)/,
+  );
   assert.match(ledger, /Before/);
   assert.match(ledger, /Adjustment/);
   assert.match(ledger, /After/);

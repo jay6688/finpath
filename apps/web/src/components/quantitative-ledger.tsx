@@ -32,6 +32,7 @@ type QuantitativeLedgerProps = {
   lineCopy: LineCopy;
   model: ProfitLedgerPresentation;
   onSelect: (id: ProfitLedgerTransformation["id"]) => void;
+  scaleNote: string;
   selectedId: ProfitLedgerTransformation["id"];
   title: string;
   transformationCopy: TransformationCopy;
@@ -94,6 +95,7 @@ export function QuantitativeLedger({
   lineCopy,
   model,
   onSelect,
+  scaleNote,
   selectedId,
   title,
   transformationCopy,
@@ -123,9 +125,7 @@ export function QuantitativeLedger({
         <span>{context}</span>
       </header>
 
-      <p className={styles.scaleNote}>
-        Every quantitative length uses Revenue as the same 100% reference.
-      </p>
+      <p className={styles.scaleNote}>{scaleNote}</p>
       <p className="sr-only" id={summaryId}>
         Revenue is 100%. Cost of Sales, Operating Expenses, the signed Other
         adjustment, Tax and the Net Income remainder are all shown relative to
@@ -196,7 +196,11 @@ export function QuantitativeLedger({
                       : `${formatPercent(transformation.adjustment.presentationShareOfRevenue)} of Revenue`}
                   </small>
                 </span>
-                <b>{formatBillions(transformation.adjustment.reportedAmount)}</b>
+                <b>
+                  {transformation.adjustment.semanticRole === "signed-adjustment"
+                    ? formatAdjustment(transformation)
+                    : formatBillions(transformation.adjustment.reportedAmount)}
+                </b>
                 <em>{inspected ? "Inspected" : "Inspect"}</em>
               </button>
             );

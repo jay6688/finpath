@@ -176,6 +176,7 @@ export function ProfitLearningJourney({
         lineCopy={lineCopy}
         model={model}
         onSelect={selectLine}
+        scaleNote={ledgerContent.scaleNote}
         selectedId={selectedId}
         title={ledgerContent.title}
         transformationCopy={ledgerContent.transformations}

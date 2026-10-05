@@ -297,8 +297,17 @@ test("Profit and Net Profit Margin record meaningful use without requiring corre
     readSource("components/profit-margin-learning.tsx"),
   ]);
 
-  assert.match(profit, /stageIndex === stages\.length - 1[^]*markExplored\(\["profit"\]\)/);
-  assert.match(profit, /nextIndex === stages\.length - 1[^]*markExplored\(\["profit"\]\)/);
+  assert.match(
+    profit,
+    /allTransformationsInspected[^]*function completeLesson\(\)[^]*if \(!allTransformationsInspected\) return[^]*markExplored\(\["profit"\]\)/,
+  );
+  assert.doesNotMatch(
+    profit.slice(
+      profit.indexOf("function selectLine"),
+      profit.indexOf("function completeLesson"),
+    ),
+    /markExplored/,
+  );
   assert.match(margin, /if \(selectedChoice\)[^]*markExplored\(\["net-profit-margin"\]\)/);
   assert.doesNotMatch(margin, /if \(supportedAnswer\)[^]*markExplored/);
 });
