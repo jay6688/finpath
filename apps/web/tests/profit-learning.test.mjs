@@ -5,7 +5,6 @@ import test from "node:test";
 import {
   buildProfitLedgerPresentation,
   ProfitLearningDataError,
-  visibleProfitLineIds,
   validateProfitStatementForLesson,
 } from "../src/lib/profit-learning.ts";
 
@@ -73,45 +72,34 @@ test("the reviewed lesson keeps Apple's exact lines, source boundary, and review
   assert.doesNotMatch(content.nextPreview, /\d+\.?\d*%/);
 });
 
-test("progressive reveal keeps every previous income-statement line visible", async () => {
+test("the Ledger content defines the four accounting transformations in order", async () => {
   const content = JSON.parse(await readFile(contentUrl, "utf8"));
 
-  assert.equal(content.stages.length, 5);
   assert.deepEqual(
-    content.stages.map((_, index) =>
-      visibleProfitLineIds(content.stages, index).length,
-    ),
-    [1, 3, 5, 7, 9],
+    Object.keys(content.ledger.transformations),
+    [
+      "total-cost-of-sales",
+      "total-operating-expenses",
+      "other-income-expense-net",
+      "income-tax-provision",
+    ],
   );
-  assert.deepEqual(
-    visibleProfitLineIds(content.stages, 4),
-    lineValues.map(([id]) => id),
-  );
+  assert.equal(content.ledger.defaultSelection, "total-cost-of-sales");
+  assert.match(content.ledger.scaleNote, /Revenue as the same 100% reference/);
+  assert.equal("stages" in content, false);
 });
 
-test("the final reported lines are split into one before-tax and one tax stage", async () => {
+test("the signed Other line and Net Income result retain their distinct teaching roles", async () => {
   const content = JSON.parse(await readFile(contentUrl, "utf8"));
-  const beforeTax = content.stages[3];
-  const taxAndFinalLine = content.stages[4];
+  const other = content.ledger.transformations["other-income-expense-net"];
 
-  assert.equal(beforeTax.id, "before-tax");
-  assert.equal(beforeTax.navigationLabel, "Before tax");
-  assert.deepEqual(beforeTax.lineIds, [
-    "other-income-expense-net",
-    "income-before-income-taxes",
-  ]);
-  assert.match(beforeTax.traceHeading, /not yet income before tax/i);
-  assert.match(beforeTax.traceBody, /signed negative adjustment/i);
-  assert.match(beforeTax.traceBoundary, /tax provision has not been deducted/i);
-
-  assert.equal(taxAndFinalLine.id, "tax-and-final-line");
-  assert.equal(taxAndFinalLine.navigationLabel, "Tax and final line");
-  assert.deepEqual(taxAndFinalLine.lineIds, [
-    "income-tax-provision",
-    "net-income",
-  ]);
-  assert.match(taxAndFinalLine.traceHeading, /final major deduction/i);
-  assert.match(taxAndFinalLine.traceBoundary, /not cash held or cash generated/i);
+  assert.match(other.shortLabel, /Other Income \/ \(Expense\)/);
+  assert.match(other.explanation, /signed/i);
+  assert.match(content.ledger.scaleNote, /locator, not an enlarged block/i);
+  assert.match(other.boundary, /sign controls/i);
+  assert.equal(content.ledger.result.label, "Net Income");
+  assert.match(content.ledger.result.summary, /remainder/i);
+  assert.match(content.ledger.result.boundary, /not cash/i);
 });
 
 test("the FY2025 Profit path validates exact arithmetic and signed other expense", () => {
@@ -331,26 +319,29 @@ test("the concept check is low-pressure and the component exposes feedback and p
   assert.match(component, /href=\{statement\.sourceUrl\}/);
   assert.match(component, /Open official SEC filing index/);
 
-  const evidenceIndex = component.indexOf("<EvidenceInspector evidence={netIncomeEvidence}");
-  const conceptCheckIndex = component.indexOf('className="profit-understanding"');
-  const exactRecordIndex = component.indexOf('className="profit-exact-record"');
+  const evidenceIndex = component.indexOf("<EvidenceInspector");
+  const conceptCheckIndex = component.indexOf("className={styles.understanding}");
+  const exactRecordIndex = component.indexOf("className={styles.exactRecord}");
 
   assert.ok(evidenceIndex > 0);
   assert.ok(conceptCheckIndex > evidenceIndex);
   assert.ok(exactRecordIndex > conceptCheckIndex);
 });
 
-test("Profit progress is marked only when the final stage is revealed", async () => {
+test("Profit progress is marked only by explicit completion after every transformation", async () => {
   const component = await readFile(componentUrl, "utf8");
   const progressCalls = component.match(/markExplored\(\["profit"\]\)/g) ?? [];
+  const selectLine = component.slice(
+    component.indexOf("function selectLine"),
+    component.indexOf("function completeLesson"),
+  );
+  const completeLesson = component.slice(
+    component.indexOf("function completeLesson"),
+    component.indexOf("function reviewUnderstanding"),
+  );
 
-  assert.equal(progressCalls.length, 2);
-  assert.match(
-    component,
-    /if \(stageIndex === stages\.length - 1\) markExplored\(\["profit"\]\)/,
-  );
-  assert.match(
-    component,
-    /if \(nextIndex === stages\.length - 1\) markExplored\(\["profit"\]\)/,
-  );
+  assert.equal(progressCalls.length, 1);
+  assert.doesNotMatch(selectLine, /markExplored/);
+  assert.match(completeLesson, /if \(!allTransformationsInspected\) return/);
+  assert.match(completeLesson, /markExplored\(\["profit"\]\)/);
 });
