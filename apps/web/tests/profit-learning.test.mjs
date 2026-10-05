@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  buildProfitLedgerPresentation,
   ProfitLearningDataError,
   visibleProfitLineIds,
   validateProfitStatementForLesson,
@@ -128,6 +129,152 @@ test("the FY2025 Profit path validates exact arithmetic and signed other expense
   assert.equal(195_201_000_000 - 62_151_000_000, 133_050_000_000);
   assert.equal(133_050_000_000 - 321_000_000, 132_729_000_000);
   assert.equal(132_729_000_000 - 20_719_000_000, 112_010_000_000);
+});
+
+test("the production presentation model preserves all reviewed lines and roles", () => {
+  const model = buildProfitLedgerPresentation(makeStatement());
+
+  assert.equal(model.revenue.id, "total-net-sales");
+  assert.equal(model.revenue.reportedAmount, 416_161_000_000);
+  assert.equal(model.revenue.presentationShareOfRevenue, 100);
+  assert.deepEqual(
+    model.lines.map((line) => [line.id, line.semanticRole]),
+    [
+      ["total-net-sales", "reference"],
+      ["total-cost-of-sales", "adjustment"],
+      ["gross-margin", "subtotal"],
+      ["total-operating-expenses", "adjustment"],
+      ["operating-income", "subtotal"],
+      ["other-income-expense-net", "signed-adjustment"],
+      ["income-before-income-taxes", "subtotal"],
+      ["income-tax-provision", "adjustment"],
+      ["net-income", "result"],
+    ],
+  );
+  assert.equal(model.result.id, "net-income");
+  assert.equal(model.result.semanticRole, "result");
+  assert.equal(model.result.evidenceAvailability, "available");
+});
+
+test("Revenue is the exact 100 percent reference with no cosmetic minimum", () => {
+  const statement = makeStatement();
+  const model = buildProfitLedgerPresentation(statement);
+  const revenue = statement.lines[0].value;
+
+  assert.deepEqual(
+    model.composition.map((line) => line.id),
+    [
+      "total-cost-of-sales",
+      "total-operating-expenses",
+      "other-income-expense-net",
+      "income-tax-provision",
+      "net-income",
+    ],
+  );
+
+  for (const line of model.composition) {
+    assert.equal(
+      line.presentationShareOfRevenue,
+      (Math.abs(line.reportedAmount) / revenue) * 100,
+    );
+    assert.equal("minimumPercent" in line, false);
+  }
+
+  const other = model.composition[2];
+  assert.equal(other.geometryKind, "locator");
+  assert.equal(other.presentationShareOfRevenue, (321_000_000 / revenue) * 100);
+  assert.ok(other.presentationShareOfRevenue > 0.07);
+  assert.ok(other.presentationShareOfRevenue < 0.08);
+  assert.equal(
+    other.locatorPositionPercentOfRevenue,
+    ((revenue - 133_050_000_000) / revenue) * 100,
+  );
+  assert.equal(
+    model.composition.reduce(
+      (sum, line) => sum + line.presentationShareOfRevenue,
+      0,
+    ),
+    100,
+  );
+  assert.notEqual(
+    other.presentationShareOfRevenue,
+    Number(other.presentationShareOfRevenue.toFixed(2)),
+  );
+});
+
+test("the four selectable lines expose exact Before Adjustment After identities", () => {
+  const model = buildProfitLedgerPresentation(makeStatement());
+
+  assert.deepEqual(
+    model.transformations.map((transformation) => ({
+      id: transformation.id,
+      before: [transformation.before.id, transformation.before.reportedAmount],
+      adjustment: [
+        transformation.adjustment.id,
+        transformation.adjustment.reportedAmount,
+      ],
+      after: [transformation.after.id, transformation.after.reportedAmount],
+      operation: transformation.operation,
+      effectSign: transformation.effectSign,
+    })),
+    [
+      {
+        id: "total-cost-of-sales",
+        before: ["total-net-sales", 416_161_000_000],
+        adjustment: ["total-cost-of-sales", 220_960_000_000],
+        after: ["gross-margin", 195_201_000_000],
+        operation: "subtract",
+        effectSign: "negative",
+      },
+      {
+        id: "total-operating-expenses",
+        before: ["gross-margin", 195_201_000_000],
+        adjustment: ["total-operating-expenses", 62_151_000_000],
+        after: ["operating-income", 133_050_000_000],
+        operation: "subtract",
+        effectSign: "negative",
+      },
+      {
+        id: "other-income-expense-net",
+        before: ["operating-income", 133_050_000_000],
+        adjustment: ["other-income-expense-net", -321_000_000],
+        after: ["income-before-income-taxes", 132_729_000_000],
+        operation: "add-signed",
+        effectSign: "negative",
+      },
+      {
+        id: "income-tax-provision",
+        before: ["income-before-income-taxes", 132_729_000_000],
+        adjustment: ["income-tax-provision", 20_719_000_000],
+        after: ["net-income", 112_010_000_000],
+        operation: "subtract",
+        effectSign: "negative",
+      },
+    ],
+  );
+  assert.equal(
+    model.transformations.some((transformation) => transformation.id === "net-income"),
+    false,
+  );
+});
+
+test("a synthetic positive Other line remains a signed addition, not a deduction", () => {
+  const statement = makeStatement();
+  statement.lines[5].value = 321_000_000;
+  statement.lines[6].value = 133_371_000_000;
+  statement.lines[8].value = 112_652_000_000;
+
+  const model = buildProfitLedgerPresentation(statement);
+  const other = model.lines.find((line) => line.id === "other-income-expense-net");
+  const transformation = model.transformations.find(
+    (candidate) => candidate.id === "other-income-expense-net",
+  );
+
+  assert.equal(other.semanticRole, "signed-adjustment");
+  assert.equal(other.reportedSign, "positive");
+  assert.equal(transformation.operation, "add-signed");
+  assert.equal(transformation.effectSign, "positive");
+  assert.equal(transformation.adjustment.reportedAmount, 321_000_000);
 });
 
 test("the lesson rejects mismatched filing, bad ordering, bad arithmetic, and non-SEC provenance", () => {
