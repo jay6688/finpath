@@ -9,7 +9,9 @@ import {
   type CompanyIncomeStatement,
 } from "@/lib/api";
 import {
+  buildMarginPresentation,
   deriveNetProfitMargin,
+  type MarginPresentation,
   ProfitMarginDataError,
   type NetProfitMarginDerivation,
 } from "@/lib/profit-margin";
@@ -28,6 +30,7 @@ export const dynamic = "force-dynamic";
 export default async function NetProfitMarginLessonPage() {
   let incomeStatement: CompanyIncomeStatement | null = null;
   let derivation: NetProfitMarginDerivation | null = null;
+  let presentation: MarginPresentation | null = null;
   let dataError: string | null = null;
 
   try {
@@ -40,9 +43,11 @@ export default async function NetProfitMarginLessonPage() {
       accession: marginContent.accession,
     });
     derivation = deriveNetProfitMargin(incomeStatement.statement);
+    presentation = buildMarginPresentation(derivation);
   } catch (error) {
     incomeStatement = null;
     derivation = null;
+    presentation = null;
     dataError =
       error instanceof FinPathApiError ||
       error instanceof ProfitLearningDataError ||
@@ -56,8 +61,12 @@ export default async function NetProfitMarginLessonPage() {
       conceptId="net-profit-margin"
       example="Apple Inc. · FY2025 · SEC 10-K"
     >
-      {incomeStatement && derivation ? (
-        <ProfitMarginLearning derivation={derivation} incomeStatement={incomeStatement} />
+      {incomeStatement && derivation && presentation ? (
+        <ProfitMarginLearning
+          derivation={derivation}
+          incomeStatement={incomeStatement}
+          presentation={presentation}
+        />
       ) : (
         <div className="data-empty-state profit-data-empty" role="status">
           <div className="data-empty-state__value" aria-hidden="true">—</div>

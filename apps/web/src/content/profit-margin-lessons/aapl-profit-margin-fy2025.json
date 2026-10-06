@@ -8,12 +8,25 @@
   "filedAt": "2025-10-31",
   "accession": "0000320193-25-000079",
   "title": "How much Net Income for each $100 of Revenue?",
-  "introduction": "Start with the two figures Apple reported, then put their relationship on one simple scale.",
-  "discovery": {
-    "heading": "Notice",
-    "prompt": "Revenue is much larger. How can we compare their relationship on one simple scale?",
-    "support": "Next, FinPath will put Revenue on a $100 comparison scale.",
-    "revealLabel": "Compare them on a $100 Revenue scale"
+  "introduction": "Use Revenue as the full reference, then measure Net Income as one part of that same whole.",
+  "ruler": {
+    "title": "Measure Net Income against the Revenue whole",
+    "normalizedLabel": "Normalized Revenue reference · $100",
+    "remainingBoundary": "Outside the Net Income share — not one expense line.",
+    "anchors": {
+      "revenue-reference": {
+        "label": "Revenue reference",
+        "meaning": "This is the whole being compared. Revenue sets the full 100% reference."
+      },
+      "net-income-part": {
+        "label": "Net Income part",
+        "meaning": "This is the part measured against Revenue. It keeps the same Net Income identity as the Profit lesson."
+      },
+      "margin-relationship": {
+        "label": "Margin relationship",
+        "meaning": "FinPath derives this percentage from the two reported amounts. Apple did not report the ratio as a financial line."
+      }
+    }
   },
   "formula": {
     "heading": "FinPath calculation · derived",
@@ -21,6 +34,7 @@
     "resultLabel": "Net Profit Margin"
   },
   "ratioBoundary": "This is a comparison ratio. It does not mean this amount of cash moved, was generated, or was retained.",
+  "misconceptionBoundary": "This does not mean Revenue fell by this percentage, and the normalized amount is not cash retained or a value reported by Apple. The portion outside Net Income is not one expense line.",
   "terminology": "Net Profit Margin uses Net Income. It is not Apple’s ‘Gross margin’ dollar subtotal from the previous lesson.",
   "question": {
     "prompt": "If Revenue were $100 and the margin stayed the same, about how much would be Net Income?",

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 
 import { EvidenceInspector } from "@/components/evidence-inspector";
 import { useLearningProgress } from "@/components/learning-progress-provider";
+import { RevenueRuler } from "@/components/revenue-ruler";
 import marginContent from "@/content/profit-margin-lessons/aapl-profit-margin-fy2025.json";
 import profitContent from "@/content/profit-lessons/aapl-profit-fy2025.json";
 import type { CompanyIncomeStatement, IncomeStatementLineId } from "@/lib/api";
@@ -11,46 +12,47 @@ import {
   buildNetProfitMarginEvidence,
   buildReviewedPresentation,
 } from "@/lib/evidence";
-import type { NetProfitMarginDerivation } from "@/lib/profit-margin";
+import type {
+  MarginPresentation,
+  MarginSemanticAnchor,
+  NetProfitMarginDerivation,
+} from "@/lib/profit-margin";
 
+import styles from "./profit-margin-learning.module.css";
 
 type ProfitMarginLearningProps = {
   incomeStatement: CompanyIncomeStatement;
   derivation: NetProfitMarginDerivation;
+  presentation: MarginPresentation;
 };
-
-const exactBillions = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 3,
-  maximumFractionDigits: 3,
-});
-
-function formatBillions(value: number): string {
-  return `${exactBillions.format(value / 1_000_000_000)}B`;
-}
 
 const reviewedLabels = Object.fromEntries(
   Object.entries(profitContent.lines).map(([id, line]) => [id, line.reportedLabel]),
 ) as Partial<Record<IncomeStatementLineId, string>>;
 
+const anchorCopy = marginContent.ruler.anchors as Record<
+  MarginSemanticAnchor["id"],
+  { label: string; meaning: string }
+>;
+
 export function ProfitMarginLearning({
   incomeStatement,
   derivation,
+  presentation,
 }: ProfitMarginLearningProps) {
   const { markExplored } = useLearningProgress();
   const { statement, dataStatus } = incomeStatement;
-  const [isRevealed, setIsRevealed] = useState(false);
+  const [selectedAnchorId, setSelectedAnchorId] =
+    useState<MarginSemanticAnchor["id"]>(presentation.defaultAnchorId);
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [reviewedChoice, setReviewedChoice] = useState<string | null>(null);
-  const percentDisplay = derivation.displayPercent.toFixed(1);
-  const perHundredDisplay = derivation.perHundredRevenue.toFixed(2);
-  const outsideShareDisplay = (100 - derivation.perHundredRevenue).toFixed(2);
+  const perHundredDisplay =
+    presentation.normalizedPerHundred.displayAmount.toFixed(2);
+  const outsideShareDisplay = (
+    100 - presentation.normalizedPerHundred.displayAmount
+  ).toFixed(2);
   const supportedAnswer =
     reviewedChoice === marginContent.question.supportedChoiceId;
-  const scaleStyle = {
-    "--net-income-share": `${derivation.displayPercent}%`,
-  } as CSSProperties;
   const reviewedContent = {
     fiscalYear: marginContent.fiscalYear,
     startDate: marginContent.startDate,
@@ -78,10 +80,6 @@ export function ProfitMarginLearning({
     }),
   });
 
-  function revealCalculation() {
-    setIsRevealed(true);
-  }
-
   function reviewUnderstanding(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (selectedChoice) {
@@ -97,17 +95,15 @@ export function ProfitMarginLearning({
 
   return (
     <section
-      className="profit-margin-lesson"
-      id="profit-margin-lesson"
       aria-labelledby="profit-margin-title"
+      className={styles.lesson}
+      id="profit-margin-lesson"
     >
-      <header className="profit-margin-lesson__header">
-        <p className="eyebrow">Net Profit Margin · guided ratio</p>
+      <header className={styles.introduction}>
+        <p className="eyebrow">Net Profit Margin · whole-to-part ratio</p>
         <h2 id="profit-margin-title">{marginContent.title}</h2>
-        <p className="profit-margin-lesson__introduction">
-          {marginContent.introduction}
-        </p>
-        <p className="profit-margin-lesson__period">
+        <p>{marginContent.introduction}</p>
+        <p className={styles.period}>
           FY{statement.fiscalYear} · {statement.currency} · year ended{" "}
           {statement.endDate} · filed {statement.filedAt} ·{" "}
           <a href={statement.sourceUrl} rel="noreferrer" target="_blank">
@@ -116,149 +112,76 @@ export function ProfitMarginLearning({
         </p>
       </header>
 
-      <section className="profit-margin-reported" aria-labelledby="reported-values-heading">
-        <div className="profit-margin-section-heading">
-          <p className="eyebrow" id="reported-values-heading">Apple reported</p>
-          <span>FY{statement.fiscalYear} · USD billions</span>
-        </div>
-        <dl>
-          <div>
-            <dt>Revenue</dt>
-            <dd>{formatBillions(derivation.revenue)}</dd>
-            <small>Apple label: Total net sales</small>
-          </div>
-          <div>
-            <dt>Net Income</dt>
-            <dd>{formatBillions(derivation.netIncome)}</dd>
-            <small>Apple label: Net income</small>
-          </div>
-        </dl>
+      <RevenueRuler
+        anchorCopy={anchorCopy}
+        context={`Apple Inc. · FY${statement.fiscalYear} · USD`}
+        normalizedLabel={marginContent.ruler.normalizedLabel}
+        onSelect={setSelectedAnchorId}
+        presentation={presentation}
+        remainingBoundary={marginContent.ruler.remainingBoundary}
+        selectedAnchorId={selectedAnchorId}
+        title={marginContent.ruler.title}
+      />
+
+      <aside className={styles.boundaries} aria-labelledby="margin-boundaries-heading">
+        <p className="eyebrow" id="margin-boundaries-heading">Read the ratio carefully</p>
+        <p>{marginContent.misconceptionBoundary}</p>
+        <p><strong>Keep the terms separate.</strong> {marginContent.terminology}</p>
+      </aside>
+
+      <section className={styles.application} aria-labelledby="margin-check-title">
+        <form onSubmit={reviewUnderstanding}>
+          <fieldset>
+            <legend id="margin-check-title">{marginContent.question.prompt}</legend>
+            <p>{marginContent.question.hint}</p>
+            <div className={styles.choices}>
+              <label>
+                <input
+                  checked={selectedChoice === "net-income-share"}
+                  name="profit-margin-understanding"
+                  onChange={() => selectChoice("net-income-share")}
+                  type="radio"
+                  value="net-income-share"
+                />
+                <span>${perHundredDisplay}</span>
+              </label>
+              <label>
+                <input
+                  checked={selectedChoice === "outside-share"}
+                  name="profit-margin-understanding"
+                  onChange={() => selectChoice("outside-share")}
+                  type="radio"
+                  value="outside-share"
+                />
+                <span>${outsideShareDisplay}</span>
+              </label>
+            </div>
+          </fieldset>
+          <button disabled={!selectedChoice} type="submit">
+            Check my reasoning
+          </button>
+        </form>
+
+        {reviewedChoice ? (
+          <p aria-live="polite" className={styles.feedback} role="status">
+            <strong>
+              {supportedAnswer ? `About $${perHundredDisplay}. ` : "Not quite. "}
+            </strong>
+            {supportedAnswer
+              ? marginContent.question.supportedFeedback
+              : marginContent.question.unsupportedFeedback}
+          </p>
+        ) : null}
       </section>
 
-      <p className="sr-only" aria-live="polite">
-        {isRevealed ? "Net Profit Margin calculation revealed." : ""}
-      </p>
+      <EvidenceInspector evidence={marginEvidence} id="profit-margin-evidence" />
 
-      {!isRevealed ? (
-        <section className="profit-margin-discovery" aria-labelledby="margin-discovery-heading">
-          <p className="eyebrow" id="margin-discovery-heading">
-            {marginContent.discovery.heading}
-          </p>
-          <h3>{marginContent.discovery.prompt}</h3>
-          <p>{marginContent.discovery.support}</p>
-          <button onClick={revealCalculation} type="button">
-            {marginContent.discovery.revealLabel}
-          </button>
-        </section>
-      ) : (
-        <div className="profit-margin-reveal">
-          <section className="profit-margin-calculation" aria-labelledby="margin-calculation-heading">
-            <p className="eyebrow" id="margin-calculation-heading">
-              {marginContent.formula.heading}
-            </p>
-            <div className="profit-margin-formula">
-              <div>
-                <span>{marginContent.formula.expression}</span>
-                <strong>
-                  {formatBillions(derivation.netIncome)} ÷{" "}
-                  {formatBillions(derivation.revenue)} × 100
-                </strong>
-              </div>
-              <div className="profit-margin-result">
-                <span>{marginContent.formula.resultLabel}</span>
-                <strong>≈ {percentDisplay}%</strong>
-              </div>
-            </div>
-          </section>
+      <aside className={styles.limitation} aria-labelledby="margin-limitation-heading">
+        <p className="eyebrow" id="margin-limitation-heading">What this cannot tell you</p>
+        <p>{marginContent.limitation}</p>
+      </aside>
 
-          <div className="profit-margin-understanding-grid">
-            <figure className="profit-margin-scale" style={scaleStyle}>
-              <figcaption>On a $100 Revenue scale</figcaption>
-              <strong>${perHundredDisplay} Net Income</strong>
-              <div
-                className="profit-margin-scale__visual"
-                role="img"
-                aria-label={`Static ratio visualization: about $${perHundredDisplay} of Net Income for every $100 of Revenue`}
-              >
-                <span aria-hidden="true" />
-              </div>
-              <div className="profit-margin-scale__labels" aria-hidden="true">
-                <span>$0</span>
-                <span>$100 Revenue</span>
-              </div>
-              <small>Static ratio visualization · not a slider</small>
-            </figure>
-
-            <aside className="profit-margin-trace" aria-labelledby="margin-trace-heading">
-              <p className="profit-margin-trace__label">
-                <span aria-hidden="true" /> Learning Trace
-              </p>
-              <h3 id="margin-trace-heading">
-                About ${perHundredDisplay} of Net Income for every $100 of Revenue.
-              </h3>
-              <p>{marginContent.ratioBoundary}</p>
-            </aside>
-          </div>
-
-          <p className="profit-margin-terminology">
-            <strong>Keep the terms separate</strong>
-            {marginContent.terminology}
-          </p>
-
-          <section className="profit-margin-application" aria-labelledby="margin-check-title">
-            <form onSubmit={reviewUnderstanding}>
-              <fieldset>
-                <legend id="margin-check-title">{marginContent.question.prompt}</legend>
-                <p>{marginContent.question.hint}</p>
-                <div className="profit-margin-application__choices">
-                  <label>
-                    <input
-                      checked={selectedChoice === "net-income-share"}
-                      name="profit-margin-understanding"
-                      onChange={() => selectChoice("net-income-share")}
-                      type="radio"
-                      value="net-income-share"
-                    />
-                    <span>${perHundredDisplay}</span>
-                  </label>
-                  <label>
-                    <input
-                      checked={selectedChoice === "outside-share"}
-                      name="profit-margin-understanding"
-                      onChange={() => selectChoice("outside-share")}
-                      type="radio"
-                      value="outside-share"
-                    />
-                    <span>${outsideShareDisplay}</span>
-                  </label>
-                </div>
-              </fieldset>
-              <button disabled={!selectedChoice} type="submit">
-                Check my reasoning
-              </button>
-            </form>
-
-            {reviewedChoice ? (
-              <p className="profit-margin-application__feedback" role="status">
-                <strong>{supportedAnswer ? `About $${perHundredDisplay}. ` : "Not quite. "}</strong>
-                {supportedAnswer
-                  ? marginContent.question.supportedFeedback
-                  : marginContent.question.unsupportedFeedback}
-              </p>
-            ) : null}
-          </section>
-
-          <EvidenceInspector evidence={marginEvidence} id="profit-margin-evidence" />
-
-          <aside className="profit-margin-limitation" aria-labelledby="margin-limitation-heading">
-            <p className="eyebrow" id="margin-limitation-heading">What this cannot tell you</p>
-            <p>{marginContent.limitation}</p>
-          </aside>
-        </div>
-      )}
-
-
-      <p className="profit-retrieved-note">
+      <p className={styles.retrievedNote}>
         Retrieved{" "}
         {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", {
           timeZone: "Asia/Kuala_Lumpur",

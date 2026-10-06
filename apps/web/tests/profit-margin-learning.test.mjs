@@ -158,6 +158,14 @@ test("reviewed content keeps reported facts, derived calculation, and limitation
 
   assert.equal(content.accession, "0000320193-25-000079");
   assert.match(content.formula.heading, /derived/i);
+  assert.match(content.ruler.normalizedLabel, /Normalized Revenue reference/i);
+  assert.match(content.ruler.remainingBoundary, /not one expense line/i);
+  assert.match(content.ruler.anchors["revenue-reference"].meaning, /whole being compared/i);
+  assert.match(content.ruler.anchors["net-income-part"].meaning, /part measured against Revenue/i);
+  assert.match(content.ruler.anchors["margin-relationship"].meaning, /derives this percentage/i);
+  assert.match(content.misconceptionBoundary, /Revenue fell/i);
+  assert.match(content.misconceptionBoundary, /cash/i);
+  assert.match(content.misconceptionBoundary, /reported by Apple/i);
   assert.match(content.terminology, /uses Net Income/i);
   assert.match(content.terminology, /not Apple’s ‘Gross margin’ dollar subtotal/i);
   assert.match(content.ratioBoundary, /does not mean.*cash/i);
@@ -166,20 +174,32 @@ test("reviewed content keeps reported facts, derived calculation, and limitation
   assert.ok(content.sources.every((source) => new URL(source.url).protocol === "https:"));
 });
 
-test("the lesson implements discovery, one low-pressure application, and reusable evidence", async () => {
-  const [component, evidenceComponent, page, content] = await Promise.all([
+test("the lesson presents the meaning immediately and preserves deliberate completion and evidence", async () => {
+  const [component, ruler, evidenceComponent, page, content] = await Promise.all([
     readSource("components/profit-margin-learning.tsx"),
+    readSource("components/revenue-ruler.tsx"),
     readSource("components/evidence-inspector.tsx"),
     readSource("app/learn/company-analysis/net-profit-margin/page.tsx"),
     readSource("content/profit-margin-lessons/aapl-profit-margin-fy2025.json").then(JSON.parse),
   ]);
 
-  assert.match(component, /setIsRevealed\(true\)/);
+  assert.doesNotMatch(component, /isRevealed|Reveal calculation|revealCalculation/);
+  assert.match(component, /<RevenueRuler/);
+  assert.match(component, /useState<MarginSemanticAnchor\["id"\]>/);
+  assert.match(component, /setSelectedAnchorId/);
   assert.match(component, /setReviewedChoice\(null\)/);
   assert.match(component, /Check my reasoning/);
   assert.match(content.question.hint, /practice, not a score/i);
-  assert.match(component, /Static ratio visualization/);
-  assert.doesNotMatch(component, /type="range"|role="slider"/);
+  assert.match(ruler, /role="img"/);
+  assert.match(ruler, /aria-label=\{textualEquivalent\}/);
+  assert.match(ruler, /aria-pressed=\{selected\}/);
+  assert.match(ruler, /type="button"/);
+  assert.match(ruler, /data-selected=\{selected\}/);
+  assert.match(ruler, /presentation\.ruler\.geometryPercent/);
+  assert.doesNotMatch(ruler, /displayPercent.*--margin-geometry|Math\.min|Math\.max|clamp\(/);
+  assert.doesNotMatch(ruler, /role="progressbar"|type="range"|role="slider"/);
+  assert.doesNotMatch(ruler, /markExplored/);
+  assert.equal((component.match(/markExplored\(/g) ?? []).length, 1);
   assert.match(component, /<EvidenceInspector evidence=\{marginEvidence\}/);
   assert.match(evidenceComponent, /href=\{evidence\.filing\.sourceUrl\}/);
   assert.match(evidenceComponent, /Open SEC filing index/);
@@ -187,4 +207,19 @@ test("the lesson implements discovery, one low-pressure application, and reusabl
   assert.match(component, /role="status"/);
   assert.doesNotMatch(component, /SEC source connected/);
   assert.match(page, /deriveNetProfitMargin\(incomeStatement\.statement\)/);
+  assert.match(page, /buildMarginPresentation\(derivation\)/);
+  assert.match(page, /conceptId="net-profit-margin"/);
+  assert.doesNotMatch(`${component}\n${ruler}\n${JSON.stringify(content)}`, /BUY|SELL|Market Cap|P\/E|good score|bad score/i);
+});
+
+test("the Revenue Ruler styles exact measured geometry without a minimum fill", async () => {
+  const styles = await readSource("components/revenue-ruler.module.css");
+  const measuredShareRule = styles.match(/\.measuredShare\s*\{(?<rule>[^}]*)\}/s)?.groups?.rule;
+
+  assert.ok(measuredShareRule);
+  assert.match(styles, /width:\s*calc\(var\(--margin-geometry\) \* 1%\)/);
+  assert.doesNotMatch(measuredShareRule, /min-width|min-inline-size/);
+  assert.match(styles, /focus-visible/);
+  assert.match(styles, /min-block-size:\s*var\(--fp-v2-touch\)/);
+  assert.match(styles, /prefers-reduced-motion:\s*reduce/);
 });
