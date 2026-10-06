@@ -9,7 +9,9 @@ import {
   type CompanyCashFlowStatement,
 } from "@/lib/api";
 import {
+  buildOperatingCashFlowPresentation,
   OperatingCashFlowDataError,
+  type OperatingCashFlowPresentation,
   validateCashFlowStatementForLesson,
 } from "@/lib/operating-cash-flow";
 
@@ -22,6 +24,7 @@ export const dynamic = "force-dynamic";
 
 export default async function OperatingCashFlowLessonPage() {
   let cashFlowStatement: CompanyCashFlowStatement | null = null;
+  let presentation: OperatingCashFlowPresentation | null = null;
   let dataError: string | null = null;
 
   try {
@@ -33,8 +36,12 @@ export default async function OperatingCashFlowLessonPage() {
       fiscalYear: cashFlowContent.fiscalYear,
       accession: cashFlowContent.accession,
     });
+    presentation = buildOperatingCashFlowPresentation(
+      cashFlowStatement.statement,
+    );
   } catch (error) {
     cashFlowStatement = null;
+    presentation = null;
     dataError =
       error instanceof FinPathApiError || error instanceof OperatingCashFlowDataError
         ? error.message
@@ -46,8 +53,11 @@ export default async function OperatingCashFlowLessonPage() {
       conceptId="operating-cash-flow"
       example="Apple Inc. · FY2025 · SEC 10-K"
     >
-      {cashFlowStatement ? (
-        <OperatingCashFlowLearning cashFlowStatement={cashFlowStatement} />
+      {cashFlowStatement && presentation ? (
+        <OperatingCashFlowLearning
+          cashFlowStatement={cashFlowStatement}
+          presentation={presentation}
+        />
       ) : (
         <div className="data-empty-state profit-data-empty" role="status">
           <div className="data-empty-state__value" aria-hidden="true">—</div>

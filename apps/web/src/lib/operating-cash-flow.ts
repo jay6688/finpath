@@ -60,6 +60,9 @@ const timingLineIds: CashFlowStatementLineId[] = [
 ];
 
 export type AdjustmentDirection = "positive" | "negative" | "zero";
+export type CashReconciliationGroupId =
+  | "non-cash-effects"
+  | "operating-timing-effects";
 
 export type OperatingCashFlowPresentationLine = {
   id: CashFlowStatementLineId;
@@ -75,12 +78,14 @@ export type OperatingCashFlowPresentationLine = {
 };
 
 export type OperatingCashFlowPresentationGroup = {
-  id: "non-cash-effects" | "operating-timing-effects";
+  id: CashReconciliationGroupId;
   kind: "finpath-derived-group";
   semanticRole: "non-cash-effects" | "operating-timing-effects";
   amount: number;
   direction: AdjustmentDirection;
   magnitudePercent: number;
+  beforeAmount: number;
+  afterAmount: number;
   intermediateAmount: number;
   evidenceAvailability: "derived-from-reported-lines";
   lines: OperatingCashFlowPresentationLine[];
@@ -190,6 +195,7 @@ export function buildOperatingCashFlowPresentation(
     lines,
     amount: nonCashAmount,
     referenceAmount,
+    beforeAmount: startingAmount,
     intermediateAmount: startingAmount + nonCashAmount,
   });
   const timingGroup = buildGroup({
@@ -201,6 +207,7 @@ export function buildOperatingCashFlowPresentation(
     lines,
     amount: timingAmount,
     referenceAmount,
+    beforeAmount: startingAmount + nonCashAmount,
     intermediateAmount: startingAmount + nonCashAmount + timingAmount,
   });
 
@@ -280,6 +287,7 @@ function buildGroup({
   lines,
   amount,
   referenceAmount,
+  beforeAmount,
   intermediateAmount,
 }: {
   id: OperatingCashFlowPresentationGroup["id"];
@@ -290,6 +298,7 @@ function buildGroup({
   lines: Map<CashFlowStatementLineId, CashFlowStatementLine>;
   amount: number;
   referenceAmount: number;
+  beforeAmount: number;
   intermediateAmount: number;
 }): OperatingCashFlowPresentationGroup {
   return {
@@ -299,6 +308,8 @@ function buildGroup({
     amount,
     direction: directionOf(amount),
     magnitudePercent: magnitudePercent(amount, referenceAmount),
+    beforeAmount,
+    afterAmount: intermediateAmount,
     intermediateAmount,
     evidenceAvailability: "derived-from-reported-lines",
     lines: lineIds.map((lineId) => {
