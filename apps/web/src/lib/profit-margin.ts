@@ -10,6 +10,49 @@ export type NetProfitMarginDerivation = {
   perHundredRevenue: number;
 };
 
+export type MarginSemanticAnchor = {
+  id: "revenue-reference" | "net-income-part" | "margin-relationship";
+  semanticRole: "reference-whole" | "measured-part" | "derived-relationship";
+};
+
+type MarginReportedValue = {
+  amount: number;
+  evidenceAvailability: "available";
+  kind: "reported";
+  semanticRole: "reference-whole" | "measured-part";
+};
+
+export type MarginPresentation = {
+  revenue: MarginReportedValue;
+  netIncome: MarginReportedValue;
+  ratio: {
+    kind: "derived";
+    exactPercent: number;
+    displayPercent: number;
+  };
+  normalizedPerHundred: {
+    kind: "derived-normalized";
+    exactAmount: number;
+    displayAmount: number;
+  };
+  ruler:
+    | {
+        domainMinimumPercent: 0;
+        domainMaximumPercent: 100;
+        geometryPercent: number;
+        state: "supported";
+      }
+    | {
+        domainMinimumPercent: 0;
+        domainMaximumPercent: 100;
+        geometryPercent: null;
+        reason: "negative-margin" | "above-reference";
+        state: "unsupported";
+      };
+  anchors: MarginSemanticAnchor[];
+  defaultAnchorId: MarginSemanticAnchor["id"];
+};
+
 export class ProfitMarginDataError extends Error {
   constructor(message: string) {
     super(message);
@@ -41,14 +84,9 @@ export function deriveNetProfitMargin(
       "Net Profit Margin requires a positive, validated Revenue denominator.",
     );
   }
-  if (!Number.isSafeInteger(netIncome) || netIncome < 0) {
+  if (!Number.isSafeInteger(netIncome)) {
     throw new ProfitMarginDataError(
-      "The reviewed Apple lesson requires a non-negative, validated Net Income numerator.",
-    );
-  }
-  if (netIncome > revenue) {
-    throw new ProfitMarginDataError(
-      "The reviewed $100 Revenue scale does not support Net Income above Revenue.",
+      "Net Profit Margin requires a validated Net Income numerator.",
     );
   }
 
@@ -68,6 +106,77 @@ export function deriveNetProfitMargin(
     verificationPercent: roundTo(exactPercent, 3),
     displayPercent,
     perHundredRevenue: displayPercent,
+  };
+}
+
+export function buildMarginPresentation(
+  derivation: NetProfitMarginDerivation,
+): MarginPresentation {
+  const base = {
+    revenue: {
+      amount: derivation.revenue,
+      evidenceAvailability: "available" as const,
+      kind: "reported" as const,
+      semanticRole: "reference-whole" as const,
+    },
+    netIncome: {
+      amount: derivation.netIncome,
+      evidenceAvailability: "available" as const,
+      kind: "reported" as const,
+      semanticRole: "measured-part" as const,
+    },
+    ratio: {
+      kind: "derived" as const,
+      exactPercent: derivation.exactPercent,
+      displayPercent: derivation.displayPercent,
+    },
+    normalizedPerHundred: {
+      kind: "derived-normalized" as const,
+      exactAmount: derivation.exactPercent,
+      displayAmount: roundTo(derivation.displayPercent, 2),
+    },
+    anchors: [
+      { id: "revenue-reference", semanticRole: "reference-whole" },
+      { id: "net-income-part", semanticRole: "measured-part" },
+      { id: "margin-relationship", semanticRole: "derived-relationship" },
+    ] satisfies MarginSemanticAnchor[],
+    defaultAnchorId: "margin-relationship" as const,
+  };
+
+  if (derivation.exactPercent < 0) {
+    return {
+      ...base,
+      ruler: {
+        domainMinimumPercent: 0,
+        domainMaximumPercent: 100,
+        geometryPercent: null,
+        reason: "negative-margin",
+        state: "unsupported",
+      },
+    };
+  }
+
+  if (derivation.exactPercent > 100) {
+    return {
+      ...base,
+      ruler: {
+        domainMinimumPercent: 0,
+        domainMaximumPercent: 100,
+        geometryPercent: null,
+        reason: "above-reference",
+        state: "unsupported",
+      },
+    };
+  }
+
+  return {
+    ...base,
+    ruler: {
+      domainMinimumPercent: 0,
+      domainMaximumPercent: 100,
+      geometryPercent: derivation.exactPercent,
+      state: "supported",
+    },
   };
 }
 

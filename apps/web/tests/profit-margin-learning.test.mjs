@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  buildMarginPresentation,
   deriveNetProfitMargin,
   ProfitMarginDataError,
 } from "../src/lib/profit-margin.ts";
@@ -52,10 +53,77 @@ test("derives Apple's FY2025 Net Profit Margin from Revenue and Net Income", () 
   assert.ok(Math.abs(result.exactPercent - 26.915064121818238) < 1e-12);
   assert.equal(result.verificationPercent, 26.915);
   assert.equal(result.displayPercent, 26.9);
-  assert.equal(result.perHundredRevenue, 26.9);
 });
 
-test("rejects missing, duplicate, zero, negative, and unsuitable inputs", () => {
+test("builds a reported-to-derived Margin presentation with exact ruler geometry", () => {
+  const derivation = deriveNetProfitMargin(makeStatement());
+  const presentation = buildMarginPresentation(derivation);
+
+  assert.deepEqual(presentation.revenue, {
+    amount: 416_161_000_000,
+    evidenceAvailability: "available",
+    kind: "reported",
+    semanticRole: "reference-whole",
+  });
+  assert.deepEqual(presentation.netIncome, {
+    amount: 112_010_000_000,
+    evidenceAvailability: "available",
+    kind: "reported",
+    semanticRole: "measured-part",
+  });
+  assert.equal(presentation.ratio.kind, "derived");
+  assert.equal(presentation.ratio.exactPercent, derivation.exactPercent);
+  assert.equal(presentation.ratio.displayPercent, 26.9);
+  assert.equal(presentation.normalizedPerHundred.kind, "derived-normalized");
+  assert.equal(presentation.normalizedPerHundred.exactAmount, derivation.exactPercent);
+  assert.equal(presentation.normalizedPerHundred.displayAmount, 26.9);
+  assert.deepEqual(presentation.ruler, {
+    domainMaximumPercent: 100,
+    domainMinimumPercent: 0,
+    geometryPercent: derivation.exactPercent,
+    state: "supported",
+  });
+  assert.notEqual(presentation.ruler.geometryPercent, presentation.ratio.displayPercent);
+  assert.equal(presentation.defaultAnchorId, "margin-relationship");
+  assert.deepEqual(
+    presentation.anchors.map((anchor) => anchor.id),
+    ["revenue-reference", "net-income-part", "margin-relationship"],
+  );
+});
+
+test("keeps negative and above-100 ratios derived but unsupported by the ruler", () => {
+  const negativeStatement = makeStatement();
+  negativeStatement.lines.at(-1).value = -1;
+  const negative = buildMarginPresentation(
+    deriveNetProfitMargin(negativeStatement),
+  );
+
+  assert.equal(negative.ratio.exactPercent, (-1 / 416_161_000_000) * 100);
+  assert.deepEqual(negative.ruler, {
+    domainMaximumPercent: 100,
+    domainMinimumPercent: 0,
+    geometryPercent: null,
+    reason: "negative-margin",
+    state: "unsupported",
+  });
+
+  const aboveReferenceStatement = makeStatement();
+  aboveReferenceStatement.lines.at(-1).value = 416_161_000_001;
+  const aboveReference = buildMarginPresentation(
+    deriveNetProfitMargin(aboveReferenceStatement),
+  );
+
+  assert.ok(aboveReference.ratio.exactPercent > 100);
+  assert.deepEqual(aboveReference.ruler, {
+    domainMaximumPercent: 100,
+    domainMinimumPercent: 0,
+    geometryPercent: null,
+    reason: "above-reference",
+    state: "unsupported",
+  });
+});
+
+test("rejects missing, duplicate, and invalid Revenue inputs", () => {
   const invalidStatements = [
     () => {
       const statement = makeStatement();
@@ -70,16 +138,6 @@ test("rejects missing, duplicate, zero, negative, and unsuitable inputs", () => 
     () => {
       const statement = makeStatement();
       statement.lines[0].value = 0;
-      return statement;
-    },
-    () => {
-      const statement = makeStatement();
-      statement.lines.at(-1).value = -1;
-      return statement;
-    },
-    () => {
-      const statement = makeStatement();
-      statement.lines.at(-1).value = statement.lines[0].value + 1;
       return statement;
     },
   ];
