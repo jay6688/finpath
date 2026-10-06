@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  buildOperatingCashFlowPresentation,
   cashFlowLineMap,
   OperatingCashFlowDataError,
   validateCashFlowStatementForLesson,
@@ -74,6 +75,176 @@ test("validates the exact FY2025 operating cash reconciliation", () => {
     statement.sections[0].lines.slice(0, -1).reduce((sum, line) => sum + line.value, 0),
     statement.sections[0].lines.at(-1).value,
   );
+});
+
+test("builds a domain-explicit signed profit-to-cash presentation", () => {
+  const presentation = buildOperatingCashFlowPresentation(makeStatement());
+
+  assert.deepEqual(presentation.startingPoint, {
+    id: "net-income",
+    kind: "reported-endpoint",
+    semanticRole: "starting-point",
+    amount: 112_010_000_000,
+    evidenceAvailability: "reported",
+  });
+  assert.deepEqual(presentation.result, {
+    id: "cash-generated-by-operating-activities",
+    kind: "reported-endpoint",
+    semanticRole: "result",
+    amount: 111_482_000_000,
+    evidenceAvailability: "reported",
+  });
+
+  const [nonCash, timing] = presentation.adjustmentGroups;
+  assert.deepEqual(
+    [nonCash.id, nonCash.semanticRole, nonCash.amount, nonCash.direction],
+    ["non-cash-effects", "non-cash-effects", 24_472_000_000, "positive"],
+  );
+  assert.deepEqual(
+    [timing.id, timing.semanticRole, timing.amount, timing.direction],
+    ["operating-timing-effects", "operating-timing-effects", -25_000_000_000, "negative"],
+  );
+  assert.equal(nonCash.kind, "finpath-derived-group");
+  assert.equal(timing.kind, "finpath-derived-group");
+  assert.equal(nonCash.intermediateAmount, 136_482_000_000);
+  assert.equal(timing.intermediateAmount, 111_482_000_000);
+
+  assert.deepEqual(
+    nonCash.lines.map(({ id, amount, direction, semanticRole, reportedRole }) => ({
+      id,
+      amount,
+      direction,
+      semanticRole,
+      reportedRole,
+    })),
+    [
+      {
+        id: "depreciation-and-amortization",
+        amount: 11_698_000_000,
+        direction: "positive",
+        semanticRole: "non-cash-effect",
+        reportedRole: "non-cash-adjustment",
+      },
+      {
+        id: "share-based-compensation-expense",
+        amount: 12_863_000_000,
+        direction: "positive",
+        semanticRole: "non-cash-effect",
+        reportedRole: "non-cash-adjustment",
+      },
+      {
+        id: "other",
+        amount: -89_000_000,
+        direction: "negative",
+        semanticRole: "non-cash-effect",
+        reportedRole: "non-cash-adjustment",
+      },
+    ],
+  );
+  assert.deepEqual(
+    timing.lines.map(({ id, amount, direction, semanticRole, reportedRole }) => ({
+      id,
+      amount,
+      direction,
+      semanticRole,
+      reportedRole,
+    })),
+    [
+      {
+        id: "accounts-receivable-net",
+        amount: -6_682_000_000,
+        direction: "negative",
+        semanticRole: "operating-timing-effect",
+        reportedRole: "operating-timing-adjustment",
+      },
+      {
+        id: "vendor-non-trade-receivables",
+        amount: -347_000_000,
+        direction: "negative",
+        semanticRole: "operating-timing-effect",
+        reportedRole: "operating-timing-adjustment",
+      },
+      {
+        id: "inventories",
+        amount: 1_400_000_000,
+        direction: "positive",
+        semanticRole: "operating-timing-effect",
+        reportedRole: "operating-timing-adjustment",
+      },
+      {
+        id: "other-current-and-non-current-assets",
+        amount: -9_197_000_000,
+        direction: "negative",
+        semanticRole: "operating-timing-effect",
+        reportedRole: "operating-timing-adjustment",
+      },
+      {
+        id: "accounts-payable",
+        amount: 902_000_000,
+        direction: "positive",
+        semanticRole: "operating-timing-effect",
+        reportedRole: "operating-timing-adjustment",
+      },
+      {
+        id: "other-current-and-non-current-liabilities",
+        amount: -11_076_000_000,
+        direction: "negative",
+        semanticRole: "operating-timing-effect",
+        reportedRole: "operating-timing-adjustment",
+      },
+    ],
+  );
+});
+
+test("uses one truthful adjustment scale without inflating tiny values", () => {
+  const presentation = buildOperatingCashFlowPresentation(makeStatement());
+  const [nonCash, timing] = presentation.adjustmentGroups;
+  const tinyOther = nonCash.lines.find((line) => line.id === "other");
+
+  assert.equal(presentation.adjustmentScale.referenceAmount, 25_000_000_000);
+  assert.equal(nonCash.magnitudePercent, 97.888);
+  assert.equal(timing.magnitudePercent, 100);
+  assert.equal(presentation.netAdjustment.amount, -528_000_000);
+  assert.equal(presentation.netAdjustment.direction, "negative");
+  assert.equal(presentation.netAdjustment.magnitudePercent, 2.112);
+  assert.equal(tinyOther.magnitudePercent, 0.356);
+  assert.equal(tinyOther.direction, "negative");
+});
+
+test("fails closed on missing, duplicate, misclassified, and unreconciled lines", () => {
+  const cases = [
+    () => {
+      const statement = makeStatement();
+      statement.sections[0].lines.splice(3, 1);
+      return statement;
+    },
+    () => {
+      const statement = makeStatement();
+      statement.sections[0].lines[3] = { ...statement.sections[0].lines[2] };
+      return statement;
+    },
+    () => {
+      const statement = makeStatement();
+      statement.sections[0].lines[1].role = "operating-timing-adjustment";
+      return statement;
+    },
+    () => {
+      const statement = makeStatement();
+      statement.sections[0].lines[1].value -= 1;
+      return statement;
+    },
+  ];
+
+  for (const createStatement of cases) {
+    assert.throws(
+      () =>
+        validateCashFlowStatementForLesson(createStatement(), {
+          fiscalYear: 2025,
+          accession: "0000320193-25-000079",
+        }),
+      OperatingCashFlowDataError,
+    );
+  }
 });
 
 test("rejects wrong filing identity, order, arithmetic, and provenance", () => {
