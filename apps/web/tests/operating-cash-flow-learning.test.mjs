@@ -334,6 +334,8 @@ test("lesson shows the signed trace immediately and preserves deliberate complet
   assert.match(trace, /type="button"/);
   assert.match(trace, /<details/);
   assert.match(component, /See the complete Apple reconciliation/);
+  assert.match(component, /formatReconciliationAmount\(line\.value, line\.role\)/);
+  assert.match(component, /role === "starting-line" \|\| role === "final-total"/);
   assert.match(
     page,
     /buildOperatingCashFlowPresentation\(\s*cashFlowStatement\.statement,?\s*\)/,

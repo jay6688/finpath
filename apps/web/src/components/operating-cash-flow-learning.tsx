@@ -8,6 +8,7 @@ import { ProfitToCashTrace } from "@/components/profit-to-cash-trace";
 import cashFlowContent from "@/content/cash-flow-lessons/aapl-operating-cash-flow-fy2025.json";
 import type {
   CashFlowStatementLineId,
+  CashFlowStatementLineRole,
   CompanyCashFlowStatement,
 } from "@/lib/api";
 import {
@@ -57,6 +58,15 @@ function formatBillions(value: number): string {
 function formatSignedBillions(value: number): string {
   const sign = value < 0 ? "−" : value > 0 ? "+" : "";
   return `${sign}${formatBillions(value)}`;
+}
+
+function formatReconciliationAmount(
+  value: number,
+  role: CashFlowStatementLineRole,
+): string {
+  return role === "starting-line" || role === "final-total"
+    ? formatBillions(value)
+    : formatSignedBillions(value);
 }
 
 export function OperatingCashFlowLearning({
@@ -170,7 +180,7 @@ export function OperatingCashFlowLearning({
                   <strong>{lineCopy[line.id].reportedLabel}</strong>
                   <small>{lineCopy[line.id].helper}</small>
                 </dt>
-                <dd>{formatSignedBillions(line.value)}</dd>
+                <dd>{formatReconciliationAmount(line.value, line.role)}</dd>
               </div>
             ))}
           </dl>

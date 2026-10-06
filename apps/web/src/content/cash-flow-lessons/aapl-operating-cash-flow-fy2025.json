@@ -93,7 +93,7 @@
     "statementName": "Consolidated Statements of Cash Flows",
     "location": "Part II, Item 8, page 33",
     "unitNote": "Apple reports this statement in USD millions. FinPath displays large figures in USD billions.",
-    "displayNote": "Signed adjustments follow Apple’s cash-flow presentation. Parentheses indicate a negative effect in the reconciliation."
+    "displayNote": "Signed adjustments follow Apple’s cash-flow presentation. A leading plus or minus shows the direction of each reconciliation effect."
   },
   "sources": [
     {
