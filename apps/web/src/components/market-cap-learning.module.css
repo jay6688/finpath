@@ -1,0 +1,39 @@
+.lesson { display: grid; gap: clamp(1.5rem, 4vw, 2.5rem); color: var(--fp-v2-ink); }
+.introduction { max-width: 58rem; padding-left: var(--fp-v2-space-4); border-left: 4px solid var(--fp-v2-jade); }
+.introduction h2 { max-width: 50rem; margin: .3rem 0 var(--fp-v2-space-3); font-family: var(--fp-v2-font-concept); font-size: clamp(1.75rem, 5vw, 3rem); font-weight: 500; letter-spacing: -.04em; line-height: 1.05; }
+.introduction > p:last-child { max-width: 48rem; margin: 0; color: var(--fp-v2-ink-soft); line-height: 1.7; }
+.workbench, .boundaries, .completion { background: var(--fp-v2-paper); border: 1px solid var(--fp-v2-line); border-radius: var(--fp-v2-radius-object); }
+.workbench { padding: var(--fp-v2-space-4); display: grid; gap: var(--fp-v2-space-5); }
+.workbenchHeading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--fp-v2-space-3); }
+.workbenchHeading h3, .boundaries h3, .completion h3 { margin: .25rem 0 0; font-family: var(--fp-v2-font-concept); font-weight: 500; }
+.workbenchHeading h3 { max-width: 46rem; font-size: 1.35rem; }
+.workbenchHeading > span { color: var(--fp-v2-ink-soft); font-size: .68rem; }
+.formula { display: grid; grid-template-rows: auto auto auto auto auto; gap: var(--fp-v2-space-3); align-items: stretch; }
+.formula > section { padding: var(--fp-v2-space-4); display: grid; align-content: start; gap: var(--fp-v2-space-2); border-top: 4px solid var(--fp-v2-cobalt); background: var(--fp-v2-neutral); }
+.formula > b { align-self: center; justify-self: center; font-family: var(--fp-v2-font-number); font-size: 1.5rem; }
+.formula h4 { margin: 0; font-family: var(--fp-v2-font-concept); font-size: 1.05rem; font-weight: 500; }
+.formula section > strong { font-family: var(--fp-v2-font-number); font-size: clamp(1.25rem, 5vw, 2rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.formula section > small, .formula section > p { margin: 0; color: var(--fp-v2-ink-soft); font-size: .68rem; line-height: 1.55; }
+.provenance { color: var(--fp-v2-cobalt); font-size: .62rem; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.learnerInput { border-top-color: var(--fp-v2-amber) !important; }
+.derived { background: var(--fp-v2-jade-soft) !important; border-top-color: var(--fp-v2-jade) !important; }
+.priceField { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; border: 1px solid var(--fp-v2-line); background: var(--fp-v2-paper); }
+.priceField span { padding-left: .75rem; font-family: var(--fp-v2-font-number); }
+.priceField input { width: 100%; min-block-size: var(--fp-v2-touch); padding: .65rem; border: 0; background: transparent; font: inherit; font-family: var(--fp-v2-font-number); }
+.learnerInput label { font-size: .68rem; font-weight: 800; }
+.learnerInput button { min-block-size: var(--fp-v2-touch); padding: .65rem; color: var(--fp-v2-paper); background: var(--fp-v2-ink); border: 1px solid var(--fp-v2-ink); border-radius: var(--fp-v2-radius-control); font-weight: 800; cursor: pointer; }
+.learnerInput .example { color: var(--fp-v2-ink); background: transparent; }
+.learnerInput [role="alert"] { color: var(--fp-v2-coral-ink); }
+.trace { padding: var(--fp-v2-space-4); display: grid; gap: var(--fp-v2-space-2); background: var(--fp-v2-ivory); border-left: 4px solid var(--fp-v2-jade); }
+.trace p { margin: 0; display: grid; gap: .2rem; font-family: var(--fp-v2-font-number); font-size: .78rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.trace span { color: var(--fp-v2-ink-soft); font-family: var(--fp-v2-font-body); font-size: .62rem; }
+.boundaries { padding: var(--fp-v2-space-4); border-left: 4px solid var(--fp-v2-amber); }
+.boundaries ul { margin: var(--fp-v2-space-3) 0 0; padding-left: 1.2rem; color: var(--fp-v2-ink-soft); line-height: 1.65; }
+.boundaries li + li { margin-top: .45rem; }
+.completion { padding: var(--fp-v2-space-4); display: grid; gap: var(--fp-v2-space-4); border-left: 4px solid var(--fp-v2-jade); }
+.completion p:last-child { margin: .4rem 0 0; color: var(--fp-v2-ink-soft); font-size: .7rem; }
+.completion button { min-block-size: var(--fp-v2-touch); padding: .75rem 1rem; color: var(--fp-v2-paper); background: var(--fp-v2-ink); border: 1px solid var(--fp-v2-ink); border-radius: var(--fp-v2-radius-control); font-weight: 850; cursor: pointer; }
+.completion button:disabled { color: var(--fp-v2-ink-soft); background: var(--fp-v2-neutral); border-color: var(--fp-v2-line); cursor: not-allowed; }
+.priceField:focus-within, .learnerInput button:focus-visible, .completion button:focus-visible { outline: 3px solid var(--fp-v2-focus); outline-offset: 3px; }
+@media (min-width: 56rem) { .workbench, .boundaries, .completion { padding: var(--fp-v2-space-5); } .formula { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: auto; } .completion { grid-template-columns: minmax(0, 1fr) auto; align-items: center; } .trace { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .lesson * { transition-duration: 1ms !important; } }
