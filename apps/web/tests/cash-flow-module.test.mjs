@@ -243,6 +243,8 @@ test("Cash Activity Trace exposes the full lesson immediately with exact shared-
   assert.match(traceStyles, /width:\s*calc\(var\(--activity-magnitude\) \* \.5%\)/);
   assert.doesNotMatch(traceStyles, /min-inline-size|width:\s*(?:min|max|clamp)\(/);
   assert.match(content.signBoundary, /direction, not quality/i);
+  assert.match(content.presentationBoundary, /Apple-reported/i);
+  assert.match(content.presentationBoundary, /FinPath presentation/i);
   assert.match(content.fxBoundary, /may include.*exchange-rate effects/i);
   assert.match(content.fxBoundary, /does not.*claim.*exchange-rate effects were zero/i);
   assert.match(content.remainingBoundary, /not automatically good or bad/i);

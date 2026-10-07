@@ -32,6 +32,7 @@
     "financing": "Cash connected to creditors and owners."
   },
   "signBoundary": "An inflow or outflow describes cash direction, not quality. Context is required before judging the activity.",
+  "presentationBoundary": "The amounts, line classifications, section totals, and cash balances are Apple-reported. The shared scales and teaching explanations are FinPath presentation.",
   "fxBoundary": "A reported net change in cash may include exchange-rate effects, depending on the filing taxonomy. For this reviewed Apple record, the three reported activity totals reconcile exactly to the reported change; FinPath does not generalize that identity or claim exchange-rate effects were zero.",
   "remainingBoundary": "A positive or negative section total is not automatically good or bad. Inspect the underlying activities and business context.",
   "finalQuestion": {

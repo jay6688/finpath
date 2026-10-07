@@ -118,6 +118,7 @@ export function InvestingFinancingCashFlowLearning({
       <aside className={styles.boundaries} aria-labelledby="cash-activity-boundaries">
         <p className="eyebrow" id="cash-activity-boundaries">Read the signs carefully</p>
         <p><strong>Direction is not quality.</strong> {lessonContent.signBoundary}</p>
+        <p><strong>Reported vs teaching.</strong> {lessonContent.presentationBoundary}</p>
         <p>{lessonContent.remainingBoundary}</p>
         <p><strong>Reported change boundary.</strong> {lessonContent.fxBoundary}</p>
       </aside>
