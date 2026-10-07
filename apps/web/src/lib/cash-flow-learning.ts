@@ -140,6 +140,35 @@ export type SimpleFreeCashFlowDerivation = {
   displayBillions: number;
 };
 
+type SignedAmountDirection = "positive" | "negative" | "zero";
+
+export type FreeCashFlowPresentation = {
+  operatingCashFlow: {
+    kind: "reported-input";
+    amount: number;
+    direction: SignedAmountDirection;
+    magnitudePercent: number;
+  };
+  propertyPlantEquipment: {
+    kind: "reported-input-with-normalized-deduction";
+    statementCashEffect: number;
+    deductionMagnitude: number;
+    direction: "negative";
+    magnitudePercent: number;
+  };
+  freeCashFlow: {
+    kind: "finpath-derived-result";
+    amount: number;
+    direction: SignedAmountDirection;
+    magnitudePercent: number;
+  };
+  scale: {
+    kind: "shared-absolute-derivation-scale";
+    referenceAmount: number;
+  };
+  derivation: SimpleFreeCashFlowDerivation;
+};
+
 export function cashFlowSections(
   statement: CompanyCashFlowStatement["statement"],
 ): Map<CashFlowSectionId, CashFlowStatementLine[]> {
@@ -349,6 +378,54 @@ export function deriveSimpleFreeCashFlow(
   };
 }
 
+export function buildFreeCashFlowPresentation(
+  statement: CompanyCashFlowStatement["statement"],
+  expected: { fiscalYear: number; accession: string },
+): FreeCashFlowPresentation {
+  validateCompleteCashFlowStatement(statement, expected);
+  const derivation = deriveSimpleFreeCashFlow(statement);
+  const statementCashEffect = -derivation.propertyPlantEquipmentPurchases;
+  const referenceAmount = Math.max(
+    Math.abs(derivation.operatingCashFlow),
+    derivation.propertyPlantEquipmentPurchases,
+    Math.abs(derivation.exactValue),
+  );
+  if (referenceAmount === 0) {
+    throw new CashFlowLearningDataError(
+      "Free Cash Flow presentation requires a non-zero shared scale.",
+    );
+  }
+
+  return {
+    operatingCashFlow: {
+      kind: "reported-input",
+      amount: derivation.operatingCashFlow,
+      direction: signedAmountDirection(derivation.operatingCashFlow),
+      magnitudePercent:
+        (Math.abs(derivation.operatingCashFlow) / referenceAmount) * 100,
+    },
+    propertyPlantEquipment: {
+      kind: "reported-input-with-normalized-deduction",
+      statementCashEffect,
+      deductionMagnitude: derivation.propertyPlantEquipmentPurchases,
+      direction: "negative",
+      magnitudePercent:
+        (derivation.propertyPlantEquipmentPurchases / referenceAmount) * 100,
+    },
+    freeCashFlow: {
+      kind: "finpath-derived-result",
+      amount: derivation.exactValue,
+      direction: signedAmountDirection(derivation.exactValue),
+      magnitudePercent: (Math.abs(derivation.exactValue) / referenceAmount) * 100,
+    },
+    scale: {
+      kind: "shared-absolute-derivation-scale",
+      referenceAmount,
+    },
+    derivation,
+  };
+}
+
 function uniqueLineValue(
   lines: CashFlowStatementLine[],
   lineId: CashFlowStatementLineId,
@@ -371,4 +448,10 @@ function cashDirection(amount: number): CashDirection {
   if (amount > 0) return "inflow";
   if (amount < 0) return "outflow";
   return "none";
+}
+
+function signedAmountDirection(amount: number): SignedAmountDirection {
+  if (amount > 0) return "positive";
+  if (amount < 0) return "negative";
+  return "zero";
 }

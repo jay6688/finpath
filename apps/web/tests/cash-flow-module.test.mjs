@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   buildCashActivityPresentation,
+  buildFreeCashFlowPresentation,
   CashFlowLearningDataError,
   deriveSimpleFreeCashFlow,
   validateCompleteCashFlowStatement,
@@ -29,6 +30,80 @@ test("validates one complete FY2025 statement and derives simple FCF exactly", (
     exactValue: 98_767_000_000,
     displayBillions: 98.767,
   });
+});
+
+test("builds a signed Free Cash Flow presentation from validated reported inputs", () => {
+  const presentation = buildFreeCashFlowPresentation(makeCashFlowStatement(), {
+    fiscalYear: 2025,
+    accession: "0000320193-25-000079",
+  });
+
+  assert.deepEqual(presentation.operatingCashFlow, {
+    kind: "reported-input",
+    amount: 111_482_000_000,
+    direction: "positive",
+    magnitudePercent: 100,
+  });
+  assert.deepEqual(presentation.propertyPlantEquipment, {
+    kind: "reported-input-with-normalized-deduction",
+    statementCashEffect: -12_715_000_000,
+    deductionMagnitude: 12_715_000_000,
+    direction: "negative",
+    magnitudePercent: (12_715_000_000 / 111_482_000_000) * 100,
+  });
+  assert.deepEqual(presentation.freeCashFlow, {
+    kind: "finpath-derived-result",
+    amount: 98_767_000_000,
+    direction: "positive",
+    magnitudePercent: (98_767_000_000 / 111_482_000_000) * 100,
+  });
+  assert.deepEqual(presentation.scale, {
+    kind: "shared-absolute-derivation-scale",
+    referenceAmount: 111_482_000_000,
+  });
+  assert.equal(presentation.derivation.exactValue, 98_767_000_000);
+});
+
+test("Free Cash Flow presentation preserves signed negative, cross-zero, and zero results", () => {
+  const withOperatingCashFlow = (operatingCashFlow) => {
+    const statement = makeCashFlowStatement();
+    const operating = statement.sections[0];
+    const reportedTotal = operating.lines.at(-1);
+    const delta = operatingCashFlow - reportedTotal.value;
+    operating.lines[0].value += delta;
+    reportedTotal.value = operatingCashFlow;
+    statement.cashMovement.netChange.value += delta;
+    statement.cashMovement.endingCash.value += delta;
+    return statement;
+  };
+  const expected = {
+    fiscalYear: 2025,
+    accession: "0000320193-25-000079",
+  };
+
+  const negativeOperating = buildFreeCashFlowPresentation(
+    withOperatingCashFlow(-1_000_000_000),
+    expected,
+  );
+  assert.equal(negativeOperating.operatingCashFlow.direction, "negative");
+  assert.equal(negativeOperating.freeCashFlow.amount, -13_715_000_000);
+  assert.equal(negativeOperating.freeCashFlow.direction, "negative");
+
+  const crossZero = buildFreeCashFlowPresentation(
+    withOperatingCashFlow(5_000_000_000),
+    expected,
+  );
+  assert.equal(crossZero.operatingCashFlow.direction, "positive");
+  assert.equal(crossZero.freeCashFlow.amount, -7_715_000_000);
+  assert.equal(crossZero.freeCashFlow.direction, "negative");
+
+  const zero = buildFreeCashFlowPresentation(
+    withOperatingCashFlow(12_715_000_000),
+    expected,
+  );
+  assert.equal(zero.freeCashFlow.amount, 0);
+  assert.equal(zero.freeCashFlow.direction, "zero");
+  assert.equal(zero.freeCashFlow.magnitudePercent, 0);
 });
 
 test("builds the reviewed FY2025 Cash Activity presentation without rounding geometry", () => {
