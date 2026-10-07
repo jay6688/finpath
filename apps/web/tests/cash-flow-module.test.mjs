@@ -220,7 +220,53 @@ test("Lesson 08 and 09 content preserves reported, derived, and limitation bound
   assert.doesNotMatch(JSON.stringify(freeCashFlow), /98\.767|111\.482|12\.715/);
 });
 
-test("both lessons use progressive sections, low-pressure checks, evidence, and completion", async () => {
+test("Cash Activity Trace exposes the full lesson immediately with exact shared-scale geometry", async () => {
+  const [page, lesson, trace, traceStyles, content] = await Promise.all([
+    readSource("app/learn/company-analysis/investing-financing-cash-flow/page.tsx"),
+    readSource("components/investing-financing-cash-flow-learning.tsx"),
+    readSource("components/cash-activity-trace.tsx"),
+    readSource("components/cash-activity-trace.module.css"),
+    readSource("content/cash-flow-lessons/aapl-investing-financing-fy2025.json").then(JSON.parse),
+  ]);
+
+  assert.match(page, /buildCashActivityPresentation/);
+  assert.match(page, /presentation=\{presentation\}/);
+  assert.match(lesson, /CashActivityTrace/);
+  assert.doesNotMatch(lesson, /visibleSection|firstQuestion|cash-continue/);
+  assert.match(lesson, /<details[^>]*className=\{styles\.fullLines\}/);
+  assert.match(trace, /payments-for-property-plant-and-equipment/);
+  assert.match(trace, /maturities-of-marketable-securities/);
+  assert.match(trace, /common-stock-repurchases/);
+  assert.match(trace, /term-debt-issuance-net/);
+  assert.match(trace, /type="button"/);
+  assert.match(trace, /--activity-magnitude/);
+  assert.match(traceStyles, /width:\s*calc\(var\(--activity-magnitude\) \* \.5%\)/);
+  assert.doesNotMatch(traceStyles, /min-inline-size|width:\s*(?:min|max|clamp)\(/);
+  assert.match(content.signBoundary, /direction, not quality/i);
+  assert.match(content.fxBoundary, /may include.*exchange-rate effects/i);
+  assert.match(content.fxBoundary, /does not.*claim.*exchange-rate effects were zero/i);
+  assert.match(content.remainingBoundary, /not automatically good or bad/i);
+  assert.equal(
+    content.finalQuestion.prompt,
+    "Where does Apple report PP&E purchases and share repurchases?",
+  );
+  assert.doesNotMatch(JSON.stringify(content), /111\.482|15\.195|120\.686|5\.991|90\.711/);
+});
+
+test("Cash Activity completion remains submission-only and keeps evidence attached", async () => {
+  const lesson = await readSource(
+    "components/investing-financing-cash-flow-learning.tsx",
+  );
+
+  assert.match(lesson, /function reviewFinalQuestion[\s\S]*markExplored\(\["investing-financing-cash-flow"\]\)/);
+  assert.match(lesson, /onSelect=\{setSelectedLineId\}/);
+  assert.match(lesson, /EvidenceInspector/);
+  assert.match(lesson, /name="ppe-and-share-repurchases"/);
+  assert.match(lesson, /finalQuestion\.prompt/);
+  assert.doesNotMatch(lesson, /\bFCF\b|stock price|Market Cap|P\/E|BUY|SELL/);
+});
+
+test("both lessons use low-pressure checks, evidence, and completion", async () => {
   const [investing, freeCashFlow, investingContent, freeCashFlowContent] = await Promise.all([
     readSource("components/investing-financing-cash-flow-learning.tsx"),
     readSource("components/free-cash-flow-learning.tsx"),
@@ -228,7 +274,6 @@ test("both lessons use progressive sections, low-pressure checks, evidence, and 
     readSource("content/cash-flow-lessons/aapl-free-cash-flow-fy2025.json").then(JSON.parse),
   ]);
 
-  assert.equal(investingContent.firstQuestion.hint, "Choose one. This is practice, not a score.");
   assert.equal(investingContent.finalQuestion.hint, "Choose one. This is practice, not a score.");
   assert.equal(freeCashFlowContent.question.hint, "Choose one. This is practice, not a score.");
   assert.match(investing, /EvidenceInspector/);

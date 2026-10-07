@@ -9,8 +9,9 @@ import {
   type CompanyCashFlowStatement,
 } from "@/lib/api";
 import {
+  buildCashActivityPresentation,
+  type CashActivityPresentation,
   CashFlowLearningDataError,
-  validateCompleteCashFlowStatement,
 } from "@/lib/cash-flow-learning";
 
 export const metadata: Metadata = {
@@ -22,18 +23,20 @@ export const dynamic = "force-dynamic";
 
 export default async function InvestingFinancingCashFlowPage() {
   let cashFlowStatement: CompanyCashFlowStatement | null = null;
+  let presentation: CashActivityPresentation | null = null;
   let dataError: string | null = null;
   try {
     cashFlowStatement = await getCompanyCashFlowStatement(
       lessonContent.ticker,
       lessonContent.fiscalYear,
     );
-    validateCompleteCashFlowStatement(cashFlowStatement.statement, {
+    presentation = buildCashActivityPresentation(cashFlowStatement.statement, {
       fiscalYear: lessonContent.fiscalYear,
       accession: lessonContent.accession,
     });
   } catch (error) {
     cashFlowStatement = null;
+    presentation = null;
     dataError =
       error instanceof FinPathApiError || error instanceof CashFlowLearningDataError
         ? error.message
@@ -45,8 +48,11 @@ export default async function InvestingFinancingCashFlowPage() {
       conceptId="investing-financing-cash-flow"
       example="Apple Inc. · FY2025 · SEC 10-K"
     >
-      {cashFlowStatement ? (
-        <InvestingFinancingCashFlowLearning cashFlowStatement={cashFlowStatement} />
+      {cashFlowStatement && presentation ? (
+        <InvestingFinancingCashFlowLearning
+          cashFlowStatement={cashFlowStatement}
+          presentation={presentation}
+        />
       ) : (
         <div className="data-empty-state profit-data-empty" role="status">
           <div className="data-empty-state__value" aria-hidden="true">—</div>
