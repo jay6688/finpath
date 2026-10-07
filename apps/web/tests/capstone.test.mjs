@@ -55,7 +55,16 @@ test("builds one coherent Apple FY2025 Capstone evidence package", () => {
   assert.equal(result.perShare.sharesOutstanding.asOfDate, "2025-10-17");
   assert.equal(result.valuation.kind, "not-assessed");
   assert.match(result.valuation.reason, /verified market-price evidence/i);
-  assert.equal(result.connections.length, 2);
+  assert.deepEqual(
+    result.connections.map((connection) => connection.type),
+    [
+      "conceptual-only",
+      "arithmetic",
+      "reconciliation",
+      "arithmetic",
+      "period-flow-to-ending-balance",
+    ],
+  );
 });
 
 test("fails closed when any required company, filing, period, or bridge invariant changes", () => {

@@ -10,7 +10,6 @@ import {
   buildReportedEvidence,
   reportedFactFromStatementLine,
   type ReportedEvidence,
-  type ReportingContext,
 } from "./evidence.ts";
 import { validateProfitStatementForLesson } from "./profit-learning.ts";
 
@@ -27,19 +26,25 @@ export type ThreeStatementResponses = {
   balanceSheet: CompanyBalanceSheet;
 };
 
-type StatementReference = {
-  statement: "income-statement" | "cash-flow-statement" | "balance-sheet";
-  label: string;
-  reportingContext: ReportingContext;
-  evidence: ReportedEvidence;
-};
-
 export type StatementConnection = {
-  id: "net-income-bridge" | "ending-cash-bridge";
-  relationship: "same-reported-result" | "period-end-to-reporting-position";
-  status: "exact-match";
-  source: StatementReference;
-  target: StatementReference;
+  id:
+    | "statement-views"
+    | "income-to-net-income"
+    | "net-income-to-operating-cash"
+    | "activities-to-change"
+    | "change-to-ending-balance";
+  type:
+    | "arithmetic"
+    | "reconciliation"
+    | "period-flow-to-ending-balance"
+    | "conceptual-only";
+  label: string;
+  equation: {
+    inputs: number[];
+    result: number;
+  } | null;
+  sourceEvidence: ReportedEvidence | null;
+  targetEvidence: ReportedEvidence | null;
   boundary: string;
 };
 
@@ -56,6 +61,11 @@ export type ThreeStatementConnectionData = {
     sourceUrl: string;
   };
   values: {
+    revenue: number;
+    costOfSales: number;
+    operatingExpenses: number;
+    otherIncomeExpenseNet: number;
+    incomeTaxProvision: number;
     netIncome: number;
     operatingCashFlow: number;
     investingCashFlow: number;
@@ -66,11 +76,15 @@ export type ThreeStatementConnectionData = {
   };
   connections: StatementConnection[];
   evidence: {
+    incomeNetIncome: ReportedEvidence;
+    cashFlowNetIncome: ReportedEvidence;
     operatingCashFlow: ReportedEvidence;
     investingCashFlow: ReportedEvidence;
     financingCashFlow: ReportedEvidence;
     netChangeInCash: ReportedEvidence;
     beginningCash: ReportedEvidence;
+    endingCash: ReportedEvidence;
+    balanceCash: ReportedEvidence;
   };
   dataStatuses: ThreeStatementResponses[keyof ThreeStatementResponses]["dataStatus"][];
 };
@@ -156,6 +170,14 @@ function buildValidatedData({
   }
 
   const incomeNetIncome = uniqueIncomeLine(income, "net-income");
+  const revenue = uniqueIncomeLine(income, "total-net-sales");
+  const costOfSales = uniqueIncomeLine(income, "total-cost-of-sales");
+  const operatingExpenses = uniqueIncomeLine(income, "total-operating-expenses");
+  const otherIncomeExpenseNet = uniqueIncomeLine(
+    income,
+    "other-income-expense-net",
+  );
+  const incomeTaxProvision = uniqueIncomeLine(income, "income-tax-provision");
   const cashNetIncome = uniqueCashFlowLine(cashFlow, "net-income");
   if (incomeNetIncome.value !== cashNetIncome.value) {
     throw new ThreeStatementDataError(
@@ -267,6 +289,11 @@ function buildValidatedData({
       sourceUrl: income.sourceUrl,
     },
     values: {
+      revenue: revenue.value,
+      costOfSales: costOfSales.value,
+      operatingExpenses: operatingExpenses.value,
+      otherIncomeExpenseNet: otherIncomeExpenseNet.value,
+      incomeTaxProvision: incomeTaxProvision.value,
       netIncome: incomeNetIncome.value,
       operatingCashFlow: operatingCashFlow.value,
       investingCashFlow: investingCashFlow.value,
@@ -277,50 +304,85 @@ function buildValidatedData({
     },
     connections: [
       {
-        id: "net-income-bridge",
-        relationship: "same-reported-result",
-        status: "exact-match",
-        source: {
-          statement: "income-statement",
-          label: "Net Income",
-          reportingContext: incomeNetIncomeEvidence.filing.reportingContext,
-          evidence: incomeNetIncomeEvidence,
+        id: "statement-views",
+        type: "conceptual-only",
+        label: "Same company, different statement views",
+        equation: null,
+        sourceEvidence: null,
+        targetEvidence: null,
+        boundary:
+          "The statements describe related views of one company, but that conceptual relationship is not an accounting equation.",
+      },
+      {
+        id: "income-to-net-income",
+        type: "arithmetic",
+        label: "Revenue and expenses produce Net Income",
+        equation: {
+          inputs: [
+            revenue.value,
+            -costOfSales.value,
+            -operatingExpenses.value,
+            otherIncomeExpenseNet.value,
+            -incomeTaxProvision.value,
+          ],
+          result: incomeNetIncome.value,
         },
-        target: {
-          statement: "cash-flow-statement",
-          label: "Net Income",
-          reportingContext: cashNetIncomeEvidence.filing.reportingContext,
-          evidence: cashNetIncomeEvidence,
-        },
+        sourceEvidence: incomeNetIncomeEvidence,
+        targetEvidence: incomeNetIncomeEvidence,
+        boundary:
+          "This is the validated FY2025 Income Statement arithmetic, not a claim that Revenue itself becomes cash or a Balance Sheet asset.",
+      },
+      {
+        id: "net-income-to-operating-cash",
+        type: "reconciliation",
+        label: "Net Income starts the operating cash reconciliation",
+        equation: null,
+        sourceEvidence: incomeNetIncomeEvidence,
+        targetEvidence: cashNetIncomeEvidence,
         boundary:
           "Apple's indirect-method operating cash-flow reconciliation starts from the same Net Income. Net Income is not cash.",
       },
       {
-        id: "ending-cash-bridge",
-        relationship: "period-end-to-reporting-position",
-        status: "exact-match",
-        source: {
-          statement: "cash-flow-statement",
-          label: "Ending cash",
-          reportingContext: endingCashEvidence.filing.reportingContext,
-          evidence: endingCashEvidence,
+        id: "activities-to-change",
+        type: "arithmetic",
+        label: "Three cash-flow sections reconcile to reported change",
+        equation: {
+          inputs: [
+            operatingCashFlow.value,
+            investingCashFlow.value,
+            financingCashFlow.value,
+          ],
+          result: movement.netChange.value,
         },
-        target: {
-          statement: "balance-sheet",
-          label: "Cash and cash equivalents",
-          reportingContext: balanceCashEvidence.filing.reportingContext,
-          evidence: balanceCashEvidence,
-        },
+        sourceEvidence: operatingCashEvidence,
+        targetEvidence: netChangeEvidence,
         boundary:
-          "These values match exactly in this reviewed Apple filing. FinPath does not assume every filing uses one universal cash taxonomy presentation.",
+          "This exact three-section identity is validated for Apple's reviewed FY2025 cash-flow profile; it is not a universal claim that exchange-rate effects are always zero.",
+      },
+      {
+        id: "change-to-ending-balance",
+        type: "period-flow-to-ending-balance",
+        label: "The period change connects beginning and ending balances",
+        equation: {
+          inputs: [movement.beginningCash.value, movement.netChange.value],
+          result: movement.endingCash.value,
+        },
+        sourceEvidence: endingCashEvidence,
+        targetEvidence: balanceCashEvidence,
+        boundary:
+          "The ending cash-related balance then matches Cash and cash equivalents on this reviewed Balance Sheet. FinPath does not assume every filing uses one universal cash taxonomy presentation.",
       },
     ],
     evidence: {
+      incomeNetIncome: incomeNetIncomeEvidence,
+      cashFlowNetIncome: cashNetIncomeEvidence,
       operatingCashFlow: operatingCashEvidence,
       investingCashFlow: investingCashEvidence,
       financingCashFlow: financingCashEvidence,
       netChangeInCash: netChangeEvidence,
       beginningCash: beginningCashEvidence,
+      endingCash: endingCashEvidence,
+      balanceCash: balanceCashEvidence,
     },
     dataStatuses: [
       incomeStatement.dataStatus,
@@ -332,7 +394,13 @@ function buildValidatedData({
 
 function uniqueIncomeLine(
   statement: CompanyIncomeStatement["statement"],
-  lineId: "net-income",
+  lineId:
+    | "total-net-sales"
+    | "total-cost-of-sales"
+    | "total-operating-expenses"
+    | "other-income-expense-net"
+    | "income-tax-provision"
+    | "net-income",
 ) {
   const matches = statement.lines.filter((line) => line.id === lineId);
   if (matches.length !== 1) {
