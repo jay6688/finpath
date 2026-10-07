@@ -1,16 +1,32 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 
 import { EvidenceInspector } from "@/components/evidence-inspector";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import type { CompanyBalanceSheet } from "@/lib/api";
 import {
   buildBalanceSheetEvidence,
-  validateBalanceSheetForLesson,
+  type BalanceSheetPresentation,
 } from "@/lib/balance-sheet-learning";
+import type { DerivedEvidence, ReportedEvidence } from "@/lib/evidence";
 
-type Props = { balanceSheet: CompanyBalanceSheet };
+import styles from "./balance-sheet-learning.module.css";
+
+type Props = {
+  balanceSheet: CompanyBalanceSheet;
+  presentation: BalanceSheetPresentation;
+};
+
+type Anchor = {
+  id: string;
+  label: string;
+  definition: string;
+  amount: number;
+  sharePercent: number;
+  sourceStatus: "reported" | "finpath-derived";
+  evidence: ReportedEvidence | DerivedEvidence;
+};
 
 const billions = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -32,227 +48,270 @@ function formatDate(value: string): string {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-export function BalanceSheetLearning({ balanceSheet }: Props) {
-  validateBalanceSheetForLesson(balanceSheet.statement, balanceSheet.company);
+function shareStyle(sharePercent: number): CSSProperties {
+  return { "--balance-share": sharePercent } as CSSProperties;
+}
+
+export function BalanceSheetLearning({ balanceSheet, presentation }: Props) {
   const { markExplored } = useLearningProgress();
   const { company, statement, dataStatus } = balanceSheet;
   const evidence = buildBalanceSheetEvidence(balanceSheet);
-  const [visibleStage, setVisibleStage] = useState(1);
-  const [snapshotChoice, setSnapshotChoice] = useState<string | null>(null);
-  const [snapshotReviewed, setSnapshotReviewed] = useState(false);
-  const [cashChoice, setCashChoice] = useState<string | null>(null);
-  const [cashReviewed, setCashReviewed] = useState(false);
+  const [selectedAnchor, setSelectedAnchor] = useState<string | null>(null);
+  const [choice, setChoice] = useState<string | null>(null);
+  const [reviewedChoice, setReviewedChoice] = useState<string | null>(null);
+  const liabilities = presentation.claims[0];
+  const equity = presentation.claims.at(-1);
 
-  function checkSnapshot(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!snapshotChoice) return;
-    setSnapshotReviewed(true);
-  }
+  if (!liabilities || !equity) return null;
 
-  function checkCash(event: FormEvent<HTMLFormElement>) {
+  const anchors: Anchor[] = [
+    {
+      id: "assets",
+      label: "Assets",
+      definition: "Resources recognized on the Balance Sheet.",
+      amount: presentation.assets.amount,
+      sharePercent: presentation.assets.sharePercent,
+      sourceStatus: presentation.assets.sourceStatus,
+      evidence: evidence.assets,
+    },
+    {
+      id: "liabilities",
+      label: "Liabilities",
+      definition: "Obligations recognized on the Balance Sheet.",
+      amount: liabilities.amount,
+      sharePercent: liabilities.sharePercent,
+      sourceStatus: liabilities.sourceStatus,
+      evidence: evidence.liabilities,
+    },
+    ...statement.otherClaims.map((line, index) => ({
+      id: line.id,
+      label: line.reportedLabel,
+      definition: "A claim presented separately from liabilities and shareholders' equity.",
+      amount: line.value,
+      sharePercent: presentation.claims[index + 1].sharePercent,
+      sourceStatus: "reported" as const,
+      evidence: evidence.otherClaims[index],
+    })),
+    {
+      id: "equity",
+      label: "Equity",
+      definition: "The residual accounting interest after liabilities and other claims.",
+      amount: equity.amount,
+      sharePercent: equity.sharePercent,
+      sourceStatus: equity.sourceStatus,
+      evidence: evidence.equity,
+    },
+  ];
+  const selected = anchors.find((anchor) => anchor.id === selectedAnchor) ?? null;
+
+  function review(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!cashChoice) return;
-    setCashReviewed(true);
+    if (!choice) return;
+    setReviewedChoice(choice);
     markExplored(["balance-sheet"]);
   }
 
-  const claimsTotal = statement.otherClaims.reduce((sum, line) => sum + line.value, 0);
-  const claimsSide = statement.liabilities.value + claimsTotal + statement.equity.value;
-
   return (
-    <section className="balance-lesson" aria-labelledby="balance-title">
-      <header className="balance-lesson__header">
-        <p className="eyebrow">Balance Sheet · point-in-time statement</p>
+    <section
+      aria-labelledby="balance-title"
+      className={styles.lesson}
+      id="balance-sheet-lesson"
+    >
+      <header className={styles.introduction}>
+        <p className="eyebrow">Balance Sheet · financial position frame</p>
         <h2 id="balance-title">
-          Revenue tells you what happened over a year. Where does the company stand on one date?
+          What does a Balance Sheet tell us about the company at one point in time?
         </h2>
         <p>
-          Read {company.name}&apos;s reviewed financial position as a snapshot at one
-          reporting date, then test what the figures do—and do not—mean.
+          Read {company.name}&apos;s reviewed financial position at one reporting
+          date, then inspect how the accounting equation fits together.
         </p>
-        <p className="profit-lesson__period">
-          FY{statement.fiscalYear} · {statement.currency} · as of {statement.asOfDate} ·{" "}
+        <p className={styles.period}>
+          FY{statement.fiscalYear} · {statement.currency} · as of{" "}
+          {statement.asOfDate} · filed {statement.filedAt} ·{" "}
           <a href={statement.sourceUrl} rel="noreferrer" target="_blank">
             SEC {statement.form} ↗
           </a>
         </p>
       </header>
 
-      <section className="balance-stage" data-balance-stage="snapshot">
-        <p className="cash-section__number">01 · Snapshot, not flow</p>
-        <div className="balance-time-contrast">
-          <div><span>Revenue</span><strong>Over a fiscal year</strong></div>
-          <div><span>Cash Flow</span><strong>Over a fiscal year</strong></div>
-          <div className="balance-time-contrast__current"><span>Balance Sheet</span><strong>As of {formatDate(statement.asOfDate)}</strong></div>
+      <section className={styles.timeFrame} aria-labelledby="statement-time-heading">
+        <p className="eyebrow" id="statement-time-heading">Statement timing changes the question</p>
+        <div>
+          <article>
+            <span>Income Statement</span>
+            <strong>Activity for the year ended {statement.asOfDate}</strong>
+          </article>
+          <article>
+            <span>Cash Flow Statement</span>
+            <strong>Cash movement for the year ended {statement.asOfDate}</strong>
+          </article>
+          <article data-current="true">
+            <span>Balance Sheet</span>
+            <strong>Financial position as of {formatDate(statement.asOfDate)}</strong>
+          </article>
         </div>
-        <form onSubmit={checkSnapshot}>
+      </section>
+
+      <figure className={styles.frame} aria-labelledby="balance-frame-heading">
+        <figcaption>
+          <p className="eyebrow">Balance equation · Assets are the 100% reference</p>
+          <h3 id="balance-frame-heading">
+            Assets equal liabilities, other claims if any, and equity.
+          </h3>
+          <p>
+            {formatBillions(presentation.assets.amount)} Assets equals{" "}
+            {formatBillions(presentation.claimsTotal)} on the claims and equity side.
+          </p>
+        </figcaption>
+
+        <div className={styles.assetReference}>
+          <div>
+            <span>ASSETS · 100% REFERENCE</span>
+            <strong>{formatBillions(presentation.assets.amount)}</strong>
+          </div>
+          <span className={styles.referenceBar} style={shareStyle(100)} />
+        </div>
+
+        <div className={styles.equals} aria-hidden="true">EQUALS</div>
+
+        <div className={styles.composition} aria-label="Claims and equity composition">
+          <div className={styles.compositionBar} aria-hidden="true">
+            {presentation.claims.map((claim) => (
+              <span
+                data-claim={claim.id}
+                key={claim.id}
+                style={shareStyle(claim.sharePercent)}
+              />
+            ))}
+          </div>
+          <div className={styles.claimRows}>
+            {anchors.slice(1).map((anchor) => (
+              <div data-claim-row={anchor.id} key={anchor.id}>
+                <span>{anchor.label}</span>
+                <span>{anchor.sharePercent.toFixed(1)}% of Assets</span>
+                <strong>{formatBillions(anchor.amount)}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      </figure>
+
+      <section className={styles.inspection} aria-labelledby="balance-inspection-heading">
+        <header>
+          <p className="eyebrow">Inspect an equation anchor</p>
+          <h3 id="balance-inspection-heading">The amount is only part of its meaning.</h3>
+        </header>
+        <div className={styles.anchorList}>
+          {anchors.map((anchor) => (
+            <button
+              aria-pressed={selectedAnchor === anchor.id}
+              key={anchor.id}
+              onClick={() => setSelectedAnchor(anchor.id)}
+              type="button"
+            >
+              <span>{anchor.label}</span>
+              <strong>{formatBillions(anchor.amount)}</strong>
+            </button>
+          ))}
+        </div>
+        <div aria-live="polite" className={styles.inspector}>
+          {selected ? (
+            <>
+              <p className="eyebrow">
+                {selected.sourceStatus === "reported"
+                  ? `${company.name} reported`
+                  : "FinPath-derived from reported lines"}
+              </p>
+              <h4>{selected.label}</h4>
+              <strong>{formatBillions(selected.amount)}</strong>
+              <p>{selected.definition}</p>
+              <p>
+                Geometry: {selected.sharePercent.toFixed(1)}% of the exact Assets
+                reference. Selecting this anchor does not change the scale.
+              </p>
+              <EvidenceInspector
+                evidence={selected.evidence}
+                id={`balance-${selected.id}-evidence`}
+              />
+            </>
+          ) : (
+            <>
+              <p className="eyebrow">Meaning · source · scale</p>
+              <h4>Choose Assets, Liabilities, or Equity.</h4>
+              <p>
+                The complete equation is already visible. Inspection adds explanation
+                and source access; it does not unlock the lesson.
+              </p>
+            </>
+          )}
+        </div>
+      </section>
+
+      {statement.otherClaims.length ? (
+        <p className={styles.claimNote}>
+          {company.name} reports redeemable noncontrolling interest separately.
+          FinPath keeps that reviewed claim separate rather than forcing it into
+          Liabilities or permanent shareholders&apos; equity.
+        </p>
+      ) : null}
+
+      <aside className={styles.boundaries} aria-labelledby="balance-boundaries">
+        <p className="eyebrow" id="balance-boundaries">Accounting meaning, not a verdict</p>
+        <p><strong>Assets are not cash.</strong> They include multiple recognized resource categories.</p>
+        <p><strong>Liabilities are not automatically bad.</strong> The amount alone does not explain terms, timing, purpose, or risk.</p>
+        <p><strong>Equity is not cash or market capitalization.</strong> It is the residual accounting interest shown here.</p>
+      </aside>
+
+      <section className={styles.application} aria-labelledby="balance-check">
+        <p className="eyebrow">One statement-role check</p>
+        <form onSubmit={review}>
           <fieldset>
-            <legend>
-              If {company.name} reports {formatBillions(statement.assets.value)} of Assets as of {formatDate(statement.asOfDate)}, does that mean it had exactly that amount every day during FY{statement.fiscalYear}?
+            <legend id="balance-check">
+              Which statement shows financial position at a specific reporting date?
             </legend>
-            <div className="cash-choice-list balance-choice-list">
-              {["Yes", "No"].map((answer) => (
-                <label key={answer}>
+            <p>Choose one. This is practice, not a score.</p>
+            <div className={styles.choices}>
+              {[
+                ["balance-sheet", "Balance Sheet"],
+                ["income-statement", "Income Statement"],
+                ["cash-flow-statement", "Cash Flow Statement"],
+              ].map(([id, label]) => (
+                <label key={id}>
                   <input
-                    checked={snapshotChoice === answer}
-                    name="snapshot-check"
-                    onChange={() => { setSnapshotChoice(answer); setSnapshotReviewed(false); }}
+                    checked={choice === id}
+                    name="balance-sheet-role"
+                    onChange={() => {
+                      setChoice(id);
+                      setReviewedChoice(null);
+                    }}
                     type="radio"
-                    value={answer}
+                    value={id}
                   />
-                  <span>{answer}</span>
+                  <span>{label}</span>
                 </label>
               ))}
             </div>
           </fieldset>
-          <button disabled={!snapshotChoice} type="submit">Check my reasoning</button>
+          <button disabled={!choice} type="submit">Check my reasoning</button>
         </form>
-        {snapshotReviewed ? (
-          <div className="balance-feedback" role="status">
-            <p>
-              {snapshotChoice === "No"
-                ? "Right. A Balance Sheet is a snapshot at the reporting date."
-                : "Not quite. The figure describes the reporting date, not every day in the year."}
-            </p>
-            {visibleStage === 1 ? <button className="cash-continue" onClick={() => setVisibleStage(2)} type="button">Meet the three ideas</button> : null}
-          </div>
+        {reviewedChoice ? (
+          <p aria-live="polite" className={styles.feedback} role="status">
+            {reviewedChoice === "balance-sheet"
+              ? "Yes. The Balance Sheet is the point-in-time statement."
+              : "The Income Statement and Cash Flow Statement describe activity over a period; the Balance Sheet shows position as of a date."}
+          </p>
         ) : null}
       </section>
 
-      {visibleStage >= 2 ? (
-        <section className="balance-stage" data-balance-stage="ideas">
-          <p className="cash-section__number">02 · Three basic ideas</p>
-          <dl className="balance-three-ideas">
-            <div><dt>Assets</dt><dd>Resources controlled by the company that have economic value.</dd></div>
-            <div><dt>Liabilities</dt><dd>Obligations the company owes.</dd></div>
-            <div><dt>Shareholders&apos; Equity</dt><dd>The residual interest after liabilities and other applicable claims.</dd></div>
-          </dl>
-          {visibleStage === 2 ? <button className="cash-continue" onClick={() => setVisibleStage(3)} type="button">Balance the statement</button> : null}
-        </section>
-      ) : null}
-
-      {visibleStage >= 3 ? (
-        <section className="balance-stage" data-balance-stage="equation">
-          <p className="cash-section__number">03 · Balance the statement</p>
-          <div className="balance-equation" aria-label={`Assets ${formatBillions(statement.assets.value)} equals claims and equity ${formatBillions(claimsSide)}`}>
-            <article>
-              <span>{statement.assets.reportedLabel}</span>
-              <strong>{formatBillions(statement.assets.value)}</strong>
-              <small>Company reported</small>
-            </article>
-            <b aria-hidden="true">=</b>
-            <div className="balance-equation__claims">
-              <article>
-                <span>{statement.liabilities.evidenceKind === "reported" ? statement.liabilities.reportedLabel : statement.liabilities.label}</span>
-                <strong>{formatBillions(statement.liabilities.value)}</strong>
-                <small>{statement.liabilities.evidenceKind === "reported" ? "Company reported" : "FinPath-derived from reported lines"}</small>
-              </article>
-              {statement.otherClaims.map((line) => (
-                <article key={line.id}>
-                  <span>{line.reportedLabel}</span>
-                  <strong>{formatBillions(line.value)}</strong>
-                  <small>Company reported separately</small>
-                </article>
-              ))}
-              <article>
-                <span>{statement.equity.reportedLabel}</span>
-                <strong>{formatBillions(statement.equity.value)}</strong>
-                <small>Company reported</small>
-              </article>
-            </div>
-          </div>
-          {statement.otherClaims.length ? (
-            <p className="balance-claim-note">
-              Some companies present certain claims separately from permanent shareholders&apos; equity.
-              FinPath keeps redeemable noncontrolling interest visible rather than forcing it into another bucket.
-            </p>
-          ) : null}
-          <aside className="cash-learning-trace balance-learning-trace" aria-label="Learning Trace">
-            <p><span aria-hidden="true" /> Learning Trace</p>
-            <h3>Assets equal the complete claims side at this reporting date.</h3>
-            <p>FinPath validates the equation using exact stored USD values before displaying billions.</p>
-          </aside>
-          <div className="balance-evidence-list" aria-label="Balance Sheet evidence">
-            <EvidenceInspector evidence={evidence.assets} id="balance-assets-evidence" />
-            <EvidenceInspector evidence={evidence.liabilities} id="balance-liabilities-evidence" />
-            {evidence.otherClaims.map((item) => <EvidenceInspector evidence={item} id={`balance-${item.metric.id}-evidence`} key={item.metric.id} />)}
-            <EvidenceInspector evidence={evidence.equity} id="balance-equity-evidence" />
-          </div>
-          {visibleStage === 3 ? <button className="cash-continue" onClick={() => setVisibleStage(4)} type="button">Compare Assets with cash</button> : null}
-        </section>
-      ) : null}
-
-      {visibleStage >= 4 ? (
-        <section className="balance-stage" data-balance-stage="assets-not-cash">
-          <p className="cash-section__number">04 · Assets are not cash</p>
-          <div className="balance-assets-cash">
-            <div><span>Total Assets</span><strong>{formatBillions(statement.assets.value)}</strong></div>
-            <div><span>Cash and cash equivalents</span><strong>{formatBillions(statement.cashAndCashEquivalents.value)}</strong></div>
-          </div>
-          <p>
-            Assets can also include receivables, investments, inventory, property and equipment,
-            and other assets. Cash is only one asset category.
-          </p>
-          <EvidenceInspector evidence={evidence.cashAndCashEquivalents} id="balance-cash-evidence" />
-          {visibleStage === 4 ? <button className="cash-continue" onClick={() => setVisibleStage(5)} type="button">Set the Equity boundary</button> : null}
-        </section>
-      ) : null}
-
-      {visibleStage >= 5 ? (
-        <section className="balance-stage" data-balance-stage="equity-boundary">
-          <p className="cash-section__number">05 · What Equity is not</p>
-          <p>Shareholders&apos; Equity is a residual accounting interest. It is not:</p>
-          <ul className="balance-boundary-list">
-            <li>ending cash;</li>
-            <li>the company&apos;s market capitalization;</li>
-            <li>money immediately distributable to shareholders.</li>
-          </ul>
-          {visibleStage === 5 ? <button className="cash-continue" onClick={() => setVisibleStage(6)} type="button">Use what you learned</button> : null}
-        </section>
-      ) : null}
-
-      {visibleStage >= 6 ? (
-        <section className="balance-stage balance-stage--question" data-balance-stage="understanding-check">
-          <p className="cash-section__number">06 · One final check</p>
-          <form onSubmit={checkCash}>
-            <fieldset>
-              <legend>
-                If a company reports {formatBillions(statement.assets.value)} of Assets,
-                does that mean it holds that amount in cash?
-              </legend>
-              <div className="cash-choice-list balance-choice-list">
-                {["Yes", "No"].map((answer) => (
-                  <label key={answer}>
-                    <input
-                      checked={cashChoice === answer}
-                      name="cash-check"
-                      onChange={() => { setCashChoice(answer); setCashReviewed(false); }}
-                      type="radio"
-                      value={answer}
-                    />
-                    <span>{answer}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <button disabled={!cashChoice} type="submit">Check my reasoning</button>
-          </form>
-          {cashReviewed ? (
-            <div className="cash-completion" role="status">
-              <p>
-                {cashChoice === "No"
-                  ? "Right. Cash is one Asset category; Total Assets includes other resources too."
-                  : "Not quite. Total Assets includes cash and many other resources."}
-              </p>
-              <p><strong>Next:</strong> More company-analysis concepts are still being validated.</p>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
-      <p className="profit-retrieved-note">
-        Retrieved {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}
-        {dataStatus.state === "stale" ? " · SEC was unavailable, so FinPath is showing the last known public filing data." : ""}
+      <p className={styles.retrievedNote}>
+        Retrieved{" "}
+        {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", {
+          timeZone: "Asia/Kuala_Lumpur",
+        })}
+        {dataStatus.state === "stale"
+          ? " · SEC was unavailable, so FinPath is showing the last known public filing data."
+          : ""}
       </p>
     </section>
   );

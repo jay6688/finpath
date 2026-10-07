@@ -67,6 +67,24 @@ export type BalanceSheetEvidence = {
   simpleBorrowings: DerivedEvidence;
 };
 
+export type BalanceSheetPresentationLine = {
+  id: string;
+  amount: number;
+  sourceStatus: "reported" | "finpath-derived";
+  sharePercent: number;
+};
+
+export type BalanceSheetPresentation = {
+  asOfDate: string;
+  assets: BalanceSheetPresentationLine;
+  claims: BalanceSheetPresentationLine[];
+  claimsTotal: number;
+  scale: {
+    kind: "assets-reference";
+    referenceAmount: number;
+  };
+};
+
 export function validateBalanceSheetForLesson(
   statement: BalanceSheetStatement,
   company: CompanyBalanceSheet["company"],
@@ -220,6 +238,65 @@ export function buildBalanceSheetEvidence(
       reported(line, line.reportedLabel),
     ),
     simpleBorrowings: buildSimpleBorrowingsEvidence(response, reported),
+  };
+}
+
+export function buildBalanceSheetPresentation(
+  response: CompanyBalanceSheet,
+): BalanceSheetPresentation {
+  validateBalanceSheetForLesson(response.statement, response.company);
+  const { statement } = response;
+  const referenceAmount = statement.assets.value;
+  if (referenceAmount <= 0) {
+    throw new EvidenceDataError(
+      "Balance Sheet presentation requires a positive Assets reference.",
+    );
+  }
+
+  const claims: BalanceSheetPresentationLine[] = [
+    {
+      id: "liabilities",
+      amount: statement.liabilities.value,
+      sourceStatus:
+        statement.liabilities.evidenceKind === "reported"
+          ? "reported"
+          : "finpath-derived",
+      sharePercent: (statement.liabilities.value / referenceAmount) * 100,
+    },
+    ...statement.otherClaims.map((line) => ({
+      id: line.id,
+      amount: line.value,
+      sourceStatus: "reported" as const,
+      sharePercent: (line.value / referenceAmount) * 100,
+    })),
+    {
+      id: "equity",
+      amount: statement.equity.value,
+      sourceStatus: "reported",
+      sharePercent: (statement.equity.value / referenceAmount) * 100,
+    },
+  ];
+  const claimsTotal = claims.reduce((sum, line) => sum + line.amount, 0);
+  if (claimsTotal !== referenceAmount) {
+    throw new EvidenceDataError(
+      "Balance Sheet presentation requires an exact accounting identity.",
+    );
+  }
+
+  return {
+    asOfDate: statement.asOfDate,
+    assets: {
+      id: "assets",
+      amount: referenceAmount,
+      sourceStatus: "reported",
+      sharePercent: 100,
+    },
+    claims,
+    claimsTotal,
+    scale: {
+      kind: "assets-reference",
+      referenceAmount,
+    },
   };
 }
 
