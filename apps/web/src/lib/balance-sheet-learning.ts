@@ -85,6 +85,27 @@ export type BalanceSheetPresentation = {
   };
 };
 
+export type CashDebtPresentation = {
+  asOfDate: string;
+  cashPosition: {
+    kind: "reported-balance-sheet-position";
+    label: string;
+    amount: number;
+    magnitudePercent: number;
+  };
+  borrowingPosition: {
+    kind: "finpath-derived-balance-sheet-position";
+    label: string;
+    amount: number;
+    magnitudePercent: number;
+    componentIds: BalanceSheetLineId[];
+  };
+  scale: {
+    kind: "shared-absolute-balance-scale";
+    referenceAmount: number;
+  };
+};
+
 export function validateBalanceSheetForLesson(
   statement: BalanceSheetStatement,
   company: CompanyBalanceSheet["company"],
@@ -295,6 +316,42 @@ export function buildBalanceSheetPresentation(
     claimsTotal,
     scale: {
       kind: "assets-reference",
+      referenceAmount,
+    },
+  };
+}
+
+export function buildCashDebtPresentation(
+  response: CompanyBalanceSheet,
+): CashDebtPresentation {
+  validateBalanceSheetForLesson(response.statement, response.company);
+  const { statement } = response;
+  const cashAmount = statement.cashAndCashEquivalents.value;
+  const borrowingAmount = statement.simpleBorrowings.value;
+  const referenceAmount = Math.max(cashAmount, borrowingAmount);
+  if (referenceAmount <= 0) {
+    throw new EvidenceDataError(
+      "Cash & Debt presentation requires a positive shared balance scale.",
+    );
+  }
+
+  return {
+    asOfDate: statement.asOfDate,
+    cashPosition: {
+      kind: "reported-balance-sheet-position",
+      label: statement.cashAndCashEquivalents.reportedLabel,
+      amount: cashAmount,
+      magnitudePercent: (cashAmount / referenceAmount) * 100,
+    },
+    borrowingPosition: {
+      kind: "finpath-derived-balance-sheet-position",
+      label: statement.simpleBorrowings.label,
+      amount: borrowingAmount,
+      magnitudePercent: (borrowingAmount / referenceAmount) * 100,
+      componentIds: statement.simpleBorrowings.inputs.map((line) => line.id),
+    },
+    scale: {
+      kind: "shared-absolute-balance-scale",
       referenceAmount,
     },
   };

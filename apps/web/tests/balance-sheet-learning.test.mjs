@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   buildBalanceSheetPresentation,
   buildBalanceSheetEvidence,
+  buildCashDebtPresentation,
   validateBalanceSheetForLesson,
 } from "../src/lib/balance-sheet-learning.ts";
 
@@ -206,6 +207,30 @@ test("builds Apple's exact financial-position frame on one Assets reference", ()
       presentation.claims.reduce((sum, claim) => sum + claim.sharePercent, 0) - 100,
     ) < Number.EPSILON * 100,
   );
+});
+
+test("builds Apple's Cash & Debt comparison on one shared balance scale", () => {
+  const presentation = buildCashDebtPresentation(makeDirectBalanceSheet("AAPL"));
+
+  assert.deepEqual(presentation.cashPosition, {
+    kind: "reported-balance-sheet-position",
+    label: "Cash and cash equivalents",
+    amount: 35_934_000_000,
+    magnitudePercent: (35_934_000_000 / 98_657_000_000) * 100,
+  });
+  assert.deepEqual(presentation.borrowingPosition, {
+    kind: "finpath-derived-balance-sheet-position",
+    label: "FinPath simple borrowings",
+    amount: 98_657_000_000,
+    magnitudePercent: 100,
+    componentIds: ["commercial-paper", "current-term-debt", "noncurrent-term-debt"],
+  });
+  assert.deepEqual(presentation.scale, {
+    kind: "shared-absolute-balance-scale",
+    referenceAmount: 98_657_000_000,
+  });
+  assert.equal(presentation.asOfDate, "2025-09-27");
+  assert.equal("netDebt" in presentation, false);
 });
 
 test("keeps Walmart liabilities derived and redeemable NCI separate", () => {
