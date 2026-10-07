@@ -6,8 +6,10 @@ import { LessonShell } from "@/components/lesson-shell";
 import {
   FinPathApiError,
   getCompanyEarningsPerShare,
+  getCompanySharesOutstanding,
   getSupportedCompanies,
   type CompanyEarningsPerShare,
+  type CompanySharesOutstanding,
   type SupportedCompany,
 } from "@/lib/api";
 import { resolveCompanyQuery } from "@/lib/company-selection";
@@ -15,6 +17,10 @@ import {
   EarningsPerShareDataError,
   validateEarningsPerShareForLesson,
 } from "@/lib/earnings-per-share";
+import {
+  MarketCapLearningError,
+  validateSharesOutstandingForLesson,
+} from "@/lib/market-cap-learning";
 
 export const metadata: Metadata = {
   title: "Learn EPS & Share Count",
@@ -29,6 +35,7 @@ export default async function EpsAndShareCountPage({
   let companies: SupportedCompany[] = [];
   let selectedCompany: SupportedCompany | null = null;
   let response: CompanyEarningsPerShare | null = null;
+  let sharesOutstanding: CompanySharesOutstanding | null = null;
   let dataError: string | null = null;
 
   try {
@@ -36,16 +43,26 @@ export default async function EpsAndShareCountPage({
       (company) => company.capabilities.earningsPerShare,
     );
     selectedCompany = resolveCompanyQuery((await searchParams).company, companies);
-    response = validateEarningsPerShareForLesson(
-      await getCompanyEarningsPerShare(
+    const [epsPayload, sharesPayload] = await Promise.all([
+      getCompanyEarningsPerShare(
         selectedCompany.ticker,
         selectedCompany.reviewedFiscalYear,
       ),
+      getCompanySharesOutstanding(
+        selectedCompany.ticker,
+        selectedCompany.reviewedFiscalYear,
+      ),
+    ]);
+    response = validateEarningsPerShareForLesson(epsPayload, selectedCompany);
+    sharesOutstanding = validateSharesOutstandingForLesson(
+      sharesPayload,
       selectedCompany,
     );
   } catch (error) {
     dataError =
-      error instanceof FinPathApiError || error instanceof EarningsPerShareDataError
+      error instanceof FinPathApiError ||
+      error instanceof EarningsPerShareDataError ||
+      error instanceof MarketCapLearningError
         ? error.message
         : "Reviewed EPS data is temporarily unavailable.";
   }
@@ -69,8 +86,12 @@ export default async function EpsAndShareCountPage({
       selectedCompany={selectedCompany ?? undefined}
       showExploreCompany={Boolean(selectedCompany)}
     >
-      {response ? (
-        <EpsShareCountLearning response={response} />
+      {response && sharesOutstanding ? (
+        <EpsShareCountLearning
+          key={`${response.statement.accession}:${sharesOutstanding.fact.accession}:${sharesOutstanding.fact.asOfDate}`}
+          response={response}
+          sharesOutstanding={sharesOutstanding}
+        />
       ) : (
         <div className="data-empty-state profit-data-empty" role="status">
           <div className="data-empty-state__value" aria-hidden="true">—</div>

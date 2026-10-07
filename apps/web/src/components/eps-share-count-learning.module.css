@@ -1,0 +1,44 @@
+.lesson { display: grid; gap: clamp(1.5rem, 4vw, 2.5rem); color: var(--fp-v2-ink); }
+.introduction { max-width: 58rem; padding-left: var(--fp-v2-space-4); border-left: 4px solid var(--fp-v2-coral); }
+.introduction h2 { max-width: 48rem; margin: .3rem 0 var(--fp-v2-space-3); font-family: var(--fp-v2-font-concept); font-size: clamp(1.75rem, 5vw, 3rem); font-weight: 500; letter-spacing: -.04em; line-height: 1.05; }
+.introduction > p:last-child { max-width: 48rem; margin: 0; color: var(--fp-v2-ink-soft); line-height: 1.7; }
+.basisControls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--fp-v2-space-2); }
+.basisControls button { min-block-size: var(--fp-v2-touch); padding: .75rem; color: var(--fp-v2-ink); background: var(--fp-v2-paper); border: 1px solid var(--fp-v2-line); border-radius: var(--fp-v2-radius-control); font-weight: 850; cursor: pointer; }
+.basisControls button[aria-pressed="true"] { color: var(--fp-v2-paper); background: var(--fp-v2-ink); border-color: var(--fp-v2-ink); }
+.fraction, .instantContrast, .boundaries, .completion { padding: var(--fp-v2-space-4); background: var(--fp-v2-paper); border: 1px solid var(--fp-v2-line); border-radius: var(--fp-v2-radius-object); }
+.fraction { display: grid; gap: var(--fp-v2-space-5); }
+.fractionHeading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--fp-v2-space-3); }
+.fractionHeading span { color: var(--fp-v2-ink-soft); font-size: .68rem; }
+.fractionHeading h3 { margin: .25rem 0 0; font-family: var(--fp-v2-font-concept); font-size: 1.5rem; font-weight: 500; }
+.fractionHeading > strong { font-family: var(--fp-v2-font-number); font-size: clamp(2rem, 8vw, 4rem); font-variant-numeric: tabular-nums; }
+.fractionHeading > strong small { display: block; color: var(--fp-v2-ink-soft); font-size: .65rem; text-align: right; }
+.equation { display: grid; grid-template-rows: auto auto auto; gap: var(--fp-v2-space-3); align-items: stretch; }
+.equation > div { padding: var(--fp-v2-space-4); display: grid; gap: .35rem; background: var(--fp-v2-neutral); border-top: 4px solid var(--fp-v2-cobalt); }
+.equation > b { align-self: center; justify-self: center; font-family: var(--fp-v2-font-number); font-size: 1.5rem; }
+.equation span, .equation small { color: var(--fp-v2-ink-soft); font-size: .66rem; }
+.equation strong { font-family: var(--fp-v2-font-number); font-size: clamp(1.1rem, 4vw, 1.6rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.equation .denominator { border-top-color: var(--fp-v2-coral); }
+.equation .result { background: var(--fp-v2-jade-soft); border-top-color: var(--fp-v2-jade); }
+.relationship { margin: 0; padding-left: var(--fp-v2-space-3); color: var(--fp-v2-ink-soft); border-left: 3px solid var(--fp-v2-coral); line-height: 1.65; }
+.instantContrast { display: grid; gap: var(--fp-v2-space-4); border-left: 4px solid var(--fp-v2-amber); }
+.instantContrast h3, .boundaries h3 { margin: .25rem 0 var(--fp-v2-space-2); font-family: var(--fp-v2-font-concept); font-size: 1.35rem; font-weight: 500; }
+.instantContrast > div:first-child > strong { font-family: var(--fp-v2-font-number); font-size: clamp(1.25rem, 5vw, 2rem); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.instantContrast p, .boundaries p { color: var(--fp-v2-ink-soft); line-height: 1.65; }
+.notDenominator { padding: var(--fp-v2-space-4); background: var(--fp-v2-ivory); }
+.notDenominator p { margin-bottom: 0; }
+.boundaries { border-left: 4px solid var(--fp-v2-cobalt); }
+.boundaries p { margin: 0; }
+.completion { display: grid; gap: var(--fp-v2-space-4); border-left: 4px solid var(--fp-v2-jade); }
+.completion fieldset { margin: 0; padding: 0; display: grid; gap: var(--fp-v2-space-2); border: 0; }
+.completion legend { font-family: var(--fp-v2-font-concept); font-size: 1.25rem; font-weight: 500; }
+.completion fieldset > p { margin: .25rem 0 var(--fp-v2-space-2); color: var(--fp-v2-ink-soft); font-size: .72rem; }
+.completion label { position: relative; }
+.completion input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.completion label span { min-block-size: var(--fp-v2-touch); padding: .75rem; display: flex; align-items: center; border: 1px solid var(--fp-v2-line); border-radius: var(--fp-v2-radius-control); cursor: pointer; }
+.completion label:has(input:checked) span { background: var(--fp-v2-jade-soft); border-color: var(--fp-v2-jade); box-shadow: inset 4px 0 0 var(--fp-v2-jade); }
+.completion > button { min-block-size: var(--fp-v2-touch); padding: .75rem 1rem; color: var(--fp-v2-paper); background: var(--fp-v2-ink); border: 1px solid var(--fp-v2-ink); border-radius: var(--fp-v2-radius-control); font-weight: 850; cursor: pointer; }
+.completion > button:disabled { color: var(--fp-v2-ink-soft); background: var(--fp-v2-neutral); border-color: var(--fp-v2-line); cursor: not-allowed; }
+.feedback { margin: 0; padding: var(--fp-v2-space-3); background: var(--fp-v2-neutral); border-left: 4px solid var(--fp-v2-cobalt); line-height: 1.6; }
+.basisControls button:focus-visible, .completion input:focus-visible + span, .completion > button:focus-visible { outline: 3px solid var(--fp-v2-focus); outline-offset: 3px; }
+@media (min-width: 48rem) { .fraction, .instantContrast, .boundaries, .completion { padding: var(--fp-v2-space-5); } .equation { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: auto; } }
+@media (prefers-reduced-motion: reduce) { .lesson * { transition-duration: 1ms !important; } }

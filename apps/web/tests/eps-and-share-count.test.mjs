@@ -85,6 +85,31 @@ test("all three reviewed companies pass the same EPS contract", () => {
     assert.equal(response.statement.basicVerification.evidenceKind, "verification");
   }
   assert.equal(epsResponse(companies.wmt).statement.earningsNumerator.value, 21_893_000_000);
+  assert.equal(epsResponse(companies.aapl).statement.basicWeightedAverageShares.value, 14_948_500_000);
+  assert.equal(epsResponse(companies.aapl).statement.dilutedWeightedAverageShares.value, 15_004_697_000);
+  assert.equal(epsResponse(companies.aapl).statement.dilutedEps.value, "7.46");
+});
+
+test("Production EPS uses the reviewed period denominator and keeps instant shares separate", async () => {
+  const [page, lesson, styles] = await Promise.all([
+    readSource("app/learn/company-analysis/eps-and-share-count/page.tsx"),
+    readSource("components/eps-share-count-learning.tsx"),
+    readSource("components/eps-share-count-learning.module.css"),
+  ]);
+
+  assert.match(page, /getCompanyEarningsPerShare/);
+  assert.match(page, /getCompanySharesOutstanding/);
+  assert.match(page, /validateSharesOutstandingForLesson/);
+  assert.match(lesson, /Net Income[^]*÷[^]*diluted weighted-average shares[^]*Diluted EPS/is);
+  assert.match(lesson, /Reported denominator/);
+  assert.match(lesson, /Point-in-time shares outstanding/);
+  assert.match(lesson, /not the EPS denominator/i);
+  assert.match(lesson, /asOfDate/);
+  assert.match(lesson, /SharesOutstandingEvidenceInspector/);
+  assert.match(lesson, /markExplored\(\["eps-and-share-count"\]\)/);
+  assert.doesNotMatch(lesson, /setBasis\([^)]*\)[^}]*markExplored/s);
+  assert.match(styles, /grid-template-rows:\s*auto auto auto/);
+  assert.doesNotMatch(`${page}\n${lesson}`, /15004697000|14776353000|7\.46/);
 });
 
 test("EPS contract fails closed on company, unit, context, source, and evidence mismatch", () => {
