@@ -33,6 +33,7 @@ const activityDescriptions = lessonContent.activityDescriptions as Record<
   CashFlowSectionId,
   string
 >;
+const cashBalanceScope = "Cash, cash equivalents & restricted cash";
 
 const exactBillions = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -94,7 +95,7 @@ export function CashActivityTrace({
       </header>
 
       <div
-        aria-label={`${activityEquivalent}. Reported net change in cash ${formatSignedBillions(presentation.change.amount)}. Beginning cash ${formatBillions(presentation.balance.beginning)}, plus change ${formatSignedBillions(presentation.balance.change)}, equals ending cash ${formatBillions(presentation.balance.ending)}.`}
+        aria-label={`${activityEquivalent}. Reported net change in cash ${formatSignedBillions(presentation.change.amount)}. Beginning balance of ${cashBalanceScope.toLowerCase()} ${formatBillions(presentation.balance.beginning)}, plus change ${formatSignedBillions(presentation.balance.change)}, equals ending balance of ${cashBalanceScope.toLowerCase()} ${formatBillions(presentation.balance.ending)}.`}
         className={styles.activityFigure}
         role="img"
       >
@@ -151,11 +152,19 @@ export function CashActivityTrace({
       </div>
 
       <div className={styles.balanceBridge} aria-label="Cash balance reconciliation">
-        <div><span>Beginning cash</span><strong>{formatBillions(presentation.balance.beginning)}</strong></div>
+        <div>
+          <span>Beginning balance</span>
+          <small>{cashBalanceScope}</small>
+          <strong>{formatBillions(presentation.balance.beginning)}</strong>
+        </div>
         <span aria-hidden="true">+</span>
         <div><span>Reported change</span><strong>{formatSignedBillions(presentation.balance.change)}</strong></div>
         <span aria-hidden="true">=</span>
-        <div><span>Ending cash</span><strong>{formatBillions(presentation.balance.ending)}</strong></div>
+        <div>
+          <span>Ending balance</span>
+          <small>{cashBalanceScope}</small>
+          <strong>{formatBillions(presentation.balance.ending)}</strong>
+        </div>
       </div>
 
       <div className={styles.lineStudy}>

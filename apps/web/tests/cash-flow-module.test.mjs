@@ -268,6 +268,16 @@ test("Cash Activity completion remains submission-only and keeps evidence attach
   assert.doesNotMatch(lesson, /\bFCF\b|stock price|Market Cap|P\/E|BUY|SELL/);
 });
 
+test("Cash Activity preserves the reviewed cash-balance accounting scope", async () => {
+  const trace = await readSource("components/cash-activity-trace.tsx");
+
+  assert.match(trace, /Beginning balance/);
+  assert.match(trace, /Ending balance/);
+  assert.match(trace, /Cash, cash equivalents & restricted cash/);
+  assert.doesNotMatch(trace, /Beginning cash/);
+  assert.doesNotMatch(trace, /Ending cash/);
+});
+
 test("both lessons use low-pressure checks, evidence, and completion", async () => {
   const [investing, freeCashFlow, investingContent, freeCashFlowContent] = await Promise.all([
     readSource("components/investing-financing-cash-flow-learning.tsx"),
