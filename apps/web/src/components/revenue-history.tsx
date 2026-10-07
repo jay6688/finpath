@@ -31,11 +31,7 @@ export function RevenueHistory({
         company={company}
         currency={metric.currency}
         dataStatus={dataStatus}
-        defaultFiscalYear={
-          company.ticker === "AAPL"
-            ? contextContent.selectedFiscalYear
-            : (orderedSeries.at(-1)?.fiscalYear ?? 0)
-        }
+        defaultFiscalYear={orderedSeries.at(-1)?.fiscalYear ?? 0}
         reviewedPresentation={reviewedPresentation}
         series={orderedSeries}
         taxonomyTag={metric.taxonomyTag}
