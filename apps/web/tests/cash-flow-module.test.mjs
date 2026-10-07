@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  buildCashActivityPresentation,
   CashFlowLearningDataError,
   deriveSimpleFreeCashFlow,
   validateCompleteCashFlowStatement,
@@ -28,6 +29,111 @@ test("validates one complete FY2025 statement and derives simple FCF exactly", (
     exactValue: 98_767_000_000,
     displayBillions: 98.767,
   });
+});
+
+test("builds the reviewed FY2025 Cash Activity presentation without rounding geometry", () => {
+  const statement = makeCashFlowStatement();
+  const presentation = buildCashActivityPresentation(statement, {
+    fiscalYear: 2025,
+    accession: "0000320193-25-000079",
+  });
+
+  assert.equal(presentation.activityScale.referenceAmount, 120_686_000_000);
+  assert.equal(presentation.childScale.referenceAmount, 90_711_000_000);
+  assert.deepEqual(
+    presentation.activities.map((activity) => [
+      activity.id,
+      activity.amount,
+      activity.direction,
+      activity.kind,
+    ]),
+    [
+      ["operating", 111_482_000_000, "inflow", "reported-section-total"],
+      ["investing", 15_195_000_000, "inflow", "reported-section-total"],
+      ["financing", -120_686_000_000, "outflow", "reported-section-total"],
+    ],
+  );
+  assert.equal(
+    presentation.activities[0].magnitudePercent,
+    (111_482_000_000 / 120_686_000_000) * 100,
+  );
+  assert.equal(
+    presentation.activities[1].magnitudePercent,
+    (15_195_000_000 / 120_686_000_000) * 100,
+  );
+  assert.equal(presentation.activities[2].magnitudePercent, 100);
+  assert.deepEqual(presentation.change, {
+    id: "net-change-in-cash",
+    amount: 5_991_000_000,
+    direction: "inflow",
+    kind: "reported-cash-change",
+    magnitudePercent: (5_991_000_000 / 120_686_000_000) * 100,
+  });
+  assert.deepEqual(presentation.balance, {
+    beginning: 29_943_000_000,
+    change: 5_991_000_000,
+    ending: 35_934_000_000,
+  });
+
+  const investing = presentation.activities[1];
+  const financing = presentation.activities[2];
+  assert.deepEqual(
+    investing.lines.map((line) => [line.id, line.amount, line.role, line.direction]),
+    [
+      ["purchases-of-marketable-securities", -24_407_000_000, "cash-outflow", "outflow"],
+      ["maturities-of-marketable-securities", 40_907_000_000, "cash-inflow", "inflow"],
+      ["sales-of-marketable-securities", 12_890_000_000, "cash-inflow", "inflow"],
+      ["payments-for-property-plant-and-equipment", -12_715_000_000, "cash-outflow", "outflow"],
+      ["other-investing-activities", -1_480_000_000, "cash-outflow", "outflow"],
+    ],
+  );
+  assert.deepEqual(
+    financing.lines.map((line) => [line.id, line.amount, line.role, line.direction]),
+    [
+      ["taxes-related-to-net-share-settlement", -5_960_000_000, "cash-outflow", "outflow"],
+      ["dividends-and-dividend-equivalents", -15_421_000_000, "cash-outflow", "outflow"],
+      ["common-stock-repurchases", -90_711_000_000, "cash-outflow", "outflow"],
+      ["term-debt-issuance-net", 4_481_000_000, "cash-inflow", "inflow"],
+      ["term-debt-repayment", -10_932_000_000, "cash-outflow", "outflow"],
+      ["commercial-paper-net", -2_032_000_000, "signed-cash-flow", "outflow"],
+      ["other-financing-activities", -111_000_000, "signed-cash-flow", "outflow"],
+    ],
+  );
+  assert.equal(
+    financing.lines.at(-1).magnitudePercent,
+    (111_000_000 / 90_711_000_000) * 100,
+  );
+});
+
+test("Cash Activity validation fails closed when reviewed line semantics change", () => {
+  const cases = [
+    () => {
+      const statement = makeCashFlowStatement();
+      statement.sections[1].lines[0].role = "cash-inflow";
+      return statement;
+    },
+    () => {
+      const statement = makeCashFlowStatement();
+      statement.sections[2].lines[5].role = "cash-outflow";
+      return statement;
+    },
+    () => {
+      const statement = makeCashFlowStatement();
+      statement.sections[2].lines[6].id = "commercial-paper-net";
+      return statement;
+    },
+  ];
+
+  for (const createStatement of cases) {
+    assert.throws(
+      () =>
+        buildCashActivityPresentation(createStatement(), {
+          fiscalYear: 2025,
+          accession: "0000320193-25-000079",
+        }),
+      CashFlowLearningDataError,
+    );
+  }
 });
 
 test("derivation permits negative Operating Cash Flow instead of assuming Apple is universal", () => {
