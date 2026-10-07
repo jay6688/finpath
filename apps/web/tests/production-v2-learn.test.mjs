@@ -116,7 +116,7 @@ test("shared lesson chrome keeps one lesson H1 and frames untouched legacy bodie
 
 test("representative lesson routes retain their legacy body components", async () => {
   const representativeBodies = [
-    ["revenue", "RevenueLessonContent"],
+    ["revenue", "RevenueLearning"],
     ["profit", "ProfitLearningJourney"],
     ["balance-sheet", "BalanceSheetLearning"],
     ["market-cap", "MarketCapLearning"],

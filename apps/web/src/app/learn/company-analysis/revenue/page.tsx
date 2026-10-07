@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { CompanyExampleSelector } from "@/components/company-example-selector";
 import { LessonShell } from "@/components/lesson-shell";
-import { RevenueLessonContent } from "@/components/revenue-lesson-content";
+import { RevenueLearning } from "@/components/revenue-learning";
 import { getSupportedCompanies } from "@/lib/api";
 import { resolveCompanyQuery } from "@/lib/company-selection";
 import { getCompanyRevenueData } from "@/lib/company-revenue-data";
@@ -39,7 +39,7 @@ export default async function RevenueLessonPage({
       }
       selectedCompany={selectedCompany}
     >
-      <RevenueLessonContent {...data} />
+      <RevenueLearning {...data} />
     </LessonShell>
   );
 }
