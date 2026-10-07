@@ -26,7 +26,7 @@ export type EducationalPe = {
   displayRatio: string;
 };
 
-const reportedEpsPattern = /^(\d+)\.(\d{2})$/;
+const reportedEpsPattern = /^(-?)(\d+)\.(\d{2})$/;
 
 export function parseReportedPositiveEps(value: string): ReportedPositiveEps {
   const match = reportedEpsPattern.exec(value);
@@ -35,10 +35,16 @@ export function parseReportedPositiveEps(value: string): ReportedPositiveEps {
       "Reviewed annual Diluted EPS must be a positive two-decimal value.",
     );
   }
-  const cents = BigInt(match[1]) * 100n + BigInt(match[2]);
-  if (cents <= 0n) {
+  const absoluteCents = BigInt(match[2]) * 100n + BigInt(match[3]);
+  const cents = match[1] === "-" ? -absoluteCents : absoluteCents;
+  if (cents === 0n) {
     throw new PeRatioLearningError(
-      "P/E is not available in this lesson when annual Diluted EPS is zero or negative.",
+      "P/E is undefined when annual Diluted EPS is zero.",
+    );
+  }
+  if (cents < 0n) {
+    throw new PeRatioLearningError(
+      "Annual Diluted EPS is negative, so this lesson does not present a conventional positive P/E by hiding the sign.",
     );
   }
   return { normalized: value, cents };

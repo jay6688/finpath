@@ -21,9 +21,11 @@ test("annual Diluted EPS parser accepts positive two-decimal reported values onl
   assert.deepEqual(parseReportedPositiveEps("7.46"), { normalized: "7.46", cents: 746n });
   assert.deepEqual(parseReportedPositiveEps("17.95"), { normalized: "17.95", cents: 1795n });
   assert.deepEqual(parseReportedPositiveEps("2.73"), { normalized: "2.73", cents: 273n });
-  for (const value of ["", "0.00", "-1.00", "5", "5.0", "5.000", "NaN", "Infinity", "1e2"]) {
+  for (const value of ["", "5", "5.0", "5.000", "NaN", "Infinity", "1e2"]) {
     assert.throws(() => parseReportedPositiveEps(value));
   }
+  assert.throws(() => parseReportedPositiveEps("0.00"), /undefined/i);
+  assert.throws(() => parseReportedPositiveEps("-1.00"), /negative[^]*conventional positive P\/E/is);
 });
 
 test("educational P/E uses exact BigInt cents and positive half-up rounding", () => {
@@ -90,7 +92,7 @@ test("Lesson 13 source preserves annual Diluted EPS, educational-price, and valu
   assert.match(lesson, /does not mean[^]*payback/i);
   assert.match(lesson, /price doubles[^]*P\/E doubles/is);
   assert.match(lesson, /markExplored\(\["pe-ratio"\]\)/);
-  assert.match(lesson, /resetDownstream[^]*setVisibleStage\(3\)[^]*setMeaningAnswer\(null\)[^]*setDoubleAnswer\(null\)/);
+  assert.match(lesson, /setCalculation\(null\)[^]*setFinished\(false\)/s);
   assert.match(lesson, /Investor\.gov/);
   assert.match(lesson, /FINRA/);
   assert.match(evidence, /basis === "basic"[^]*statement\.dilutedEps/is);
@@ -100,6 +102,28 @@ test("Lesson 13 source preserves annual Diluted EPS, educational-price, and valu
   assert.doesNotMatch(production, /parseFloat|Number\([^)]*\)\s*\//);
   assert.doesNotMatch(production, /buy|sell|undervalued|overvalued|cheap stock|expensive stock/i);
   assert.doesNotMatch(explore, /P\/E[^]*\d|Price.Earnings[^]*\d/i);
+});
+
+test("Production P/E is a provenance-explicit ratio lens with honest denominator states", async () => {
+  const [lesson, styles, model] = await Promise.all([
+    readSource("components/pe-ratio-learning.tsx"),
+    readSource("components/pe-ratio-learning.module.css"),
+    readSource("lib/pe-ratio-learning.ts"),
+  ]);
+
+  assert.match(lesson, /Learner input \/ hypothetical/);
+  assert.match(lesson, /Reported \/ reviewed/);
+  assert.match(lesson, /FinPath-derived scenario/);
+  assert.match(lesson, /Price per share[^]*÷[^]*Annual Diluted EPS[^]*Hypothetical P\/E/is);
+  assert.match(lesson, /not Apple-reported/i);
+  assert.match(lesson, /not automatically expensive[^]*not automatically cheap/is);
+  assert.match(lesson, /does not persist[^]*refresh/i);
+  assert.match(lesson, /markExplored\(\["pe-ratio"\]\)/);
+  assert.doesNotMatch(lesson, /calculate\([^)]*\)[^}]*markExplored/s);
+  assert.match(model, /P\/E is undefined when annual Diluted EPS is zero/);
+  assert.match(model, /negative[^]*conventional positive P\/E/is);
+  assert.match(styles, /grid-template-rows:\s*auto auto auto/);
+  assert.doesNotMatch(`${lesson}\n${styles}`, /buy|sell|fair value|undervalued|overvalued/i);
 });
 
 test("React lesson source contains no hard-coded company EPS fallback", async () => {
