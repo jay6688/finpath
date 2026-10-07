@@ -290,7 +290,7 @@ test("Lesson 08 and 09 content preserves reported, derived, and limitation bound
   assert.match(investing.boundaries.operating, /not.*change in Apple.s cash balance/i);
   assert.match(freeCashFlow.definition, /analytical measure/i);
   assert.match(freeCashFlow.definition, /definitions can vary/i);
-  assert.match(freeCashFlow.limitation, /not Apple.s ending cash balance/i);
+  assert.match(freeCashFlow.limitation, /not Apple.s ending cash-related balance/i);
   assert.doesNotMatch(JSON.stringify(investing), /111\.482|15\.195|120\.686|5\.991/);
   assert.doesNotMatch(JSON.stringify(freeCashFlow), /98\.767|111\.482|12\.715/);
 });
@@ -369,4 +369,44 @@ test("both lessons use low-pressure checks, evidence, and completion", async () 
   assert.match(investing, /markExplored\(\["investing-financing-cash-flow"\]\)/);
   assert.match(freeCashFlow, /markExplored\(\["free-cash-flow"\]\)/);
   assert.match(freeCashFlow, /FinPath simple Free Cash Flow/);
+});
+
+test("Free Cash Flow uses a complete signed derivation bridge with exact geometry", async () => {
+  const [page, lesson, styles, content] = await Promise.all([
+    readSource("app/learn/company-analysis/free-cash-flow/page.tsx"),
+    readSource("components/free-cash-flow-learning.tsx"),
+    readSource("components/free-cash-flow-learning.module.css"),
+    readSource("content/cash-flow-lessons/aapl-free-cash-flow-fy2025.json").then(JSON.parse),
+  ]);
+
+  assert.match(page, /buildFreeCashFlowPresentation/);
+  assert.match(page, /presentation=\{presentation\}/);
+  assert.match(lesson, /propertyPlantEquipment\.statementCashEffect/);
+  assert.match(lesson, /propertyPlantEquipment\.deductionMagnitude/);
+  assert.match(lesson, /freeCashFlow\.amount/);
+  assert.match(lesson, /--fcf-magnitude/);
+  assert.match(styles, /width:\s*calc\(var\(--fcf-magnitude\) \* \.5%\)/);
+  assert.doesNotMatch(styles, /min-inline-size|width:\s*(?:min|max|clamp)\(/);
+  assert.doesNotMatch(lesson, /visibleSection|cash-continue|Math\.abs\(presentation\.freeCashFlow\.amount\)/);
+  assert.match(content.freeNameBoundary, /Free.*name of the derived measure/i);
+  assert.match(content.freeNameBoundary, /does not mean unrestricted cash/i);
+  assert.match(content.definitionBoundary, /FinPath uses this FCF definition consistently/i);
+  assert.match(content.definitionBoundary, /Other analysts may define FCF differently/i);
+  assert.doesNotMatch(JSON.stringify(content), /98\.767|111\.482|12\.715/);
+});
+
+test("Free Cash Flow completion remains submission-only and exposes derived evidence", async () => {
+  const [lesson, content] = await Promise.all([
+    readSource("components/free-cash-flow-learning.tsx"),
+    readSource("content/cash-flow-lessons/aapl-free-cash-flow-fy2025.json").then(JSON.parse),
+  ]);
+
+  assert.match(lesson, /function review[\s\S]*markExplored\(\["free-cash-flow"\]\)/);
+  assert.match(lesson, /EvidenceInspector/);
+  assert.match(lesson, /name="free-cash-flow-meaning"/);
+  assert.doesNotMatch(lesson, /onChange=\{\(\) => \{[^}]*markExplored/);
+  assert.equal(content.question.supportedChoiceId, "finpath-derived");
+  assert.equal(content.question.choices.length, 4);
+  assert.match(content.question.prompt, /derived result/i);
+  assert.match(lesson, /formatSignedBillions\(presentation\.freeCashFlow\.amount\)/);
 });

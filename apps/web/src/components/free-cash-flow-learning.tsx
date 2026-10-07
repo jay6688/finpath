@@ -1,41 +1,57 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 
 import { EvidenceInspector } from "@/components/evidence-inspector";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import lessonContent from "@/content/cash-flow-lessons/aapl-free-cash-flow-fy2025.json";
 import type { CompanyCashFlowStatement } from "@/lib/api";
-import { cashFlowStatementLines, type SimpleFreeCashFlowDerivation } from "@/lib/cash-flow-learning";
+import type { FreeCashFlowPresentation } from "@/lib/cash-flow-learning";
 import {
   buildFreeCashFlowEvidence,
   buildReviewedPresentation,
   type FinancialStatementLineId,
 } from "@/lib/evidence";
 
+import styles from "./free-cash-flow-learning.module.css";
+
 type Props = {
   cashFlowStatement: CompanyCashFlowStatement;
-  derivation: SimpleFreeCashFlowDerivation;
+  presentation: FreeCashFlowPresentation;
 };
 
 const reviewedLabels = Object.fromEntries(
   Object.entries(lessonContent.lines).map(([id, copy]) => [id, copy.reportedLabel]),
 ) as Partial<Record<FinancialStatementLineId, string>>;
-const exactBillions = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 3, maximumFractionDigits: 3 });
-const formatBillions = (value: number) => `${exactBillions.format(Math.abs(value) / 1_000_000_000)}B`;
 
-export function FreeCashFlowLearning({ cashFlowStatement, derivation }: Props) {
+const exactBillions = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 3,
+  maximumFractionDigits: 3,
+});
+
+function formatSignedBillions(value: number): string {
+  const sign = value < 0 ? "−" : value > 0 ? "+" : "";
+  return `${sign}${exactBillions.format(Math.abs(value) / 1_000_000_000)}B`;
+}
+
+function formatMagnitudeBillions(value: number): string {
+  return `${exactBillions.format(value / 1_000_000_000)}B`;
+}
+
+function barStyle(magnitudePercent: number): CSSProperties {
+  return { "--fcf-magnitude": magnitudePercent } as CSSProperties;
+}
+
+export function FreeCashFlowLearning({
+  cashFlowStatement,
+  presentation,
+}: Props) {
   const { markExplored } = useLearningProgress();
   const { statement, dataStatus } = cashFlowStatement;
-  const lines = new Map(cashFlowStatementLines(statement).map((line) => [line.id, line]));
-  const operatingCash = lines.get("cash-generated-by-operating-activities");
-  const ppAndE = lines.get("payments-for-property-plant-and-equipment");
-  const [visibleSection, setVisibleSection] = useState(1);
   const [choice, setChoice] = useState<string | null>(null);
   const [reviewedChoice, setReviewedChoice] = useState<string | null>(null);
-
-  if (!operatingCash || !ppAndE) return null;
-
   const presentationContent = {
     fiscalYear: lessonContent.fiscalYear,
     startDate: lessonContent.startDate,
@@ -48,9 +64,19 @@ export function FreeCashFlowLearning({ cashFlowStatement, derivation }: Props) {
   };
   const evidence = buildFreeCashFlowEvidence({
     cashFlowStatement,
-    derivation,
-    reviewedOperatingCashFlow: buildReviewedPresentation({ statement, content: presentationContent, lineId: "cash-generated-by-operating-activities", contextLineIds: ["cash-generated-by-operating-activities"] }),
-    reviewedPropertyPlantEquipment: buildReviewedPresentation({ statement, content: presentationContent, lineId: "payments-for-property-plant-and-equipment", contextLineIds: ["payments-for-property-plant-and-equipment"] }),
+    derivation: presentation.derivation,
+    reviewedOperatingCashFlow: buildReviewedPresentation({
+      statement,
+      content: presentationContent,
+      lineId: "cash-generated-by-operating-activities",
+      contextLineIds: ["cash-generated-by-operating-activities"],
+    }),
+    reviewedPropertyPlantEquipment: buildReviewedPresentation({
+      statement,
+      content: presentationContent,
+      lineId: "payments-for-property-plant-and-equipment",
+      contextLineIds: ["payments-for-property-plant-and-equipment"],
+    }),
   });
 
   function review(event: FormEvent<HTMLFormElement>) {
@@ -60,70 +86,173 @@ export function FreeCashFlowLearning({ cashFlowStatement, derivation }: Props) {
     markExplored(["free-cash-flow"]);
   }
 
+  const textEquivalent = [
+    `Reported Operating Cash Flow ${formatSignedBillions(presentation.operatingCashFlow.amount)}`,
+    `reported PP&E statement cash effect ${formatSignedBillions(presentation.propertyPlantEquipment.statementCashEffect)}`,
+    `formula deduction magnitude ${formatMagnitudeBillions(presentation.propertyPlantEquipment.deductionMagnitude)}`,
+    `FinPath-derived Free Cash Flow ${formatSignedBillions(presentation.freeCashFlow.amount)}`,
+  ].join("; ");
+
   return (
-    <section className="cash-lesson cash-module fcf-lesson" aria-labelledby="fcf-title">
-      <header className="cash-lesson__header">
-        <p className="eyebrow">Free Cash Flow · one analytical convention</p>
+    <section
+      aria-labelledby="fcf-title"
+      className={styles.lesson}
+      id="free-cash-flow-lesson"
+    >
+      <header className={styles.introduction}>
+        <p className="eyebrow">Free Cash Flow · signed derivation bridge</p>
         <h2 id="fcf-title">{lessonContent.title}</h2>
         <p>{lessonContent.introduction}</p>
-        <p className="profit-lesson__period">FY{statement.fiscalYear} · {statement.currency} · year ended {statement.endDate} · <a href={statement.sourceUrl} rel="noreferrer" target="_blank">SEC {statement.form} ↗</a></p>
+        <p className={styles.period}>
+          FY{statement.fiscalYear} · {statement.currency} · year ended{" "}
+          {statement.endDate} · filed {statement.filedAt} ·{" "}
+          <a href={statement.sourceUrl} rel="noreferrer" target="_blank">
+            SEC {statement.form} ↗
+          </a>
+        </p>
       </header>
 
-      <section className="cash-section" data-fcf-section="reported-inputs">
-        <p className="cash-section__number">01 · Operating cash is not the end</p>
-        <div className="fcf-inputs">
-          <article><span>Operating Cash Flow</span><strong>{formatBillions(operatingCash.value)}</strong><small>Apple reported · Operating activities</small></article>
-          <article><span>PP&amp;E purchases</span><strong>({formatBillions(ppAndE.value)})</strong><small>Apple reported · Investing activities</small></article>
+      <figure className={styles.bridge} aria-labelledby="fcf-bridge-heading">
+        <figcaption>
+          <p className="eyebrow">One formula · one shared absolute scale</p>
+          <h3 id="fcf-bridge-heading">Reported inputs become one transparent derivation.</h3>
+          <p>{textEquivalent}.</p>
+        </figcaption>
+
+        <div className={styles.scaleLegend} aria-hidden="true">
+          <span>Negative ←</span>
+          <span>0</span>
+          <span>→ Positive</span>
         </div>
-        <p className="fcf-definition">{lessonContent.definition}</p>
-        {visibleSection === 1 ? <button className="cash-continue" onClick={() => setVisibleSection(2)} type="button">Derive simple Free Cash Flow</button> : null}
+
+        <div className={styles.term} data-kind={presentation.operatingCashFlow.kind}>
+          <div className={styles.termIdentity}>
+            <span>START WITH · Apple reported</span>
+            <strong>Operating Cash Flow</strong>
+          </div>
+          <div className={styles.quantitativeArea} aria-hidden="true">
+            <span className={styles.zeroAxis} />
+            <span
+              className={styles.bar}
+              data-direction={presentation.operatingCashFlow.direction}
+              style={barStyle(presentation.operatingCashFlow.magnitudePercent)}
+            />
+          </div>
+          <strong className={styles.amount}>
+            {formatSignedBillions(presentation.operatingCashFlow.amount)}
+          </strong>
+        </div>
+
+        <div className={styles.operator} aria-hidden="true">LESS</div>
+
+        <div className={styles.term} data-kind={presentation.propertyPlantEquipment.kind}>
+          <div className={styles.termIdentity}>
+            <span>Apple reported · Investing activity</span>
+            <strong>PP&amp;E payment magnitude</strong>
+            <small>
+              Statement cash effect{" "}
+              {formatSignedBillions(presentation.propertyPlantEquipment.statementCashEffect)}
+            </small>
+          </div>
+          <div className={styles.quantitativeArea} aria-hidden="true">
+            <span className={styles.zeroAxis} />
+            <span
+              className={styles.bar}
+              data-direction={presentation.propertyPlantEquipment.direction}
+              style={barStyle(presentation.propertyPlantEquipment.magnitudePercent)}
+            />
+          </div>
+          <strong className={styles.amount}>
+            {formatMagnitudeBillions(presentation.propertyPlantEquipment.deductionMagnitude)}
+          </strong>
+        </div>
+
+        <div className={styles.operator} aria-hidden="true">EQUALS</div>
+
+        <div
+          className={`${styles.term} ${styles.result}`}
+          data-kind={presentation.freeCashFlow.kind}
+        >
+          <div className={styles.termIdentity}>
+            <span>FinPath-derived</span>
+            <strong>FinPath simple Free Cash Flow</strong>
+          </div>
+          <div className={styles.quantitativeArea} aria-hidden="true">
+            <span className={styles.zeroAxis} />
+            <span
+              className={styles.bar}
+              data-direction={presentation.freeCashFlow.direction}
+              style={barStyle(presentation.freeCashFlow.magnitudePercent)}
+            />
+          </div>
+          <strong className={styles.amount}>
+            {formatSignedBillions(presentation.freeCashFlow.amount)}
+          </strong>
+        </div>
+      </figure>
+
+      <aside className={styles.boundaries} aria-labelledby="fcf-boundaries">
+        <p className="eyebrow" id="fcf-boundaries">Read the definition before the result</p>
+        <p><strong>Reported vs derived.</strong> {lessonContent.definition}</p>
+        <p><strong>The word “Free.”</strong> {lessonContent.freeNameBoundary}</p>
+        <p><strong>Definition boundary.</strong> {lessonContent.definitionBoundary}</p>
+      </aside>
+
+      <section className={styles.application} aria-labelledby="fcf-check">
+        <p className="eyebrow">One evidence check</p>
+        <form onSubmit={review}>
+          <fieldset>
+            <legend id="fcf-check">
+              {formatSignedBillions(presentation.freeCashFlow.amount)} ·{" "}
+              {lessonContent.question.prompt}
+            </legend>
+            <p>{lessonContent.question.hint}</p>
+            <div className={styles.choices}>
+              {lessonContent.question.choices.map((option) => (
+                <label key={option.id}>
+                  <input
+                    checked={choice === option.id}
+                    name="free-cash-flow-meaning"
+                    onChange={() => {
+                      setChoice(option.id);
+                      setReviewedChoice(null);
+                    }}
+                    type="radio"
+                    value={option.id}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <button disabled={!choice} type="submit">Check my reasoning</button>
+        </form>
+        {reviewedChoice ? (
+          <>
+            <p aria-live="polite" className={styles.feedback} role="status">
+              {reviewedChoice === lessonContent.question.supportedChoiceId
+                ? lessonContent.question.supportedFeedback
+                : lessonContent.question.unsupportedFeedback}
+            </p>
+            <EvidenceInspector evidence={evidence} id="free-cash-flow-evidence" />
+          </>
+        ) : null}
       </section>
 
-      {visibleSection >= 2 ? (
-        <section className="cash-section" data-fcf-section="derivation">
-          <p className="cash-section__number">02 · FinPath derives the measure</p>
-          <div className="fcf-equation" aria-label={`Operating Cash Flow ${formatBillions(derivation.operatingCashFlow)} minus PP&E purchases ${formatBillions(derivation.propertyPlantEquipmentPurchases)} equals Free Cash Flow ${formatBillions(derivation.exactValue)}`}>
-            <div><span>Operating Cash Flow</span><strong>{formatBillions(derivation.operatingCashFlow)}</strong></div>
-            <span aria-hidden="true">−</span>
-            <div><span>PP&amp;E purchases</span><strong>{formatBillions(derivation.propertyPlantEquipmentPurchases)}</strong></div>
-            <span aria-hidden="true">=</span>
-            <div className="fcf-equation__result"><span>FinPath simple Free Cash Flow</span><strong>{formatBillions(derivation.exactValue)}</strong></div>
-          </div>
-          <aside className="cash-learning-trace" aria-label="Learning Trace">
-            <p><span aria-hidden="true" /> Learning Trace</p>
-            <h3>Apple reported the two inputs. FinPath calculated the result.</h3>
-            <p>This lesson uses Operating Cash Flow minus PP&amp;E purchases. Another analysis may define Free Cash Flow differently.</p>
-          </aside>
-          {visibleSection === 2 ? <button className="cash-continue" onClick={() => setVisibleSection(3)} type="button">Check reported vs derived</button> : null}
-        </section>
-      ) : null}
+      <aside className={styles.limitation} aria-labelledby="fcf-limit">
+        <p className="eyebrow" id="fcf-limit">What this derivation cannot tell you</p>
+        <p>{lessonContent.limitation}</p>
+      </aside>
 
-      {visibleSection >= 3 ? (
-        <section className="cash-section cash-section--question" data-fcf-section="check">
-          <p className="cash-section__number">03 · Check the evidence boundary</p>
-          <form onSubmit={review}>
-            <fieldset>
-              <legend>{lessonContent.question.prompt}</legend>
-              <p>{lessonContent.question.hint}</p>
-              <div className="cash-choice-list">
-                {lessonContent.question.choices.map((option) => (
-                  <label key={option.id}><input checked={choice === option.id} name="reported-or-derived" onChange={() => { setChoice(option.id); setReviewedChoice(null); }} type="radio" value={option.id} /><span>{option.label}</span></label>
-                ))}
-              </div>
-            </fieldset>
-            <button disabled={!choice} type="submit">Check my reasoning</button>
-          </form>
-          {reviewedChoice ? (
-            <div className="cash-completion" role="status">
-              <p>{reviewedChoice === lessonContent.question.supportedChoiceId ? lessonContent.question.supportedFeedback : lessonContent.question.unsupportedFeedback}</p>
-              <EvidenceInspector evidence={evidence} id="free-cash-flow-evidence" />
-              <aside className="cash-limitation"><p className="eyebrow">What this does not mean</p><p>{lessonContent.limitation}</p></aside>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
-      <p className="profit-retrieved-note">Retrieved {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}{dataStatus.state === "stale" ? " · SEC was unavailable, so FinPath is showing the last known public filing data." : ""}</p>
+      <p className={styles.retrievedNote}>
+        Retrieved{" "}
+        {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", {
+          timeZone: "Asia/Kuala_Lumpur",
+        })}
+        {dataStatus.state === "stale"
+          ? " · SEC was unavailable, so FinPath is showing the last known public filing data."
+          : ""}
+      </p>
     </section>
   );
 }
