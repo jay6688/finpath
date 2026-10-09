@@ -2,7 +2,7 @@
 .introduction { max-width: 58rem; padding-left: var(--fp-v2-space-4); border-left: 4px solid var(--fp-v2-amber); }
 .introduction h2 { max-width: 48rem; margin: .3rem 0 var(--fp-v2-space-3); font-family: var(--fp-v2-font-concept); font-size: clamp(1.75rem, 5vw, 3rem); font-weight: 500; letter-spacing: -.04em; line-height: 1.05; }
 .introduction > p:last-child { max-width: 48rem; margin: 0; color: var(--fp-v2-ink-soft); line-height: 1.7; }
-.periodControls { display: flex; gap: var(--fp-v2-space-2); overflow-x: auto; padding-block: .2rem; }
+.periodControls { display: flex; flex-wrap: wrap; gap: var(--fp-v2-space-2); overflow-x: visible; padding-block: .2rem; }
 .periodControls button { flex: 0 0 auto; min-block-size: var(--fp-v2-touch); padding: .65rem .85rem; color: var(--fp-v2-ink); background: var(--fp-v2-paper); border: 1px solid var(--fp-v2-line); border-radius: var(--fp-v2-radius-control); font: inherit; font-size: .75rem; font-weight: 800; cursor: pointer; }
 .periodControls button[aria-pressed="true"] { color: var(--fp-v2-paper); background: var(--fp-v2-ink); border-color: var(--fp-v2-ink); }
 .bridge, .sourceNote, .completion { background: var(--fp-v2-paper); border: 1px solid var(--fp-v2-line); border-radius: var(--fp-v2-radius-object); }
@@ -47,5 +47,5 @@
 .completion button:disabled { color: var(--fp-v2-ink-soft); background: var(--fp-v2-neutral); border-color: var(--fp-v2-line); cursor: not-allowed; }
 .periodControls button:focus-visible, .completion button:focus-visible, .sourceNote summary:focus-visible { outline: 3px solid var(--fp-v2-focus); outline-offset: 3px; }
 .unavailable { padding: var(--fp-v2-space-4); background: var(--fp-v2-neutral); border-left: 4px solid var(--fp-v2-amber); }
-@media (min-width: 48rem) { .bridge, .completion { padding: var(--fp-v2-space-5); } .amounts { grid-template-columns: repeat(4, minmax(0, 1fr)); } .amounts > div { border-right: 1px solid var(--fp-v2-line); border-bottom: 0; } .amounts > div:last-child { border-right: 0; } .completion { grid-template-columns: minmax(0, 1fr) auto; align-items: center; } }
+@media (min-width: 48rem) { .periodControls { flex-wrap: nowrap; overflow-x: auto; } .bridge, .completion { padding: var(--fp-v2-space-5); } .amounts { grid-template-columns: repeat(4, minmax(0, 1fr)); } .amounts > div { border-right: 1px solid var(--fp-v2-line); border-bottom: 0; } .amounts > div:last-child { border-right: 0; } .completion { grid-template-columns: minmax(0, 1fr) auto; align-items: center; } }
 @media (prefers-reduced-motion: reduce) { .lesson * { transition-duration: 1ms !important; } }

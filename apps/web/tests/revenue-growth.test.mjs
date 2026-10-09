@@ -190,6 +190,11 @@ test("Production Revenue Growth is a two-period bridge with deliberate completio
   assert.doesNotMatch(explorer, /setSelectedFiscalYear\([^)]*\)[^}]*markExplored/s);
   assert.match(styles, /\[data-direction="decrease"\]/);
   assert.match(styles, /\[data-direction="unchanged"\]/);
+  assert.match(styles, /\.periodControls\s*\{[^}]*flex-wrap:\s*wrap;[^}]*overflow-x:\s*visible;/s);
+  assert.match(
+    styles,
+    /@media \(min-width: 48rem\)[^{]*\{[^}]*\.periodControls\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;/s,
+  );
   assert.doesNotMatch(styles, /(^|[;{\s])min-(?:inline-)?size\s*:/m);
   assert.match(history, /orderedSeries\.at\(-1\)\?\.fiscalYear/);
 });
