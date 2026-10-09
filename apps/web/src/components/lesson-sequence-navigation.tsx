@@ -9,6 +9,8 @@ import {
   type ConceptId,
 } from "@/lib/lesson-catalog";
 
+import styles from "./lesson-chrome.module.css";
+
 type LessonSequenceNavigationProps = {
   completeCurrentOnNext?: boolean;
   currentConceptId: ConceptId;
@@ -22,11 +24,13 @@ export function LessonSequenceNavigation({
   selectedCompany,
   showExploreCompany = true,
 }: LessonSequenceNavigationProps) {
-  const { markExplored, progress } = useLearningProgress();
+  const learningProgress = useLearningProgress();
+  const { markExplored } = learningProgress;
   const { previous, next } = getAdjacentLessons(currentConceptId);
   const isCurrentPathComplete =
+    learningProgress.isHydrated &&
     currentConceptId === "capstone" &&
-    progress.exploredConceptIds.includes("capstone");
+    learningProgress.progress.exploredConceptIds.includes("capstone");
   const companyQuery = selectedCompany ? `?company=${selectedCompany.slug}` : "";
   const companyAwareLessons = new Set<ConceptId>([
     "revenue",
@@ -49,20 +53,20 @@ export function LessonSequenceNavigation({
       : next?.href;
 
   return (
-    <footer className="lesson-sequence">
+    <footer className={styles.sequence}>
       <nav aria-label="Lesson sequence">
         {previous ? (
-          <Link className="lesson-sequence__previous" href={previousHref ?? previous.href}>
+          <Link className={styles.previous} href={previousHref ?? previous.href}>
             <span>Previous lesson</span>
             <strong>← {previous.title}</strong>
           </Link>
         ) : (
-          <span className="lesson-sequence__edge" aria-hidden="true" />
+          <span className={styles.sequenceEdge} aria-hidden="true" />
         )}
 
         {next ? (
           <Link
-            className="lesson-sequence__next"
+            className={styles.next}
             href={nextHref ?? next.href}
             onClick={() => {
               if (completeCurrentOnNext) markExplored([currentConceptId]);
@@ -72,7 +76,7 @@ export function LessonSequenceNavigation({
             <strong>{next.title} →</strong>
           </Link>
         ) : (
-          <div className="lesson-sequence__coming">
+          <div className={styles.sequenceEnd}>
             <span>
               {isCurrentPathComplete
                 ? "Current path complete"
@@ -81,26 +85,28 @@ export function LessonSequenceNavigation({
                   : "More concepts coming"}
             </span>
             <strong>
-              {isCurrentPathComplete
-                ? "Company Analysis Basics complete"
-                : currentConceptId === "capstone"
-                  ? "Finish the Capstone to complete this path."
-                  : "The next concept is still being validated."}
+              {!learningProgress.isHydrated && currentConceptId === "capstone"
+                ? "Loading saved progress…"
+                : isCurrentPathComplete
+                  ? "Company Analysis Basics complete"
+                  : currentConceptId === "capstone"
+                    ? "Finish the Capstone to complete this path."
+                    : "The next concept is still being validated."}
             </strong>
           </div>
         )}
       </nav>
 
       {showExploreCompany ? (
-        <div className="lesson-explore-link">
+        <div className={styles.exploreLink}>
           <div>
-            <span>Explore this company</span>
+            <span>Switch to Explore</span>
             <strong>
-              Inspect {selectedCompany?.name ?? "Apple Inc."}&apos;s real financial record.
+              Inspect {selectedCompany?.name ?? "Apple Inc."}&apos;s reviewed financial record.
             </strong>
           </div>
           <Link href={`/company/${selectedCompany?.slug ?? "aapl"}`}>
-            Explore {selectedCompany?.ticker ?? "AAPL"} →
+            Explore {selectedCompany?.ticker ?? "AAPL"} <span aria-hidden="true">→</span>
           </Link>
         </div>
       ) : null}

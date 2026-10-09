@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  buildBalanceSheetPresentation,
   buildBalanceSheetEvidence,
+  buildCashDebtPresentation,
   validateBalanceSheetForLesson,
 } from "../src/lib/balance-sheet-learning.ts";
 
@@ -171,6 +173,66 @@ test("validates exact Apple and Microsoft instant equations", () => {
   }
 });
 
+test("builds Apple's exact financial-position frame on one Assets reference", () => {
+  const presentation = buildBalanceSheetPresentation(makeDirectBalanceSheet("AAPL"));
+
+  assert.deepEqual(presentation.assets, {
+    id: "assets",
+    amount: 359_241_000_000,
+    sourceStatus: "reported",
+    sharePercent: 100,
+  });
+  assert.deepEqual(presentation.claims, [
+    {
+      id: "liabilities",
+      amount: 285_508_000_000,
+      sourceStatus: "reported",
+      sharePercent: (285_508_000_000 / 359_241_000_000) * 100,
+    },
+    {
+      id: "equity",
+      amount: 73_733_000_000,
+      sourceStatus: "reported",
+      sharePercent: (73_733_000_000 / 359_241_000_000) * 100,
+    },
+  ]);
+  assert.deepEqual(presentation.scale, {
+    kind: "assets-reference",
+    referenceAmount: 359_241_000_000,
+  });
+  assert.equal(presentation.asOfDate, "2025-09-27");
+  assert.equal(presentation.claimsTotal, 359_241_000_000);
+  assert.ok(
+    Math.abs(
+      presentation.claims.reduce((sum, claim) => sum + claim.sharePercent, 0) - 100,
+    ) < Number.EPSILON * 100,
+  );
+});
+
+test("builds Apple's Cash & Debt comparison on one shared balance scale", () => {
+  const presentation = buildCashDebtPresentation(makeDirectBalanceSheet("AAPL"));
+
+  assert.deepEqual(presentation.cashPosition, {
+    kind: "reported-balance-sheet-position",
+    label: "Cash and cash equivalents",
+    amount: 35_934_000_000,
+    magnitudePercent: (35_934_000_000 / 98_657_000_000) * 100,
+  });
+  assert.deepEqual(presentation.borrowingPosition, {
+    kind: "finpath-derived-balance-sheet-position",
+    label: "FinPath simple borrowings",
+    amount: 98_657_000_000,
+    magnitudePercent: 100,
+    componentIds: ["commercial-paper", "current-term-debt", "noncurrent-term-debt"],
+  });
+  assert.deepEqual(presentation.scale, {
+    kind: "shared-absolute-balance-scale",
+    referenceAmount: 98_657_000_000,
+  });
+  assert.equal(presentation.asOfDate, "2025-09-27");
+  assert.equal("netDebt" in presentation, false);
+});
+
 test("keeps Walmart liabilities derived and redeemable NCI separate", () => {
   const response = makeWalmartBalanceSheet();
   validateBalanceSheetForLesson(response.statement, response.company);
@@ -259,9 +321,10 @@ test("rejects wrong instant identity, unsafe source, missing facts, and bad arit
 });
 
 test("Lesson 08 teaches snapshot, exact equation, cash and equity boundaries", async () => {
-  const [page, component, catalog, progress, companyPage, snapshot] = await Promise.all([
+  const [page, component, styles, catalog, progress, companyPage, snapshot] = await Promise.all([
     readFile(new URL("../src/app/learn/company-analysis/balance-sheet/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/balance-sheet-learning.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/balance-sheet-learning.module.css", import.meta.url), "utf8"),
     readFile(new URL("../src/lib/lesson-catalog.ts", import.meta.url), "utf8"),
     readFile(new URL("../src/lib/learning-progress.ts", import.meta.url), "utf8"),
     readFile(new URL("../src/app/company/[ticker]/page.tsx", import.meta.url), "utf8"),
@@ -271,8 +334,20 @@ test("Lesson 08 teaches snapshot, exact equation, cash and equity boundaries", a
   assert.match(page, /conceptId="balance-sheet"/);
   assert.match(page, /searchParams/);
   assert.match(page, /CompanyExampleSelector/);
-  assert.match(component, /snapshot at one\s+reporting date/i);
-  assert.match(component, /Assets are not cash/i);
+  assert.match(page, /buildBalanceSheetPresentation/);
+  assert.match(page, /presentation=\{presentation\}/);
+  assert.match(component, /financial position at one\s+reporting\s+date/i);
+  assert.match(component, /resources recognized on the Balance Sheet/i);
+  assert.match(component, /obligations recognized on the Balance Sheet/i);
+  assert.match(component, /residual accounting interest after liabilities/i);
+  assert.match(component, /for the year ended/i);
+  assert.match(component, /as of/i);
+  assert.match(component, /aria-pressed/);
+  assert.match(component, /--balance-share/);
+  assert.match(styles, /width:\s*calc\(var\(--balance-share\) \* 1%\)/);
+  assert.doesNotMatch(styles, /min-inline-size|width:\s*(?:min|max|clamp)\(/);
+  assert.doesNotMatch(component, /visibleStage|cash-continue/);
+  assert.match(component, /Liabilities are not automatically bad/i);
   assert.match(component, /market capitalization/i);
   assert.match(component, /redeemable noncontrolling interest/i);
   assert.match(component, /markExplored\(\["balance-sheet"\]\)/);
@@ -283,4 +358,17 @@ test("Lesson 08 teaches snapshot, exact equation, cash and equity boundaries", a
   assert.match(snapshot, /Financial position/);
   assert.match(snapshot, /Understand the Balance Sheet/);
   assert.doesNotMatch(`${page}${component}${companyPage}${snapshot}`, /359241000000|758376000000|284668000000/);
+});
+
+test("Balance Sheet anchor selection cannot write progress and completion stays submission-only", async () => {
+  const component = await readFile(
+    new URL("../src/components/balance-sheet-learning.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(component, /function review[\s\S]*markExplored\(\["balance-sheet"\]\)/);
+  assert.match(component, /onClick=\{\(\) => setSelectedAnchor/);
+  assert.doesNotMatch(component, /onClick=\{\(\) =>[^}]*markExplored/);
+  assert.match(component, /EvidenceInspector/);
+  assert.match(component, /name="balance-sheet-role"/);
 });

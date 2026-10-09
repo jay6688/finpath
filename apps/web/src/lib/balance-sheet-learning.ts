@@ -67,6 +67,45 @@ export type BalanceSheetEvidence = {
   simpleBorrowings: DerivedEvidence;
 };
 
+export type BalanceSheetPresentationLine = {
+  id: string;
+  amount: number;
+  sourceStatus: "reported" | "finpath-derived";
+  sharePercent: number;
+};
+
+export type BalanceSheetPresentation = {
+  asOfDate: string;
+  assets: BalanceSheetPresentationLine;
+  claims: BalanceSheetPresentationLine[];
+  claimsTotal: number;
+  scale: {
+    kind: "assets-reference";
+    referenceAmount: number;
+  };
+};
+
+export type CashDebtPresentation = {
+  asOfDate: string;
+  cashPosition: {
+    kind: "reported-balance-sheet-position";
+    label: string;
+    amount: number;
+    magnitudePercent: number;
+  };
+  borrowingPosition: {
+    kind: "finpath-derived-balance-sheet-position";
+    label: string;
+    amount: number;
+    magnitudePercent: number;
+    componentIds: BalanceSheetLineId[];
+  };
+  scale: {
+    kind: "shared-absolute-balance-scale";
+    referenceAmount: number;
+  };
+};
+
 export function validateBalanceSheetForLesson(
   statement: BalanceSheetStatement,
   company: CompanyBalanceSheet["company"],
@@ -220,6 +259,101 @@ export function buildBalanceSheetEvidence(
       reported(line, line.reportedLabel),
     ),
     simpleBorrowings: buildSimpleBorrowingsEvidence(response, reported),
+  };
+}
+
+export function buildBalanceSheetPresentation(
+  response: CompanyBalanceSheet,
+): BalanceSheetPresentation {
+  validateBalanceSheetForLesson(response.statement, response.company);
+  const { statement } = response;
+  const referenceAmount = statement.assets.value;
+  if (referenceAmount <= 0) {
+    throw new EvidenceDataError(
+      "Balance Sheet presentation requires a positive Assets reference.",
+    );
+  }
+
+  const claims: BalanceSheetPresentationLine[] = [
+    {
+      id: "liabilities",
+      amount: statement.liabilities.value,
+      sourceStatus:
+        statement.liabilities.evidenceKind === "reported"
+          ? "reported"
+          : "finpath-derived",
+      sharePercent: (statement.liabilities.value / referenceAmount) * 100,
+    },
+    ...statement.otherClaims.map((line) => ({
+      id: line.id,
+      amount: line.value,
+      sourceStatus: "reported" as const,
+      sharePercent: (line.value / referenceAmount) * 100,
+    })),
+    {
+      id: "equity",
+      amount: statement.equity.value,
+      sourceStatus: "reported",
+      sharePercent: (statement.equity.value / referenceAmount) * 100,
+    },
+  ];
+  const claimsTotal = claims.reduce((sum, line) => sum + line.amount, 0);
+  if (claimsTotal !== referenceAmount) {
+    throw new EvidenceDataError(
+      "Balance Sheet presentation requires an exact accounting identity.",
+    );
+  }
+
+  return {
+    asOfDate: statement.asOfDate,
+    assets: {
+      id: "assets",
+      amount: referenceAmount,
+      sourceStatus: "reported",
+      sharePercent: 100,
+    },
+    claims,
+    claimsTotal,
+    scale: {
+      kind: "assets-reference",
+      referenceAmount,
+    },
+  };
+}
+
+export function buildCashDebtPresentation(
+  response: CompanyBalanceSheet,
+): CashDebtPresentation {
+  validateBalanceSheetForLesson(response.statement, response.company);
+  const { statement } = response;
+  const cashAmount = statement.cashAndCashEquivalents.value;
+  const borrowingAmount = statement.simpleBorrowings.value;
+  const referenceAmount = Math.max(cashAmount, borrowingAmount);
+  if (referenceAmount <= 0) {
+    throw new EvidenceDataError(
+      "Cash & Debt presentation requires a positive shared balance scale.",
+    );
+  }
+
+  return {
+    asOfDate: statement.asOfDate,
+    cashPosition: {
+      kind: "reported-balance-sheet-position",
+      label: statement.cashAndCashEquivalents.reportedLabel,
+      amount: cashAmount,
+      magnitudePercent: (cashAmount / referenceAmount) * 100,
+    },
+    borrowingPosition: {
+      kind: "finpath-derived-balance-sheet-position",
+      label: statement.simpleBorrowings.label,
+      amount: borrowingAmount,
+      magnitudePercent: (borrowingAmount / referenceAmount) * 100,
+      componentIds: statement.simpleBorrowings.inputs.map((line) => line.id),
+    },
+    scale: {
+      kind: "shared-absolute-balance-scale",
+      referenceAmount,
+    },
   };
 }
 

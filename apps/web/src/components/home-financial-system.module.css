@@ -1,0 +1,223 @@
+.system {
+  min-width: 0;
+}
+
+.desktopSystem {
+  display: none;
+}
+
+.compactLens {
+  min-width: 0;
+}
+
+@media (min-width: 75rem) {
+  .compactLens {
+    display: none;
+  }
+
+  .desktopSystem {
+    min-height: 33rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(20rem, .9fr);
+    overflow: hidden;
+    color: var(--fp-v2-ink);
+    background: var(--fp-v2-ivory);
+    border: 1px solid var(--fp-v2-line);
+    border-radius: var(--fp-v2-radius-object);
+    box-shadow: var(--fp-v2-shadow-attached);
+  }
+
+  .graph {
+    position: relative;
+    min-width: 0;
+    min-height: 33rem;
+    overflow: hidden;
+    border-right: 1px solid var(--fp-v2-line);
+    background:
+      linear-gradient(var(--fp-v2-line), var(--fp-v2-line)) 2rem 2rem / 2.4rem 1px no-repeat,
+      radial-gradient(circle at 50% 45%, rgb(21 117 96 / 8%), transparent 54%);
+  }
+
+  .graph::before {
+    position: absolute;
+    top: 1.55rem;
+    left: 4.8rem;
+    color: var(--fp-v2-ink-soft);
+    font: 700 var(--fp-v2-type-label)/1 var(--fp-v2-font-ui);
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    content: "Connected financial objects";
+  }
+
+  .graphTraces {
+    position: absolute;
+    inset: 2.1rem 1rem auto;
+    width: calc(100% - 2rem);
+    height: calc(100% - 3rem);
+    overflow: visible;
+  }
+
+  .graphTraces g > path {
+    fill: none;
+    stroke: #879895;
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    transition: stroke var(--fp-v2-motion-state) var(--fp-v2-ease), stroke-width var(--fp-v2-motion-state) var(--fp-v2-ease);
+  }
+
+  .graphTraces marker path {
+    fill: #879895;
+  }
+
+  .graphTraces g[data-active] > path {
+    stroke: var(--fp-v2-jade);
+    stroke-width: 2.2;
+  }
+
+  .graphTraces text {
+    fill: var(--fp-v2-ink-soft);
+    font: 600 9px/1 var(--fp-v2-font-ui);
+    letter-spacing: .02em;
+  }
+
+  .graphTraces g[data-active] text {
+    fill: var(--fp-v2-ink);
+    font-weight: 750;
+  }
+
+  .objectList {
+    position: absolute;
+    inset: 2.1rem 1rem auto;
+    width: calc(100% - 2rem);
+    height: calc(100% - 3rem);
+  }
+
+  .objectPosition {
+    position: absolute;
+    width: 10.5rem;
+  }
+
+  .objectPosition[data-object="business"] { top: 3rem; left: 0; }
+  .objectPosition[data-object="revenue"] { top: 3rem; left: 36.5%; }
+  .objectPosition[data-object="profit"] { top: 3rem; right: 0; }
+  .objectPosition[data-object="cash-flow"] { top: 13.9rem; left: 36.5%; }
+  .objectPosition[data-object="financial-position"] { top: 20.2rem; left: 0; }
+  .objectPosition[data-object="per-share"] { top: 13.9rem; right: 0; }
+  .objectPosition[data-object="valuation"] { top: 22.4rem; right: 0; }
+
+  .objectPosition button {
+    width: 100%;
+    min-block-size: var(--fp-v2-touch);
+    padding: .65rem;
+    text-align: left;
+    background: rgb(255 253 247 / 88%);
+    border: 1px solid var(--fp-v2-line);
+    border-radius: var(--fp-v2-radius-control);
+    box-shadow: 0 .35rem 1rem rgb(23 45 49 / 6%);
+    cursor: pointer;
+    transition: border-color var(--fp-v2-motion-quick) var(--fp-v2-ease), transform var(--fp-v2-motion-quick) var(--fp-v2-ease);
+  }
+
+  .objectPosition button:hover {
+    border-color: var(--fp-v2-ink-soft);
+    transform: translateY(-1px);
+  }
+
+  .objectPosition button[aria-pressed="true"] {
+    border-color: var(--fp-v2-ink);
+    border-left-width: 4px;
+    background: var(--fp-v2-paper);
+    box-shadow: var(--fp-v2-shadow-attached);
+  }
+
+  .objectPosition button:focus-visible,
+  .focusPanel a:focus-visible {
+    outline: 3px solid var(--fp-v2-focus);
+    outline-offset: 3px;
+  }
+
+  .focusPanel {
+    min-width: 0;
+    padding: 2.4rem 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    background: var(--fp-v2-paper);
+  }
+
+  .focusPanel header > p:first-child,
+  .focusPanel h2 span {
+    color: var(--fp-v2-ink-soft);
+    font: 700 var(--fp-v2-type-label)/1 var(--fp-v2-font-ui);
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+
+  .focusPanel h2 {
+    margin: .55rem 0 .65rem;
+    font: 400 clamp(2.3rem, 3.6vw, 3.8rem)/.95 var(--fp-v2-font-concept);
+    letter-spacing: -.045em;
+  }
+
+  .focusPanel header > p:last-child {
+    margin: 0;
+    color: var(--fp-v2-ink-soft);
+    font-size: .92rem;
+    line-height: 1.55;
+  }
+
+  .traceList {
+    margin-top: 1.7rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .traceList > div {
+    padding: 0 0 .85rem;
+    border-bottom: 1px solid var(--fp-v2-line);
+  }
+
+  .traceList > div[data-direction="incoming"] {
+    border-left: 2px solid var(--fp-v2-cobalt);
+    padding-left: .65rem;
+  }
+
+  .traceList > div[data-direction="outgoing"] {
+    border-left: 2px solid var(--fp-v2-jade);
+    padding-left: .65rem;
+  }
+
+  .focusPanel nav {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+  }
+
+  .focusPanel nav a {
+    min-block-size: var(--fp-v2-touch);
+    padding: .6rem .85rem;
+    display: inline-flex;
+    align-items: center;
+    color: var(--fp-v2-ink);
+    border: 1px solid currentColor;
+    border-radius: var(--fp-v2-radius-control);
+    font: 750 .8rem/1 var(--fp-v2-font-ui);
+    text-decoration: none;
+  }
+
+  .focusPanel nav a:first-child {
+    color: var(--fp-v2-paper);
+    background: var(--fp-v2-ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktopSystem *,
+  .desktopSystem *::before,
+  .desktopSystem *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}

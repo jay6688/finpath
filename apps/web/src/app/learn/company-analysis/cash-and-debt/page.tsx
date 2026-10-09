@@ -9,7 +9,11 @@ import {
   getSupportedCompanies,
   type CompanyBalanceSheet,
 } from "@/lib/api";
-import { validateBalanceSheetForLesson } from "@/lib/balance-sheet-learning";
+import {
+  buildCashDebtPresentation,
+  type CashDebtPresentation,
+  validateBalanceSheetForLesson,
+} from "@/lib/balance-sheet-learning";
 import { resolveCompanyQuery } from "@/lib/company-selection";
 import { EvidenceDataError } from "@/lib/evidence";
 
@@ -29,6 +33,7 @@ export default async function CashDebtLessonPage({
   );
   const selectedCompany = resolveCompanyQuery((await searchParams).company, companies);
   let balanceSheet: CompanyBalanceSheet | null = null;
+  let presentation: CashDebtPresentation | null = null;
   let dataError: string | null = null;
 
   try {
@@ -37,6 +42,7 @@ export default async function CashDebtLessonPage({
       selectedCompany.reviewedFiscalYear,
     );
     validateBalanceSheetForLesson(balanceSheet.statement, balanceSheet.company);
+    presentation = buildCashDebtPresentation(balanceSheet);
   } catch (error) {
     balanceSheet = null;
     dataError =
@@ -61,10 +67,11 @@ export default async function CashDebtLessonPage({
       }
       selectedCompany={selectedCompany}
     >
-      {balanceSheet ? (
+      {balanceSheet && presentation ? (
         <CashDebtLearning
           balanceSheet={balanceSheet}
           key={`${balanceSheet.company.cik}-${balanceSheet.statement.accession}`}
+          presentation={presentation}
         />
       ) : (
         <div className="data-empty-state profit-data-empty" role="status">

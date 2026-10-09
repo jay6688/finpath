@@ -1,16 +1,21 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 
 import { EvidenceInspector } from "@/components/evidence-inspector";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import type { CompanyBalanceSheet } from "@/lib/api";
 import {
   buildBalanceSheetEvidence,
-  validateBalanceSheetForLesson,
+  type CashDebtPresentation,
 } from "@/lib/balance-sheet-learning";
 
-type Props = { balanceSheet: CompanyBalanceSheet };
+import styles from "./cash-debt-learning.module.css";
+
+type Props = {
+  balanceSheet: CompanyBalanceSheet;
+  presentation: CashDebtPresentation;
+};
 
 const billions = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -23,229 +28,280 @@ function formatBillions(value: number): string {
   return `${billions.format(value / 1_000_000_000)}B`;
 }
 
-export function CashDebtLearning({ balanceSheet }: Props) {
-  validateBalanceSheetForLesson(balanceSheet.statement, balanceSheet.company);
+function positionStyle(magnitudePercent: number): CSSProperties {
+  return { "--position-magnitude": magnitudePercent } as CSSProperties;
+}
+
+export function CashDebtLearning({ balanceSheet, presentation }: Props) {
   const { markExplored } = useLearningProgress();
   const { company, statement, dataStatus } = balanceSheet;
   const evidence = buildBalanceSheetEvidence(balanceSheet);
-  const [visibleStage, setVisibleStage] = useState(1);
-  const [cashChoice, setCashChoice] = useState<string | null>(null);
-  const [cashReviewed, setCashReviewed] = useState(false);
-  const [liabilityChoice, setLiabilityChoice] = useState<string | null>(null);
-  const [liabilityReviewed, setLiabilityReviewed] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<"cash" | "borrowings" | null>(
+    null,
+  );
+  const [choice, setChoice] = useState<string | null>(null);
+  const [reviewedChoice, setReviewedChoice] = useState<string | null>(null);
 
-  function checkCash(event: FormEvent<HTMLFormElement>) {
+  function review(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!cashChoice) return;
-    setCashReviewed(true);
-  }
-
-  function checkLiabilities(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!liabilityChoice) return;
-    setLiabilityReviewed(true);
+    if (!choice) return;
+    setReviewedChoice(choice);
     markExplored(["cash-and-debt"]);
   }
 
   return (
-    <section className="cash-debt-lesson" aria-labelledby="cash-debt-title">
-      <header className="cash-debt-lesson__header">
-        <p className="eyebrow">Cash & Debt · one reporting date</p>
-        <h2 id="cash-debt-title">Can a company have billions in cash and still owe money?</h2>
+    <section
+      aria-labelledby="cash-debt-title"
+      className={styles.lesson}
+      id="cash-and-debt-lesson"
+    >
+      <header className={styles.introduction}>
+        <p className="eyebrow">Cash &amp; Debt · balance comparison</p>
+        <h2 id="cash-debt-title">
+          How can a company have cash and debt at the same time?
+        </h2>
         <p>
-          Use {company.name}&apos;s reviewed Balance Sheet facts to separate Cash,
-          Borrowings and Total Liabilities.
+          Compare two different positions on {company.name}&apos;s Balance Sheet.
+          One does not erase the accounting existence of the other.
         </p>
-        <p className="profit-lesson__period">
-          FY{statement.fiscalYear} · {statement.currency} · as of {statement.asOfDate} ·{" "}
+        <p className={styles.period}>
+          FY{statement.fiscalYear} · {statement.currency} · as of{" "}
+          {statement.asOfDate} · filed {statement.filedAt} ·{" "}
           <a href={statement.sourceUrl} rel="noreferrer" target="_blank">
             SEC {statement.form} ↗
           </a>
         </p>
       </header>
 
-      <section className="cash-debt-stage" data-cash-debt-stage="cash">
-        <p className="cash-section__number">01 · Cash does not mean no debt</p>
-        <div className="cash-debt-focus">
-          <span>{statement.cashAndCashEquivalents.reportedLabel}</span>
-          <strong>{formatBillions(statement.cashAndCashEquivalents.value)}</strong>
-          <small>Company reported</small>
+      <figure className={styles.comparison} aria-labelledby="cash-debt-comparison-heading">
+        <figcaption>
+          <p className="eyebrow">Two positions · one shared absolute scale</p>
+          <h3 id="cash-debt-comparison-heading">
+            Compare amounts without turning them into a score.
+          </h3>
+          <p>
+            The longer bar is the larger amount on this reporting date. Both bars use
+            {" "}{formatBillions(presentation.scale.referenceAmount)} as the same reference.
+          </p>
+        </figcaption>
+
+        <div
+          className={styles.position}
+          data-position={presentation.cashPosition.kind}
+        >
+          <div className={styles.positionIdentity}>
+            <span>{company.name} reported</span>
+            <strong>Cash and cash equivalents</strong>
+            <small>{presentation.cashPosition.label}</small>
+          </div>
+          <div className={styles.track} aria-hidden="true">
+            <span style={positionStyle(presentation.cashPosition.magnitudePercent)} />
+          </div>
+          <strong className={styles.amount}>
+            {formatBillions(presentation.cashPosition.amount)}
+          </strong>
         </div>
-        <form onSubmit={checkCash}>
+
+        <div
+          className={styles.position}
+          data-position={presentation.borrowingPosition.kind}
+        >
+          <div className={styles.positionIdentity}>
+            <span>FinPath-derived balance-sheet position</span>
+            <strong>FinPath simple borrowings</strong>
+            <small>{statement.simpleBorrowings.definition}</small>
+          </div>
+          <div className={styles.track} aria-hidden="true">
+            <span style={positionStyle(presentation.borrowingPosition.magnitudePercent)} />
+          </div>
+          <strong className={styles.amount}>
+            {formatBillions(presentation.borrowingPosition.amount)}
+          </strong>
+        </div>
+      </figure>
+
+      <section className={styles.derivation} aria-labelledby="borrowings-heading">
+        <header>
+          <p className="eyebrow">Company-reported borrowing components</p>
+          <h3 id="borrowings-heading">See what FinPath groups as simple borrowings.</h3>
+        </header>
+        <div className={styles.components}>
+          {statement.simpleBorrowings.inputs.map((line) => (
+            <div key={line.id}>
+              <span>{line.reportedLabel}</span>
+              <strong>{formatBillions(line.value)}</strong>
+            </div>
+          ))}
+        </div>
+        <div className={styles.derivedTotal}>
+          <span>{statement.simpleBorrowings.formula}</span>
+          <strong>= {formatBillions(statement.simpleBorrowings.value)}</strong>
+        </div>
+        <p>
+          This lesson excludes lease obligations from FinPath simple borrowings.
+          Debt definitions can vary.
+        </p>
+      </section>
+
+      <section className={styles.inspection} aria-labelledby="cash-debt-inspection-heading">
+        <header>
+          <p className="eyebrow">Inspect meaning and source</p>
+          <h3 id="cash-debt-inspection-heading">These positions have different evidence status.</h3>
+        </header>
+        <div className={styles.positionButtons}>
+          <button
+            aria-pressed={selectedPosition === "cash"}
+            onClick={() => setSelectedPosition("cash")}
+            type="button"
+          >
+            <span>Cash and cash equivalents</span>
+            <strong>{formatBillions(presentation.cashPosition.amount)}</strong>
+          </button>
+          <button
+            aria-pressed={selectedPosition === "borrowings"}
+            onClick={() => setSelectedPosition("borrowings")}
+            type="button"
+          >
+            <span>FinPath simple borrowings</span>
+            <strong>{formatBillions(presentation.borrowingPosition.amount)}</strong>
+          </button>
+        </div>
+        <div aria-live="polite" className={styles.inspector}>
+          {selectedPosition === "cash" ? (
+            <>
+              <p className="eyebrow">Company reported · instant fact</p>
+              <h4>Cash and cash equivalents</h4>
+              <p>
+                This exact Balance Sheet concept is narrower than every financial
+                resource the company may hold.
+              </p>
+              <EvidenceInspector
+                evidence={evidence.cashAndCashEquivalents}
+                id="cash-debt-cash-evidence"
+              />
+            </>
+          ) : selectedPosition === "borrowings" ? (
+            <>
+              <p className="eyebrow">FinPath-derived · same-date reported inputs</p>
+              <h4>FinPath simple borrowings</h4>
+              <p>
+                This is the sum of the reviewed borrowing lines shown above, not a
+                company-reported Total Debt line.
+              </p>
+              <EvidenceInspector
+                evidence={evidence.simpleBorrowings}
+                id="simple-borrowings-evidence"
+              />
+            </>
+          ) : (
+            <>
+              <p className="eyebrow">Reported vs derived</p>
+              <h4>Choose a position to inspect it.</h4>
+              <p>
+                Selection adds source detail. It does not change either amount,
+                the shared scale, or lesson progress.
+              </p>
+            </>
+          )}
+        </div>
+      </section>
+
+      <details className={styles.context}>
+        <summary>Keep Total Liabilities and other financial assets in context</summary>
+        <div>
+          <section>
+            <h3>Borrowings are not Total Liabilities</h3>
+            <p>
+              Total Liabilities is {formatBillions(statement.liabilities.value)}.
+              Liabilities can include accounts payable, accrued obligations, taxes,
+              leases, and other obligations beyond this borrowing group.
+            </p>
+            <EvidenceInspector
+              evidence={evidence.liabilities}
+              id="cash-debt-liabilities-evidence"
+            />
+          </section>
+          <section>
+            <h3>Cash is not every financial asset</h3>
+            {statement.supplementalFinancialAssets.length > 0 ? (
+              <div className={styles.supplemental}>
+                {statement.supplementalFinancialAssets.map((line, index) => (
+                  <div key={line.id}>
+                    <span>{line.reportedLabel}</span>
+                    <strong>{formatBillions(line.value)}</strong>
+                    <EvidenceInspector
+                      evidence={evidence.supplementalFinancialAssets[index]}
+                      id={`cash-debt-${line.id}-evidence`}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>
+                FinPath adds no supplemental financial-asset line because this
+                reviewed profile has no supplemental financial-asset line selected.
+              </p>
+            )}
+          </section>
+        </div>
+      </details>
+
+      <aside className={styles.boundaries} aria-labelledby="cash-debt-boundaries">
+        <p className="eyebrow" id="cash-debt-boundaries">Amount is not judgement</p>
+        <p><strong>Debt is not automatically distress.</strong> Terms, timing, purpose, and repayment capacity matter.</p>
+        <p><strong>Cash does not automatically imply strength.</strong> The amount alone does not explain obligations, liquidity needs, or strategy.</p>
+        <p><strong>No financial-strength score.</strong> This comparison does not provide an investment verdict or rank the company.</p>
+      </aside>
+
+      <section className={styles.application} aria-labelledby="cash-debt-check">
+        <p className="eyebrow">One coexistence check</p>
+        <form onSubmit={review}>
           <fieldset>
-            <legend>Does this Cash figure mean {company.name} has no debt?</legend>
-            <div className="cash-choice-list balance-choice-list">
-              {["Yes", "No"].map((answer) => (
-                <label key={answer}>
+            <legend id="cash-debt-check">
+              Can a company report both cash and cash equivalents and borrowings on
+              the same Balance Sheet date?
+            </legend>
+            <p>Choose one. This is practice, not a score.</p>
+            <div className={styles.choices}>
+              {[
+                ["yes", "Yes — they are different positions"],
+                ["no", "No — one must erase the other"],
+              ].map(([id, label]) => (
+                <label key={id}>
                   <input
-                    checked={cashChoice === answer}
-                    name="cash-means-no-debt"
-                    onChange={() => { setCashChoice(answer); setCashReviewed(false); }}
+                    checked={choice === id}
+                    name="cash-debt-coexistence"
+                    onChange={() => {
+                      setChoice(id);
+                      setReviewedChoice(null);
+                    }}
                     type="radio"
-                    value={answer}
+                    value={id}
                   />
-                  <span>{answer}</span>
+                  <span>{label}</span>
                 </label>
               ))}
             </div>
           </fieldset>
-          <button disabled={!cashChoice} type="submit">Check my reasoning</button>
+          <button disabled={!choice} type="submit">Check my reasoning</button>
         </form>
-        {cashReviewed ? (
-          <div className="balance-feedback" role="status">
-            <p>
-              {cashChoice === "No"
-                ? `Right. ${company.name} can report Cash and Borrowings on the same date.`
-                : `Not quite. A Cash balance does not erase ${company.name}'s reported borrowing lines.`}
-            </p>
-            {visibleStage === 1 ? (
-              <button className="cash-continue" onClick={() => setVisibleStage(2)} type="button">
-                Build the borrowing total
-              </button>
-            ) : null}
-          </div>
+        {reviewedChoice ? (
+          <p aria-live="polite" className={styles.feedback} role="status">
+            {reviewedChoice === "yes"
+              ? "Yes. Cash and cash equivalents and borrowings can coexist as different Balance Sheet positions."
+              : "One does not erase the other. The Balance Sheet can report both positions on the same date."}
+          </p>
         ) : null}
-        <EvidenceInspector evidence={evidence.cashAndCashEquivalents} id="cash-debt-cash-evidence" />
       </section>
 
-      {visibleStage >= 2 ? (
-        <section className="cash-debt-stage" data-cash-debt-stage="borrowings">
-          <p className="cash-section__number">02 · Build the borrowing total</p>
-          <div className="cash-debt-equation">
-            <div className="cash-debt-equation__inputs">
-              {statement.simpleBorrowings.inputs.map((line, index) => (
-                <div key={line.id}>
-                  <span>{line.reportedLabel}</span>
-                  <strong>{formatBillions(line.value)}</strong>
-                  <small>{index === 0 ? "Company-reported components" : "Company reported"}</small>
-                </div>
-              ))}
-            </div>
-            <span className="cash-debt-equation__arrow" aria-hidden="true">↓</span>
-            <div className="cash-debt-equation__result">
-              <span>{statement.simpleBorrowings.label}</span>
-              <strong>{formatBillions(statement.simpleBorrowings.value)}</strong>
-              <small>FinPath-derived total</small>
-            </div>
-          </div>
-          <p className="cash-debt-definition">{statement.simpleBorrowings.definition}</p>
-          <EvidenceInspector evidence={evidence.simpleBorrowings} id="simple-borrowings-evidence" />
-          {visibleStage === 2 ? (
-            <button className="cash-continue" onClick={() => setVisibleStage(3)} type="button">
-              Compare with Total Liabilities
-            </button>
-          ) : null}
-        </section>
-      ) : null}
-
-      {visibleStage >= 3 ? (
-        <section className="cash-debt-stage" data-cash-debt-stage="liabilities">
-          <p className="cash-section__number">03 · Debt is not Total Liabilities</p>
-          <div className="cash-debt-contrast">
-            <div>
-              <span>Total Liabilities</span>
-              <strong>{formatBillions(statement.liabilities.value)}</strong>
-              <small>{statement.liabilities.evidenceKind === "reported" ? "Company reported" : "FinPath-derived from reported lines"}</small>
-            </div>
-            <div>
-              <span>FinPath simple borrowings</span>
-              <strong>{formatBillions(statement.simpleBorrowings.value)}</strong>
-              <small>Analytical grouping</small>
-            </div>
-          </div>
-          <p>
-            Liabilities can also include accounts payable, accrued obligations,
-            deferred revenue, taxes, lease obligations and other liabilities.
-            Those items are not automatically harmless; they are simply not the same category as this borrowing total.
-          </p>
-          <aside className="cash-learning-trace balance-learning-trace" aria-label="Learning Trace">
-            <p><span aria-hidden="true" /> Learning Trace</p>
-            <h3>Borrowings are part of Liabilities, not another name for all Liabilities.</h3>
-            <p>This lesson excludes lease obligations from FinPath simple borrowings. Debt definitions can vary.</p>
-          </aside>
-          <EvidenceInspector evidence={evidence.liabilities} id="cash-debt-liabilities-evidence" />
-          {visibleStage === 3 ? (
-            <button className="cash-continue" onClick={() => setVisibleStage(4)} type="button">
-              Look beyond Cash
-            </button>
-          ) : null}
-        </section>
-      ) : null}
-
-      {visibleStage >= 4 ? (
-        <section className="cash-debt-stage" data-cash-debt-stage="financial-assets">
-          <p className="cash-section__number">04 · Cash is not the whole financial-resource picture</p>
-          <p>
-            Cash is one financial resource. Companies may also hold investments or other financial assets.
-          </p>
-          {statement.supplementalFinancialAssets.length > 0 ? (
-            <div className="cash-debt-assets">
-              {statement.supplementalFinancialAssets.map((line, index) => (
-                <div key={line.id}>
-                  <span>{line.reportedLabel}</span>
-                  <strong>{formatBillions(line.value)}</strong>
-                  <EvidenceInspector
-                    evidence={evidence.supplementalFinancialAssets[index]}
-                    id={`cash-debt-${line.id}-evidence`}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="cash-debt-no-supplemental">
-              FinPath does not add an investment line because this reviewed lesson profile has no supplemental financial-asset line selected for {company.name}.
-            </p>
-          )}
-          <p className="cash-debt-boundary">
-            FinPath does not combine these figures into a universal liquidity score or rank companies from them.
-          </p>
-          {visibleStage === 4 ? (
-            <button className="cash-continue" onClick={() => setVisibleStage(5)} type="button">
-              Use what you learned
-            </button>
-          ) : null}
-        </section>
-      ) : null}
-
-      {visibleStage >= 5 ? (
-        <section className="cash-debt-stage cash-debt-stage--question" data-cash-debt-stage="check">
-          <p className="cash-section__number">05 · One final check</p>
-          <form onSubmit={checkLiabilities}>
-            <fieldset>
-              <legend>Does Total Liabilities mean the same thing as Debt?</legend>
-              <div className="cash-choice-list balance-choice-list">
-                {["Yes", "No"].map((answer) => (
-                  <label key={answer}>
-                    <input
-                      checked={liabilityChoice === answer}
-                      name="liabilities-mean-debt"
-                      onChange={() => { setLiabilityChoice(answer); setLiabilityReviewed(false); }}
-                      type="radio"
-                      value={answer}
-                    />
-                    <span>{answer}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <button disabled={!liabilityChoice} type="submit">Check my reasoning</button>
-          </form>
-          {liabilityReviewed ? (
-            <div className="cash-completion" role="status">
-              <p>
-                {liabilityChoice === "No"
-                  ? "Right. Borrowings are one part of the broader Liabilities picture."
-                  : "Not quite. Total Liabilities includes Borrowings and other obligations."}
-              </p>
-              <p><strong>Next:</strong> Connect the Income Statement, Cash Flow Statement and Balance Sheet.</p>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
-      <p className="profit-retrieved-note">
-        Retrieved {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}
-        {dataStatus.state === "stale" ? " · SEC was unavailable, so FinPath is showing the last known public filing data." : ""}
+      <p className={styles.retrievedNote}>
+        Retrieved{" "}
+        {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", {
+          timeZone: "Asia/Kuala_Lumpur",
+        })}
+        {dataStatus.state === "stale"
+          ? " · SEC was unavailable, so FinPath is showing the last known public filing data."
+          : ""}
       </p>
     </section>
   );

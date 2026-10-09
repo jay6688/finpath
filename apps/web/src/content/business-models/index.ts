@@ -15,6 +15,21 @@ export type {
   ReviewedNarrativeEvidence,
 } from "./types.ts";
 
+export type RevenueOriginTrace = {
+  company: BusinessModelProfile["company"];
+  destination: "Revenue";
+  pathWeight: "equal-semantic-weight";
+  paths: Array<{
+    id: string;
+    offering: string;
+    counterparty: string;
+    exchange: string;
+    destination: "Revenue";
+    contribution: "not-reviewed";
+    evidenceIds: string[];
+  }>;
+};
+
 type ExpectedIdentity = {
   slug: string;
   name: string;
@@ -298,4 +313,28 @@ export function getBusinessModelProfile(identifier: string): BusinessModelProfil
     throw new Error(`No reviewed Business Model profile is available for ${identifier}.`);
   }
   return profile;
+}
+
+export function buildRevenueOriginTrace(
+  profile: BusinessModelProfile,
+): RevenueOriginTrace {
+  const reviewed = getBusinessModelProfile(profile.company.ticker);
+  if (reviewed.filing.accession !== profile.filing.accession) {
+    throw new Error("Revenue Origin Trace requires the reviewed filing profile.");
+  }
+
+  return {
+    company: profile.company,
+    destination: "Revenue",
+    pathWeight: "equal-semantic-weight",
+    paths: profile.moneyPaths.map((path) => ({
+      id: path.id,
+      offering: path.receives,
+      counterparty: path.payer,
+      exchange: path.mechanism.replace(/\s*→\s*Revenue.*$/u, ""),
+      destination: "Revenue",
+      contribution: "not-reviewed",
+      evidenceIds: [...path.evidenceIds],
+    })),
+  };
 }

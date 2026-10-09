@@ -4,6 +4,7 @@ import { useState, type CSSProperties } from "react";
 
 import { EvidenceInspector } from "@/components/evidence-inspector";
 import { useLearningProgress } from "@/components/learning-progress-provider";
+import styles from "@/components/revenue-growth-explorer.module.css";
 import type { AnnualFinancialFact, CompanyOverview } from "@/lib/api";
 import {
   buildRevenueGrowthEvidence,
@@ -11,13 +12,13 @@ import {
   type ReviewedPresentation,
 } from "@/lib/evidence";
 import {
+  buildRevenueGrowthGeometry,
   buildRevenueGrowthRows,
   formatRevenueGrowthRate,
   type RevenueGrowthRow,
-  type RevenueGrowthUnavailableReason,
 } from "@/lib/history-insight";
 
-type RevenueGrowthExplorerProps = {
+type Props = {
   company: CompanyOverview["company"];
   currency: string;
   dataStatus: CompanyOverview["dataStatus"];
@@ -26,13 +27,6 @@ type RevenueGrowthExplorerProps = {
   series: AnnualFinancialFact[];
   taxonomyTag: string;
 };
-
-const compactCurrency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
 
 const exactBillions = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -50,43 +44,8 @@ function formatSignedBillions(value: number): string {
   return `${value > 0 ? "+" : "−"}${formatBillions(Math.abs(value))}`;
 }
 
-function unavailableCopy(reason: RevenueGrowthUnavailableReason): string {
-  switch (reason) {
-    case "invalid-fiscal-year":
-      return "Not comparable — fiscal year is invalid";
-    case "no-prior-year":
-      return "No previous year in this history";
-    case "missing-prior-year":
-      return "Not comparable — previous fiscal year is missing";
-    case "duplicate-current-year":
-      return "Not comparable — duplicate records for this year";
-    case "duplicate-prior-year":
-      return "Not comparable — duplicate records in the base year";
-    case "invalid-current-value":
-      return "Not comparable — this Revenue value is invalid";
-    case "invalid-prior-value":
-      return "Not comparable — the base Revenue value is invalid";
-    case "zero-base":
-      return "Not comparable — the previous Revenue is zero";
-  }
-}
-
-function directionCopy(row: Extract<RevenueGrowthRow, { state: "available" }>): string {
-  if (row.direction === "increase") return "Up";
-  if (row.direction === "decrease") return "Down";
-  return "No change";
-}
-
-function changeVerb(row: Extract<RevenueGrowthRow, { state: "available" }>): string {
-  if (row.direction === "increase") return "increased";
-  if (row.direction === "decrease") return "decreased";
-  return "did not change";
-}
-
-function accessibleRateCopy(percentageChange: number): string {
-  const absoluteRate = Math.abs(percentageChange);
-  if (absoluteRate > 0 && absoluteRate < 0.05) return "less than 0.1 percent";
-  return `${absoluteRate.toFixed(1)} percent`;
+function comparisonLabel(row: Extract<RevenueGrowthRow, { state: "available" }>) {
+  return `FY${row.previous.fiscalYear} → FY${row.current.fiscalYear}`;
 }
 
 export function RevenueGrowthExplorer({
@@ -97,27 +56,26 @@ export function RevenueGrowthExplorer({
   reviewedPresentation,
   series,
   taxonomyTag,
-}: RevenueGrowthExplorerProps) {
+}: Props) {
   const { markExplored } = useLearningProgress();
   const rows = buildRevenueGrowthRows(series);
   const availableRows = rows.filter(
     (row): row is Extract<RevenueGrowthRow, { state: "available" }> =>
       row.state === "available",
   );
-  const defaultRow =
+  const geometry = buildRevenueGrowthGeometry(rows);
+  const initialRow =
     availableRows.find((row) => row.fiscalYear === defaultFiscalYear) ??
-    availableRows[0];
+    availableRows.at(-1);
   const [selectedFiscalYear, setSelectedFiscalYear] = useState(
-    defaultRow?.fiscalYear ?? null,
+    initialRow?.fiscalYear ?? null,
   );
+  const [finished, setFinished] = useState(false);
   const selectedRow =
-    availableRows.find((row) => row.fiscalYear === selectedFiscalYear) ?? defaultRow;
-  const validValues = rows.flatMap((row) =>
-    row.current && Number.isFinite(row.current.value) && row.current.value >= 0
-      ? [row.current.value]
-      : [],
+    availableRows.find((row) => row.fiscalYear === selectedFiscalYear) ?? initialRow;
+  const selectedBridge = geometry.bridges.find(
+    (bridge) => bridge.fiscalYear === selectedRow?.fiscalYear,
   );
-  const largestValue = validValues.length > 0 ? Math.max(...validValues) : 0;
   let growthEvidence: DerivedEvidence | null = null;
 
   if (selectedRow) {
@@ -131,152 +89,150 @@ export function RevenueGrowthExplorer({
         reviewedPresentation,
       });
     } catch {
-      // An invalid comparison must not receive a calculation evidence trail.
+      // Withhold a calculation trail when either reported input fails validation.
     }
   }
 
+  if (!selectedRow || !selectedBridge) {
+    return (
+      <p className={styles.unavailable} role="status">
+        No valid year-over-year Revenue comparison is available. FinPath will
+        not invent a prior-period denominator.
+      </p>
+    );
+  }
+
   return (
-    <section className="growth-explorer" id="revenue-growth" aria-labelledby="growth-explorer-heading">
-      <header className="revenue-chart__heading">
-        <div>
-          <h3 id="growth-explorer-heading">Revenue, year by year</h3>
-          <p>
-            Year-over-year (YoY) Revenue Growth is the percentage change from the
-            previous fiscal year.
-          </p>
-        </div>
-        <span>USD billions</span>
+    <article className={styles.lesson} id="revenue-growth" aria-labelledby="growth-question">
+      <header className={styles.introduction}>
+        <p className="eyebrow">Two-period growth bridge</p>
+        <h2 id="growth-question">How much did Revenue change relative to the earlier period?</h2>
+        <p>
+          Year-over-year (YoY) Revenue Growth is the percentage change from the
+          previous fiscal year. The dollar change and the percentage answer
+          different questions.
+        </p>
       </header>
 
-      <div
-        aria-label="Annual Revenue and year-over-year growth"
-        className="growth-periods"
-        role="group"
-        style={{ "--growth-column-count": Math.max(rows.length, 1) } as CSSProperties}
-      >
-        {rows.map((row, index) => {
-          const currentValue = row.current?.value;
-          const canShowValue =
-            typeof currentValue === "number" &&
-            Number.isFinite(currentValue) &&
-            currentValue >= 0;
-          const relativeHeight =
-            canShowValue && largestValue > 0 ? currentValue / largestValue : 0;
-          const style = {
-            "--bar-height": `${
-              canShowValue && currentValue > 0
-                ? Math.max(relativeHeight * 100, 8)
-                : 0
-            }%`,
-          } as CSSProperties;
-          const content = (
-            <>
-              <span className="growth-period__value">
-                {canShowValue ? compactCurrency.format(currentValue) : "Unavailable"}
-              </span>
-              <span className="growth-period__bar-track" aria-hidden="true">
-                <span className="growth-period__bar" style={style} />
-              </span>
-              <span className="growth-period__year">
-                {row.fiscalYear === null ? "FY unavailable" : `FY${row.fiscalYear}`}
-              </span>
-              <span className="growth-period__rate">
-                {row.state === "available" ? (
-                  <>
-                    <strong>{directionCopy(row)}</strong>{" "}
-                    {formatRevenueGrowthRate(row.percentageChange).replace(/^[+−]/, "")}
-                  </>
-                ) : (
-                  unavailableCopy(row.reason)
-                )}
-              </span>
-            </>
-          );
-
-          return row.state === "available" ? (
-            <button
-              aria-label={`FY${row.fiscalYear}: Revenue ${compactCurrency.format(row.current.value)}, ${directionCopy(row).toLowerCase()} ${accessibleRateCopy(row.percentageChange)} year over year. Show this calculation.`}
-              aria-pressed={selectedRow?.fiscalYear === row.fiscalYear}
-              className="growth-period growth-period--available"
-              key={`${row.fiscalYear}-${index}`}
-              onClick={() => {
-                setSelectedFiscalYear(row.fiscalYear);
-                markExplored(["revenue-growth"]);
-              }}
-              type="button"
-            >
-              {content}
-            </button>
-          ) : (
-            <div
-              className="growth-period growth-period--unavailable"
-              key={`${row.fiscalYear}-${index}`}
-            >
-              {content}
-            </div>
-          );
-        })}
+      <div className={styles.periodControls} role="group" aria-label="Revenue comparison period">
+        {availableRows.map((row) => (
+          <button
+            aria-pressed={selectedRow.fiscalYear === row.fiscalYear}
+            key={row.fiscalYear}
+            onClick={() => setSelectedFiscalYear(row.fiscalYear)}
+            type="button"
+          >
+            {comparisonLabel(row)}
+          </button>
+        ))}
       </div>
 
-      {selectedRow ? (
-        <section
-          aria-labelledby="growth-calculation-heading"
-          className="growth-calculation"
-        >
-          <p className="sr-only" aria-live="polite">
-            Showing the Revenue Growth calculation from FY
-            {selectedRow.previous.fiscalYear} to FY{selectedRow.current.fiscalYear}.
-          </p>
-          <div className="growth-calculation__heading">
-            <div>
-              <p className="eyebrow">
-                Compare FY{selectedRow.previous.fiscalYear} → FY
-                {selectedRow.current.fiscalYear}
-              </p>
-              <h4 id="growth-calculation-heading">
-                Revenue {changeVerb(selectedRow)} by{" "}
-                {formatBillions(Math.abs(selectedRow.absoluteChange))}
-              </h4>
-            </div>
-            <strong data-direction={selectedRow.direction}>
-              {formatRevenueGrowthRate(selectedRow.percentageChange)}
-              <small>YoY Growth</small>
-            </strong>
+      <section className={styles.bridge} aria-labelledby="growth-bridge-heading" aria-live="polite">
+        <div className={styles.bridgeHeading}>
+          <div>
+            <span className={styles.derived}>FinPath-derived comparison</span>
+            <h3 id="growth-bridge-heading">{comparisonLabel(selectedRow)}</h3>
           </div>
+          <strong data-direction={selectedRow.direction}>
+            {formatRevenueGrowthRate(selectedRow.percentageChange)}
+          </strong>
+        </div>
 
-          <dl className="growth-calculation__values">
-            <div>
-              <dt>Previous Revenue · base</dt>
-              <dd>{formatBillions(selectedRow.previous.value)}</dd>
-            </div>
-            <div>
-              <dt>Current Revenue</dt>
-              <dd>{formatBillions(selectedRow.current.value)}</dd>
-            </div>
-            <div>
-              <dt>Dollar change</dt>
-              <dd>{formatSignedBillions(selectedRow.absoluteChange)}</dd>
-            </div>
-          </dl>
+        <dl className={styles.amounts}>
+          <div>
+            <dt>Previous Revenue · denominator</dt>
+            <dd>{formatBillions(selectedRow.previous.value)}</dd>
+            <small>Reported · FY{selectedRow.previous.fiscalYear}</small>
+          </div>
+          <div>
+            <dt>Current Revenue</dt>
+            <dd>{formatBillions(selectedRow.current.value)}</dd>
+            <small>Reported · FY{selectedRow.current.fiscalYear}</small>
+          </div>
+          <div>
+            <dt>Dollar change</dt>
+            <dd>{formatSignedBillions(selectedRow.absoluteChange)}</dd>
+            <small>FinPath-derived</small>
+          </div>
+          <div>
+            <dt>Growth rate</dt>
+            <dd>{formatRevenueGrowthRate(selectedRow.percentageChange)}</dd>
+            <small>FinPath-derived</small>
+          </div>
+        </dl>
 
-          <p className="growth-calculation__explanation">
-            FY{selectedRow.previous.fiscalYear} is the base. The percentage measures
-            the change against that earlier Revenue. It does not show Profit or explain
-            why Revenue changed.
+        <div className={styles.signedScale}>
+          <div className={styles.scaleLabels}>
+            <span>Decrease</span><span>0%</span><span>Increase</span>
+          </div>
+          <div
+            className={styles.scaleTrack}
+            data-direction={selectedBridge.direction}
+            style={{ "--change-extent": `${selectedBridge.extentPercent}%` } as CSSProperties}
+          >
+            <span className={styles.zeroLine} aria-hidden="true" />
+            <span className={styles.changeBar} aria-hidden="true" />
+            <span className={styles.changeMarker} aria-hidden="true" />
+          </div>
+          <p>
+            Shared history scale: ±{formatRevenueGrowthRate(geometry.referencePercent).replace("+", "")};
+            selected raw growth is {formatRevenueGrowthRate(selectedBridge.rawPercent)}.
           </p>
+        </div>
 
-          {growthEvidence ? (
-            <EvidenceInspector
-              evidence={growthEvidence}
-              id={`revenue-growth-evidence-${selectedRow.current.fiscalYear}`}
-            />
-          ) : null}
-        </section>
-      ) : (
-        <p className="growth-calculation growth-calculation--unavailable" role="status">
-          No valid year-over-year Revenue comparison is available in this history.
+        <div className={styles.formula} aria-label="Revenue Growth formula">
+          <span>Current Revenue − Previous Revenue</span>
+          <span>÷ Previous Revenue × 100</span>
+          <strong>= {formatRevenueGrowthRate(selectedRow.percentageChange)}</strong>
+        </div>
+
+        <p className={styles.misconception}>
+          Learners sometimes read “{formatRevenueGrowthRate(selectedRow.percentageChange)} growth”
+          as that percentage of current Revenue. It is not: the earlier Revenue is
+          the denominator and reference. It does not show Profit or explain why
+          Revenue changed.
         </p>
-      )}
-    </section>
+      </section>
+
+      {growthEvidence ? (
+        <EvidenceInspector
+          evidence={growthEvidence}
+          id={`revenue-growth-evidence-${selectedRow.current.fiscalYear}`}
+        />
+      ) : null}
+
+      <details className={styles.sourceNote}>
+        <summary>Comparison filing identities</summary>
+        <div>
+          <p>
+            Each reported amount retains its SEC fact and accession. Comparative
+            figures may be presented again in a later filing; FinPath does not
+            pretend every fiscal year necessarily comes from a separate filing.
+          </p>
+          <dl>
+            <div><dt>Previous accession</dt><dd>{selectedRow.previous.accession}</dd></div>
+            <div><dt>Current accession</dt><dd>{selectedRow.current.accession}</dd></div>
+          </dl>
+        </div>
+      </details>
+
+      <section className={styles.completion} aria-labelledby="growth-completion-heading">
+        <div>
+          <p className="eyebrow">Complete the comparison</p>
+          <h3 id="growth-completion-heading">Name both the dollar change and its prior-period reference.</h3>
+          <p>Changing the selected periods does not write learning progress.</p>
+        </div>
+        <button
+          disabled={finished}
+          onClick={() => {
+            markExplored(["revenue-growth"]);
+            setFinished(true);
+          }}
+          type="button"
+        >
+          {finished ? "Comparison explored" : "I understand the two-period bridge"}
+        </button>
+      </section>
+    </article>
   );
 }

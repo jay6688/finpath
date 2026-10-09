@@ -13,6 +13,8 @@ import {
   EvidenceDataError,
 } from "@/lib/evidence";
 import {
+  buildBalanceSheetPresentation,
+  type BalanceSheetPresentation,
   validateBalanceSheetForLesson,
 } from "@/lib/balance-sheet-learning";
 import { resolveCompanyQuery } from "@/lib/company-selection";
@@ -33,6 +35,7 @@ export default async function BalanceSheetLessonPage({
   );
   const selectedCompany = resolveCompanyQuery((await searchParams).company, companies);
   let balanceSheet: CompanyBalanceSheet | null = null;
+  let presentation: BalanceSheetPresentation | null = null;
   let dataError: string | null = null;
 
   try {
@@ -41,6 +44,7 @@ export default async function BalanceSheetLessonPage({
       selectedCompany.reviewedFiscalYear,
     );
     validateBalanceSheetForLesson(balanceSheet.statement, balanceSheet.company);
+    presentation = buildBalanceSheetPresentation(balanceSheet);
   } catch (error) {
     balanceSheet = null;
     dataError =
@@ -65,8 +69,11 @@ export default async function BalanceSheetLessonPage({
       }
       selectedCompany={selectedCompany}
     >
-      {balanceSheet ? (
-        <BalanceSheetLearning balanceSheet={balanceSheet} />
+      {balanceSheet && presentation ? (
+        <BalanceSheetLearning
+          balanceSheet={balanceSheet}
+          presentation={presentation}
+        />
       ) : (
         <div className="data-empty-state profit-data-empty" role="status">
           <div className="data-empty-state__value" aria-hidden="true">—</div>

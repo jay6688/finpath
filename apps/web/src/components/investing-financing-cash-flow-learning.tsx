@@ -2,11 +2,15 @@
 
 import { useState, type FormEvent } from "react";
 
+import {
+  CashActivityLineBar,
+  CashActivityTrace,
+} from "@/components/cash-activity-trace";
 import { EvidenceInspector } from "@/components/evidence-inspector";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import lessonContent from "@/content/cash-flow-lessons/aapl-investing-financing-fy2025.json";
 import type { CashFlowStatementLineId, CompanyCashFlowStatement } from "@/lib/api";
-import { cashFlowSections } from "@/lib/cash-flow-learning";
+import type { CashActivityPresentation } from "@/lib/cash-flow-learning";
 import {
   buildReportedEvidence,
   buildReviewedPresentation,
@@ -14,10 +18,15 @@ import {
   type FinancialStatementLineId,
 } from "@/lib/evidence";
 
-type Props = { cashFlowStatement: CompanyCashFlowStatement };
+import styles from "./investing-financing-cash-flow-learning.module.css";
+
+type Props = {
+  cashFlowStatement: CompanyCashFlowStatement;
+  presentation: CashActivityPresentation;
+};
 type LineCopy = { reportedLabel: string; helper: string };
 
-const lineCopy = lessonContent.lines as Record<string, LineCopy>;
+const lineCopy = lessonContent.lines as Record<CashFlowStatementLineId, LineCopy>;
 const reviewedLabels = Object.fromEntries(
   Object.entries(lineCopy).map(([id, copy]) => [id, copy.reportedLabel]),
 ) as Partial<Record<FinancialStatementLineId, string>>;
@@ -29,32 +38,21 @@ const exactBillions = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 3,
 });
 
-function formatBillions(value: number, signed = false): string {
-  const amount = `${exactBillions.format(Math.abs(value) / 1_000_000_000)}B`;
-  if (!signed) return value < 0 ? `(${amount})` : amount;
-  return value < 0 ? `−${amount}` : `+${amount}`;
+function formatSignedBillions(value: number): string {
+  const sign = value < 0 ? "−" : value > 0 ? "+" : "";
+  return `${sign}${exactBillions.format(Math.abs(value) / 1_000_000_000)}B`;
 }
 
-export function InvestingFinancingCashFlowLearning({ cashFlowStatement }: Props) {
+export function InvestingFinancingCashFlowLearning({
+  cashFlowStatement,
+  presentation,
+}: Props) {
   const { markExplored } = useLearningProgress();
   const { statement, dataStatus } = cashFlowStatement;
-  const sections = cashFlowSections(statement);
-  const operating = sections.get("operating") ?? [];
-  const investing = sections.get("investing") ?? [];
-  const financing = sections.get("financing") ?? [];
-  const allLines = [...operating, ...investing, ...financing];
-  const lines = new Map(allLines.map((line) => [line.id, line]));
-  const operatingTotal = lines.get("cash-generated-by-operating-activities");
-  const investingTotal = lines.get("cash-generated-by-investing-activities");
-  const financingTotal = lines.get("cash-used-in-financing-activities");
-  const netChange = statement.cashMovement.netChange;
-  const [visibleSection, setVisibleSection] = useState(1);
-  const [firstChoice, setFirstChoice] = useState<string | null>(null);
-  const [reviewedFirst, setReviewedFirst] = useState<string | null>(null);
+  const [selectedLineId, setSelectedLineId] =
+    useState<CashFlowStatementLineId | null>(null);
   const [finalChoice, setFinalChoice] = useState<string | null>(null);
-  const [reviewedFinal, setReviewedFinal] = useState<string | null>(null);
-
-  if (!operatingTotal || !investingTotal || !financingTotal) return null;
+  const [reviewedFinalChoice, setReviewedFinalChoice] = useState<string | null>(null);
 
   const reviewedNetChange = buildReviewedPresentation({
     statement,
@@ -85,50 +83,102 @@ export function InvestingFinancingCashFlowLearning({ cashFlowStatement }: Props)
     reviewedPresentation: reviewedNetChange,
   });
 
-  function reviewFirst(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (firstChoice) setReviewedFirst(firstChoice);
-  }
-
-  function reviewFinal(event: FormEvent<HTMLFormElement>) {
+  function reviewFinalQuestion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!finalChoice) return;
-    setReviewedFinal(finalChoice);
+    setReviewedFinalChoice(finalChoice);
     markExplored(["investing-financing-cash-flow"]);
   }
 
   return (
-    <section className="cash-lesson cash-module" aria-labelledby="cash-module-title">
-      <header className="cash-lesson__header">
+    <section
+      aria-labelledby="cash-activity-lesson-title"
+      className={styles.lesson}
+      id="investing-financing-cash-flow-lesson"
+    >
+      <header className={styles.introduction}>
         <p className="eyebrow">Cash Flow Statement · three activity sections</p>
-        <h2 id="cash-module-title">{lessonContent.title}</h2>
+        <h2 id="cash-activity-lesson-title">{lessonContent.title}</h2>
         <p>{lessonContent.introduction}</p>
-        <p className="profit-lesson__period">
-          FY{statement.fiscalYear} · {statement.currency} · year ended {statement.endDate} ·{" "}
-          <a href={statement.sourceUrl} rel="noreferrer" target="_blank">SEC {statement.form} ↗</a>
+        <p className={styles.period}>
+          FY{statement.fiscalYear} · {statement.currency} · year ended{" "}
+          {statement.endDate} · filed {statement.filedAt} ·{" "}
+          <a href={statement.sourceUrl} rel="noreferrer" target="_blank">
+            SEC {statement.form} ↗
+          </a>
         </p>
       </header>
 
-      <p className="sr-only" aria-live="polite">{visibleSection} of 4 learning sections visible.</p>
+      <CashActivityTrace
+        onSelect={setSelectedLineId}
+        presentation={presentation}
+        selectedLineId={selectedLineId}
+      />
 
-      <section className="cash-section cash-section--question" data-cash-module-section="operating-only">
-        <p className="cash-section__number">01 · Operating is only one part</p>
-        <div className="cash-starting-value">
-          <span>Operating Cash Flow</span>
-          <strong>{formatBillions(operatingTotal.value)}</strong>
-          <small>Apple reported · Operating activities</small>
+      <aside className={styles.boundaries} aria-labelledby="cash-activity-boundaries">
+        <p className="eyebrow" id="cash-activity-boundaries">Read the signs carefully</p>
+        <p><strong>Direction is not quality.</strong> {lessonContent.signBoundary}</p>
+        <p><strong>Reported vs teaching.</strong> {lessonContent.presentationBoundary}</p>
+        <p>{lessonContent.remainingBoundary}</p>
+        <p><strong>Reported change boundary.</strong> {lessonContent.fxBoundary}</p>
+      </aside>
+
+      <details className={styles.fullLines}>
+        <summary>See all Investing and Financing lines</summary>
+        <div>
+          <p>
+            Apple-reported lines · FY{statement.fiscalYear} · USD billions. Each
+            line uses one shared child scale whose reference is the largest reviewed
+            line. The section totals remain on the primary activity scale above.
+          </p>
+          {presentation.activities.slice(1).map((activity) => (
+            <section key={activity.id}>
+              <h3>{activity.id === "investing" ? "Investing" : "Financing"}</h3>
+              <dl>
+                {activity.lines.map((line) => (
+                  <div data-role={line.role} key={line.id}>
+                    <dt>
+                      <strong>{lineCopy[line.id].reportedLabel}</strong>
+                      <small>{lineCopy[line.id].helper}</small>
+                      <CashActivityLineBar line={line} />
+                    </dt>
+                    <dd>{formatSignedBillions(line.amount)}</dd>
+                  </div>
+                ))}
+                <div className={styles.sectionTotal}>
+                  <dt>
+                    {activity.id === "investing"
+                      ? lineCopy["cash-generated-by-investing-activities"].reportedLabel
+                      : lineCopy["cash-used-in-financing-activities"].reportedLabel}
+                  </dt>
+                  <dd>{formatSignedBillions(activity.amount)}</dd>
+                </div>
+              </dl>
+            </section>
+          ))}
+          <p>{lessonContent.verification.unitNote}</p>
+          <a href={lessonContent.sources[0].url} rel="noreferrer" target="_blank">
+            Open the filed statement ↗
+          </a>
         </div>
-        <form onSubmit={reviewFirst}>
+      </details>
+
+      <section className={styles.application} aria-labelledby="cash-activity-check">
+        <p className="eyebrow">One final classification</p>
+        <form onSubmit={reviewFinalQuestion}>
           <fieldset>
-            <legend>{lessonContent.firstQuestion.prompt}</legend>
-            <p>{lessonContent.firstQuestion.hint}</p>
-            <div className="cash-choice-list">
-              {lessonContent.firstQuestion.choices.map((choice) => (
+            <legend id="cash-activity-check">{lessonContent.finalQuestion.prompt}</legend>
+            <p>{lessonContent.finalQuestion.hint}</p>
+            <div className={styles.choices}>
+              {lessonContent.finalQuestion.choices.map((choice) => (
                 <label key={choice.id}>
                   <input
-                    checked={firstChoice === choice.id}
-                    name="operating-is-total-change"
-                    onChange={() => { setFirstChoice(choice.id); setReviewedFirst(null); }}
+                    checked={finalChoice === choice.id}
+                    name="ppe-and-share-repurchases"
+                    onChange={() => {
+                      setFinalChoice(choice.id);
+                      setReviewedFinalChoice(null);
+                    }}
                     type="radio"
                     value={choice.id}
                   />
@@ -137,102 +187,39 @@ export function InvestingFinancingCashFlowLearning({ cashFlowStatement }: Props)
               ))}
             </div>
           </fieldset>
-          <button disabled={!firstChoice} type="submit">Check my reasoning</button>
+          <button disabled={!finalChoice} type="submit">Check my reasoning</button>
         </form>
-        {reviewedFirst ? (
-          <div className="cash-feedback" role="status">
-            <p>{reviewedFirst === lessonContent.firstQuestion.supportedChoiceId
-              ? lessonContent.firstQuestion.supportedFeedback
-              : lessonContent.firstQuestion.unsupportedFeedback}</p>
-            {visibleSection === 1 ? (
-              <button onClick={() => setVisibleSection(2)} type="button">Meet the three sections</button>
-            ) : null}
-          </div>
+        {reviewedFinalChoice ? (
+          <p aria-live="polite" className={styles.feedback} role="status">
+            {reviewedFinalChoice === lessonContent.finalQuestion.supportedChoiceId
+              ? lessonContent.finalQuestion.supportedFeedback
+              : lessonContent.finalQuestion.unsupportedFeedback}
+          </p>
         ) : null}
       </section>
 
-      {visibleSection >= 2 ? (
-        <section className="cash-section" data-cash-module-section="three-jobs">
-          <p className="cash-section__number">02 · Three cash-flow jobs</p>
-          <div className="cash-job-grid">
-            <article><span>Operating</span><strong>{formatBillions(operatingTotal.value, true)}</strong><p>Cash connected to the main business operations.</p></article>
-            <article><span>Investing</span><strong>{formatBillions(investingTotal.value, true)}</strong><p>Cash connected to long-term assets and investments.</p></article>
-            <article><span>Financing</span><strong>{formatBillions(financingTotal.value, true)}</strong><p>Cash connected to creditors and owners.</p></article>
-          </div>
-          <aside className="cash-learning-trace" aria-label="Learning Trace">
-            <p><span aria-hidden="true" /> Learning Trace</p>
-            <h3>Each section answers a different cash question.</h3>
-            <p>{lessonContent.boundaries.operating}</p>
-          </aside>
-          {visibleSection === 2 ? <button className="cash-continue" onClick={() => setVisibleSection(3)} type="button">See what moved cash</button> : null}
-        </section>
+      {reviewedFinalChoice ? (
+        <EvidenceInspector evidence={netChangeEvidence} id="cash-change-evidence" />
       ) : null}
 
-      {visibleSection >= 3 ? (
-        <section className="cash-section" data-cash-module-section="reported-lines">
-          <p className="cash-section__number">03 · What moved Apple’s cash?</p>
-          <div className="cash-example-grid">
-            {["maturities-of-marketable-securities", "payments-for-property-plant-and-equipment", "common-stock-repurchases", "dividends-and-dividend-equivalents"].map((id) => {
-              const line = lines.get(id as CashFlowStatementLineId);
-              if (!line) return null;
-              return <article key={id}><span>{lineCopy[id].reportedLabel}</span><strong>{formatBillions(line.value, true)}</strong><p>{lineCopy[id].helper}</p></article>;
-            })}
-          </div>
-          <div className="cash-boundary-notes">
-            <p>{lessonContent.boundaries.investing}</p>
-            <p>{lessonContent.boundaries.financing}</p>
-          </div>
-          <details className="cash-full-reconciliation">
-            <summary>See all Investing and Financing lines</summary>
-            <div>
-              {[...investing, ...financing].map((line) => (
-                <dl key={line.id}><div data-role={line.role}><dt><strong>{lineCopy[line.id].reportedLabel}</strong><small>{lineCopy[line.id].helper}</small></dt><dd>{formatBillions(line.value, true)}</dd></div></dl>
-              ))}
-              <a href={lessonContent.sources[0].url} rel="noreferrer" target="_blank">Open the filed statement ↗</a>
-            </div>
-          </details>
-          {visibleSection === 3 ? <button className="cash-continue" onClick={() => setVisibleSection(4)} type="button">Put the statement together</button> : null}
-        </section>
-      ) : null}
+      <aside className={styles.limitation} aria-labelledby="cash-activity-limit">
+        <p className="eyebrow" id="cash-activity-limit">What this trace cannot tell you</p>
+        <p>
+          This classification and reconciliation do not tell you whether Apple is a
+          good investment. They do not replace analysis of strategy, sustainability,
+          valuation, or the reasons behind each cash movement.
+        </p>
+      </aside>
 
-      {visibleSection >= 4 ? (
-        <section className="cash-section cash-section--question" data-cash-module-section="cash-change">
-          <p className="cash-section__number">04 · Put the statement together</p>
-          <dl className="cash-statement-equation">
-            <div><dt>Operating</dt><dd>{formatBillions(operatingTotal.value, true)}</dd></div>
-            <div><dt>Investing</dt><dd>{formatBillions(investingTotal.value, true)}</dd></div>
-            <div><dt>Financing</dt><dd>{formatBillions(financingTotal.value, true)}</dd></div>
-            <div className="cash-statement-equation__result"><dt>Net change in cash</dt><dd>{formatBillions(netChange.value, true)}</dd></div>
-          </dl>
-          <div className="cash-balance-bridge">
-            <div><span>Beginning cash</span><strong>{formatBillions(statement.cashMovement.beginningCash.value)}</strong></div>
-            <span aria-hidden="true">+</span>
-            <div><span>Change</span><strong>{formatBillions(netChange.value, true)}</strong></div>
-            <span aria-hidden="true">=</span>
-            <div><span>Ending cash</span><strong>{formatBillions(statement.cashMovement.endingCash.value)}</strong></div>
-          </div>
-          <form onSubmit={reviewFinal}>
-            <fieldset>
-              <legend>{lessonContent.finalQuestion.prompt}</legend>
-              <p>{lessonContent.finalQuestion.hint}</p>
-              <div className="cash-choice-list">
-                {lessonContent.finalQuestion.choices.map((choice) => (
-                  <label key={choice.id}><input checked={finalChoice === choice.id} name="repurchase-section" onChange={() => { setFinalChoice(choice.id); setReviewedFinal(null); }} type="radio" value={choice.id} /><span>{choice.label}</span></label>
-                ))}
-              </div>
-            </fieldset>
-            <button disabled={!finalChoice} type="submit">Check my reasoning</button>
-          </form>
-          {reviewedFinal ? (
-            <div className="cash-completion" role="status">
-              <p>{reviewedFinal === lessonContent.finalQuestion.supportedChoiceId ? lessonContent.finalQuestion.supportedFeedback : lessonContent.finalQuestion.unsupportedFeedback}</p>
-              <EvidenceInspector evidence={netChangeEvidence} id="cash-change-evidence" />
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
-      <p className="profit-retrieved-note">Retrieved {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur" })}{dataStatus.state === "stale" ? " · SEC was unavailable, so FinPath is showing the last known public filing data." : ""}</p>
+      <p className={styles.retrievedNote}>
+        Retrieved{" "}
+        {new Date(dataStatus.retrievedAt).toLocaleString("en-MY", {
+          timeZone: "Asia/Kuala_Lumpur",
+        })}
+        {dataStatus.state === "stale"
+          ? " · SEC was unavailable, so FinPath is showing the last known public filing data."
+          : ""}
+      </p>
     </section>
   );
 }

@@ -1,0 +1,6 @@
+.trace { min-width: 0; display: grid; grid-template-columns: auto minmax(1rem, 1fr); gap: .25rem .65rem; align-items: center; color: var(--fp-v2-ink-soft); font-family: var(--fp-v2-font-ui); }
+.endpoints { display: flex; gap: .35rem; align-items: center; color: var(--fp-v2-ink); font-size: .68rem; }
+.endpoints strong { font-weight: 700; }
+.endpoints i { color: var(--fp-v2-jade); font-style: normal; }
+.line { display: block; height: 1px; background: currentColor; }
+.annotation { grid-column: 1 / -1; font-size: var(--fp-v2-type-label); line-height: 1.4; }

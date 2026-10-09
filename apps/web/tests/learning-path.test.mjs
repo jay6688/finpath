@@ -297,27 +297,39 @@ test("Profit and Net Profit Margin record meaningful use without requiring corre
     readSource("components/profit-margin-learning.tsx"),
   ]);
 
-  assert.match(profit, /stageIndex === stages\.length - 1[^]*markExplored\(\["profit"\]\)/);
-  assert.match(profit, /nextIndex === stages\.length - 1[^]*markExplored\(\["profit"\]\)/);
+  assert.match(
+    profit,
+    /allTransformationsInspected[^]*function completeLesson\(\)[^]*if \(!allTransformationsInspected\) return[^]*markExplored\(\["profit"\]\)/,
+  );
+  assert.doesNotMatch(
+    profit.slice(
+      profit.indexOf("function selectLine"),
+      profit.indexOf("function completeLesson"),
+    ),
+    /markExplored/,
+  );
   assert.match(margin, /if \(selectedChoice\)[^]*markExplored\(\["net-profit-margin"\]\)/);
   assert.doesNotMatch(margin, /if \(supportedAnswer\)[^]*markExplored/);
 });
 
 test("Home and Learn expose derived states, real routes, and no fabricated duration", async () => {
-  const [home, path, navigation, catalog] = await Promise.all([
+  const [home, path, navigation, catalog, chapters] = await Promise.all([
     readSource("components/learning-home.tsx"),
     readSource("components/learning-path-view.tsx"),
     readSource("components/app-navigation.tsx"),
     readSource("lib/lesson-catalog.ts"),
+    readSource("lib/lesson-chapters.ts"),
   ]);
 
-  assert.match(home, /deriveHomeRecommendation\(progress\)/);
+  assert.match(home, /isHydrated[^]*deriveHomeRecommendation\(learningProgress\.progress\)/);
   assert.match(home, /concepts explored/);
   assert.doesNotMatch(home, /home-path-preview/);
   assert.match(path, /aria-current=\{state === "current" \? "step"/);
-  assert.match(path, /lessonCatalog\.map/);
+  assert.match(path, /lessonChapters\.map/);
+  assert.match(path, /isHydrated[^]*deriveHomeRecommendation\(learningProgress\.progress\)/);
   assert.match(path, /actionLabel\(state, lesson\.id === "revenue"\)/);
-  assert.match(path, /Company Analysis Basics complete/);
+  assert.match(path, /Review Capstone/);
+  assert.match(chapters, /lessonIds\.map\(getLesson\)/);
   assert.match(catalog, /href: "\/learn\/company-analysis\/operating-cash-flow"/);
   assert.doesNotMatch(path, /href=.*More concepts coming/);
   assert.match(navigation, /href: "\/learn"/);

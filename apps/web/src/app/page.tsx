@@ -1,15 +1,19 @@
-import { LearningHome } from "@/components/learning-home";
+import { LearningHome, type HomeCompany } from "@/components/learning-home";
 import { getSupportedCompanies } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  let companyNames: string[] = [];
+  let companies: HomeCompany[] = [];
   try {
-    companyNames = (await getSupportedCompanies()).map((company) => company.name);
+    companies = (await getSupportedCompanies()).map((company) => ({
+      slug: company.slug,
+      ticker: company.ticker,
+      name: company.name,
+    }));
   } catch {
     // Learning remains usable when the public-data API is temporarily unavailable.
   }
 
-  return <LearningHome companyNames={companyNames} />;
+  return <LearningHome companies={companies} />;
 }

@@ -3,8 +3,10 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { AppNavigation } from "@/components/app-navigation";
+import shellStyles from "@/components/app-shell.module.css";
 import { LearningProgressProvider } from "@/components/learning-progress-provider";
 
+import "@/styles/visual-system-v2.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,19 +25,19 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           Skip to content
         </a>
         <LearningProgressProvider>
-          <header className="site-header">
-            <div className="site-header__inner">
-              <Link className="brand" href="/" aria-label="FinPath home">
-                <span className="brand__mark" aria-hidden="true">
+          <header className={shellStyles.header}>
+            <div className={shellStyles.headerInner}>
+              <Link className={shellStyles.brand} href="/" aria-label="FinPath home">
+                <span className={shellStyles.brandMark} aria-hidden="true">
                   F
                 </span>
                 <span>FinPath</span>
               </Link>
               <AppNavigation variant="desktop" />
-              <span className="shell-note">Learn with real financial records</span>
+              <span className={shellStyles.shellNote}>Real companies · connected records</span>
             </div>
           </header>
-          <main id="main-content">{children}</main>
+          <main className={shellStyles.main} id="main-content" tabIndex={-1}>{children}</main>
           <AppNavigation variant="mobile" />
         </LearningProgressProvider>
       </body>

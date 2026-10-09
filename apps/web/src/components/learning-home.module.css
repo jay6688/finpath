@@ -1,0 +1,314 @@
+.page {
+  width: min(100%, calc(var(--fp-v2-content) + (var(--fp-v2-gutter) * 2)));
+  margin: 0 auto;
+  padding: 1.35rem var(--fp-v2-gutter) 5rem;
+  color: var(--fp-v2-ink);
+  font-family: var(--fp-v2-font-ui);
+}
+
+.page::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(23 45 49 / 3%) 1px, transparent 1px) 0 0 / 4rem 4rem,
+    var(--fp-v2-paper);
+  content: "";
+}
+
+.firstExperience {
+  min-width: 0;
+}
+
+.promise {
+  max-width: 45rem;
+  margin: 0 0 1.15rem;
+}
+
+.promise > p:first-child,
+.nextContent > p:first-child,
+.companyCopy > p:first-child {
+  margin: 0;
+  color: var(--fp-v2-jade);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+
+.promise > p:first-child span {
+  padding: 0 .35rem;
+  color: var(--fp-v2-coral);
+}
+
+.promise h1 {
+  max-width: 12ch;
+  margin: .45rem 0 .7rem;
+  color: var(--fp-v2-ink);
+  font: 400 clamp(2.15rem, 10vw, 3.15rem)/.98 var(--fp-v2-font-concept);
+  letter-spacing: -.05em;
+}
+
+.supportingCopy {
+  max-width: 39rem;
+  margin: 0;
+  color: var(--fp-v2-ink-soft);
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.activityRails {
+  margin-top: clamp(2rem, 5vw, 4rem);
+  border-top: 1px solid var(--fp-v2-ink);
+}
+
+.nextStep,
+.companyEntry {
+  min-width: 0;
+  padding: 1.25rem 0;
+  display: grid;
+  gap: 1rem;
+  border-bottom: 1px solid var(--fp-v2-line);
+}
+
+.railIdentity {
+  display: flex;
+  align-items: baseline;
+  gap: .55rem;
+}
+
+.railIdentity > span {
+  color: var(--fp-v2-paper);
+  background: var(--fp-v2-ink);
+  padding: .25rem .42rem;
+  border-radius: .2rem;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.companyEntry .railIdentity > span {
+  color: var(--fp-v2-ink);
+  background: var(--fp-v2-jade-soft);
+  border: 1px solid var(--fp-v2-jade);
+}
+
+.railIdentity strong {
+  color: var(--fp-v2-ink-soft);
+  font-size: .74rem;
+}
+
+.nextContent h2,
+.companyCopy h2 {
+  margin: .25rem 0 .35rem;
+  color: var(--fp-v2-ink);
+  font: 400 1.65rem/1.05 var(--fp-v2-font-concept);
+  letter-spacing: -.035em;
+}
+
+.nextContent > p:last-child,
+.companyCopy > p:last-child {
+  margin: 0;
+  color: var(--fp-v2-ink-soft);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.progress {
+  min-width: 8.5rem;
+  align-self: center;
+}
+
+.progress > strong {
+  display: block;
+  color: var(--fp-v2-ink-soft);
+  font: 600 .95rem/1 var(--fp-v2-font-number);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress > strong span {
+  color: var(--fp-v2-ink);
+  font-size: 1.7rem;
+}
+
+.progress > span {
+  color: var(--fp-v2-ink-soft);
+  font-size: .68rem;
+}
+
+.progress > div {
+  width: 100%;
+  height: 3px;
+  margin-top: .45rem;
+  overflow: hidden;
+  background: var(--fp-v2-line);
+}
+
+.progress > div span {
+  height: 100%;
+  display: block;
+  background: var(--fp-v2-jade);
+}
+
+.railAction {
+  min-block-size: var(--fp-v2-touch);
+  width: fit-content;
+  padding: .55rem .75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem;
+  color: var(--fp-v2-paper);
+  background: var(--fp-v2-ink);
+  border: 1px solid var(--fp-v2-ink);
+  border-radius: var(--fp-v2-radius-control);
+  font-size: .78rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.pendingAction {
+  color: var(--fp-v2-ink-soft);
+  background: var(--fp-v2-neutral);
+  border-color: var(--fp-v2-line);
+}
+
+.companyEntry > .railAction {
+  color: var(--fp-v2-ink);
+  background: transparent;
+}
+
+.railAction:focus-visible,
+.companyEntry nav a:focus-visible {
+  outline: 3px solid var(--fp-v2-focus);
+  outline-offset: 3px;
+}
+
+.companyEntry nav {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+}
+
+.companyEntry nav a {
+  min-block-size: var(--fp-v2-touch);
+  min-width: 7.6rem;
+  padding: .55rem .7rem;
+  display: grid;
+  border-left: 2px solid var(--fp-v2-jade);
+  background: rgb(220 236 229 / 45%);
+  text-decoration: none;
+}
+
+.companyEntry nav strong {
+  color: var(--fp-v2-ink);
+  font: 800 .78rem/1.2 var(--fp-v2-font-number);
+  letter-spacing: .04em;
+}
+
+.companyEntry nav span {
+  overflow: hidden;
+  color: var(--fp-v2-ink-soft);
+  font-size: .7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.registryUnavailable {
+  margin: 0;
+  color: var(--fp-v2-ink-soft);
+  font-size: .82rem;
+}
+
+@media (max-width: 22rem) {
+  .page {
+    padding-top: 1rem;
+  }
+
+  .supportingCopy {
+    display: none;
+  }
+
+  .promise h1 {
+    font-size: 2.05rem;
+  }
+}
+
+@media (min-width: 48rem) and (max-width: 74.999rem) {
+  .page {
+    padding-top: 2rem;
+  }
+
+  .firstExperience {
+    display: block;
+  }
+
+  .promise {
+    max-width: none;
+    margin: 0 0 1.4rem;
+    display: grid;
+    grid-template-columns: minmax(20rem, 1.2fr) minmax(15rem, .8fr);
+    column-gap: 2rem;
+    align-items: end;
+  }
+
+  .promise > p:first-child,
+  .promise h1 {
+    grid-column: 1;
+  }
+
+  .promise .supportingCopy {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: end;
+    padding-bottom: .35rem;
+  }
+
+  .promise h1 {
+    font-size: clamp(2.35rem, 5vw, 3rem);
+  }
+
+  .nextStep,
+  .companyEntry {
+    grid-template-columns: minmax(9rem, .55fr) minmax(16rem, 1.35fr) minmax(8rem, .55fr) auto;
+    align-items: center;
+    gap: 1.2rem;
+  }
+}
+
+@media (min-width: 75rem) {
+  .page {
+    padding-top: 2.7rem;
+  }
+
+  .promise {
+    margin-bottom: 1.75rem;
+  }
+
+  .promise h1 {
+    max-width: 17ch;
+    font-size: clamp(3.25rem, 4.3vw, 4.7rem);
+  }
+
+  .supportingCopy {
+    font-size: 1rem;
+  }
+
+  .nextStep,
+  .companyEntry {
+    grid-template-columns: minmax(10rem, .65fr) minmax(20rem, 1.4fr) minmax(9rem, .55fr) auto;
+    align-items: center;
+    gap: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}

@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  buildCashActivityPresentation,
+  buildFreeCashFlowPresentation,
   CashFlowLearningDataError,
   deriveSimpleFreeCashFlow,
   validateCompleteCashFlowStatement,
@@ -28,6 +30,185 @@ test("validates one complete FY2025 statement and derives simple FCF exactly", (
     exactValue: 98_767_000_000,
     displayBillions: 98.767,
   });
+});
+
+test("builds a signed Free Cash Flow presentation from validated reported inputs", () => {
+  const presentation = buildFreeCashFlowPresentation(makeCashFlowStatement(), {
+    fiscalYear: 2025,
+    accession: "0000320193-25-000079",
+  });
+
+  assert.deepEqual(presentation.operatingCashFlow, {
+    kind: "reported-input",
+    amount: 111_482_000_000,
+    direction: "positive",
+    magnitudePercent: 100,
+  });
+  assert.deepEqual(presentation.propertyPlantEquipment, {
+    kind: "reported-input-with-normalized-deduction",
+    statementCashEffect: -12_715_000_000,
+    deductionMagnitude: 12_715_000_000,
+    direction: "negative",
+    magnitudePercent: (12_715_000_000 / 111_482_000_000) * 100,
+  });
+  assert.deepEqual(presentation.freeCashFlow, {
+    kind: "finpath-derived-result",
+    amount: 98_767_000_000,
+    direction: "positive",
+    magnitudePercent: (98_767_000_000 / 111_482_000_000) * 100,
+  });
+  assert.deepEqual(presentation.scale, {
+    kind: "shared-absolute-derivation-scale",
+    referenceAmount: 111_482_000_000,
+  });
+  assert.equal(presentation.derivation.exactValue, 98_767_000_000);
+});
+
+test("Free Cash Flow presentation preserves signed negative, cross-zero, and zero results", () => {
+  const withOperatingCashFlow = (operatingCashFlow) => {
+    const statement = makeCashFlowStatement();
+    const operating = statement.sections[0];
+    const reportedTotal = operating.lines.at(-1);
+    const delta = operatingCashFlow - reportedTotal.value;
+    operating.lines[0].value += delta;
+    reportedTotal.value = operatingCashFlow;
+    statement.cashMovement.netChange.value += delta;
+    statement.cashMovement.endingCash.value += delta;
+    return statement;
+  };
+  const expected = {
+    fiscalYear: 2025,
+    accession: "0000320193-25-000079",
+  };
+
+  const negativeOperating = buildFreeCashFlowPresentation(
+    withOperatingCashFlow(-1_000_000_000),
+    expected,
+  );
+  assert.equal(negativeOperating.operatingCashFlow.direction, "negative");
+  assert.equal(negativeOperating.freeCashFlow.amount, -13_715_000_000);
+  assert.equal(negativeOperating.freeCashFlow.direction, "negative");
+
+  const crossZero = buildFreeCashFlowPresentation(
+    withOperatingCashFlow(5_000_000_000),
+    expected,
+  );
+  assert.equal(crossZero.operatingCashFlow.direction, "positive");
+  assert.equal(crossZero.freeCashFlow.amount, -7_715_000_000);
+  assert.equal(crossZero.freeCashFlow.direction, "negative");
+
+  const zero = buildFreeCashFlowPresentation(
+    withOperatingCashFlow(12_715_000_000),
+    expected,
+  );
+  assert.equal(zero.freeCashFlow.amount, 0);
+  assert.equal(zero.freeCashFlow.direction, "zero");
+  assert.equal(zero.freeCashFlow.magnitudePercent, 0);
+});
+
+test("builds the reviewed FY2025 Cash Activity presentation without rounding geometry", () => {
+  const statement = makeCashFlowStatement();
+  const presentation = buildCashActivityPresentation(statement, {
+    fiscalYear: 2025,
+    accession: "0000320193-25-000079",
+  });
+
+  assert.equal(presentation.activityScale.referenceAmount, 120_686_000_000);
+  assert.equal(presentation.childScale.referenceAmount, 90_711_000_000);
+  assert.deepEqual(
+    presentation.activities.map((activity) => [
+      activity.id,
+      activity.amount,
+      activity.direction,
+      activity.kind,
+    ]),
+    [
+      ["operating", 111_482_000_000, "inflow", "reported-section-total"],
+      ["investing", 15_195_000_000, "inflow", "reported-section-total"],
+      ["financing", -120_686_000_000, "outflow", "reported-section-total"],
+    ],
+  );
+  assert.equal(
+    presentation.activities[0].magnitudePercent,
+    (111_482_000_000 / 120_686_000_000) * 100,
+  );
+  assert.equal(
+    presentation.activities[1].magnitudePercent,
+    (15_195_000_000 / 120_686_000_000) * 100,
+  );
+  assert.equal(presentation.activities[2].magnitudePercent, 100);
+  assert.deepEqual(presentation.change, {
+    id: "net-change-in-cash",
+    amount: 5_991_000_000,
+    direction: "inflow",
+    kind: "reported-cash-change",
+    magnitudePercent: (5_991_000_000 / 120_686_000_000) * 100,
+  });
+  assert.deepEqual(presentation.balance, {
+    beginning: 29_943_000_000,
+    change: 5_991_000_000,
+    ending: 35_934_000_000,
+  });
+
+  const investing = presentation.activities[1];
+  const financing = presentation.activities[2];
+  assert.deepEqual(
+    investing.lines.map((line) => [line.id, line.amount, line.role, line.direction]),
+    [
+      ["purchases-of-marketable-securities", -24_407_000_000, "cash-outflow", "outflow"],
+      ["maturities-of-marketable-securities", 40_907_000_000, "cash-inflow", "inflow"],
+      ["sales-of-marketable-securities", 12_890_000_000, "cash-inflow", "inflow"],
+      ["payments-for-property-plant-and-equipment", -12_715_000_000, "cash-outflow", "outflow"],
+      ["other-investing-activities", -1_480_000_000, "cash-outflow", "outflow"],
+    ],
+  );
+  assert.deepEqual(
+    financing.lines.map((line) => [line.id, line.amount, line.role, line.direction]),
+    [
+      ["taxes-related-to-net-share-settlement", -5_960_000_000, "cash-outflow", "outflow"],
+      ["dividends-and-dividend-equivalents", -15_421_000_000, "cash-outflow", "outflow"],
+      ["common-stock-repurchases", -90_711_000_000, "cash-outflow", "outflow"],
+      ["term-debt-issuance-net", 4_481_000_000, "cash-inflow", "inflow"],
+      ["term-debt-repayment", -10_932_000_000, "cash-outflow", "outflow"],
+      ["commercial-paper-net", -2_032_000_000, "signed-cash-flow", "outflow"],
+      ["other-financing-activities", -111_000_000, "signed-cash-flow", "outflow"],
+    ],
+  );
+  assert.equal(
+    financing.lines.at(-1).magnitudePercent,
+    (111_000_000 / 90_711_000_000) * 100,
+  );
+});
+
+test("Cash Activity validation fails closed when reviewed line semantics change", () => {
+  const cases = [
+    () => {
+      const statement = makeCashFlowStatement();
+      statement.sections[1].lines[0].role = "cash-inflow";
+      return statement;
+    },
+    () => {
+      const statement = makeCashFlowStatement();
+      statement.sections[2].lines[5].role = "cash-outflow";
+      return statement;
+    },
+    () => {
+      const statement = makeCashFlowStatement();
+      statement.sections[2].lines[6].id = "commercial-paper-net";
+      return statement;
+    },
+  ];
+
+  for (const createStatement of cases) {
+    assert.throws(
+      () =>
+        buildCashActivityPresentation(createStatement(), {
+          fiscalYear: 2025,
+          accession: "0000320193-25-000079",
+        }),
+      CashFlowLearningDataError,
+    );
+  }
 });
 
 test("derivation permits negative Operating Cash Flow instead of assuming Apple is universal", () => {
@@ -109,12 +290,70 @@ test("Lesson 08 and 09 content preserves reported, derived, and limitation bound
   assert.match(investing.boundaries.operating, /not.*change in Apple.s cash balance/i);
   assert.match(freeCashFlow.definition, /analytical measure/i);
   assert.match(freeCashFlow.definition, /definitions can vary/i);
-  assert.match(freeCashFlow.limitation, /not Apple.s ending cash balance/i);
+  assert.match(freeCashFlow.limitation, /not Apple.s ending cash-related balance/i);
   assert.doesNotMatch(JSON.stringify(investing), /111\.482|15\.195|120\.686|5\.991/);
   assert.doesNotMatch(JSON.stringify(freeCashFlow), /98\.767|111\.482|12\.715/);
 });
 
-test("both lessons use progressive sections, low-pressure checks, evidence, and completion", async () => {
+test("Cash Activity Trace exposes the full lesson immediately with exact shared-scale geometry", async () => {
+  const [page, lesson, trace, traceStyles, content] = await Promise.all([
+    readSource("app/learn/company-analysis/investing-financing-cash-flow/page.tsx"),
+    readSource("components/investing-financing-cash-flow-learning.tsx"),
+    readSource("components/cash-activity-trace.tsx"),
+    readSource("components/cash-activity-trace.module.css"),
+    readSource("content/cash-flow-lessons/aapl-investing-financing-fy2025.json").then(JSON.parse),
+  ]);
+
+  assert.match(page, /buildCashActivityPresentation/);
+  assert.match(page, /presentation=\{presentation\}/);
+  assert.match(lesson, /CashActivityTrace/);
+  assert.doesNotMatch(lesson, /visibleSection|firstQuestion|cash-continue/);
+  assert.match(lesson, /<details[^>]*className=\{styles\.fullLines\}/);
+  assert.match(trace, /payments-for-property-plant-and-equipment/);
+  assert.match(trace, /maturities-of-marketable-securities/);
+  assert.match(trace, /common-stock-repurchases/);
+  assert.match(trace, /term-debt-issuance-net/);
+  assert.match(trace, /type="button"/);
+  assert.match(trace, /--activity-magnitude/);
+  assert.match(traceStyles, /width:\s*calc\(var\(--activity-magnitude\) \* \.5%\)/);
+  assert.doesNotMatch(traceStyles, /min-inline-size|width:\s*(?:min|max|clamp)\(/);
+  assert.match(content.signBoundary, /direction, not quality/i);
+  assert.match(content.presentationBoundary, /Apple-reported/i);
+  assert.match(content.presentationBoundary, /FinPath presentation/i);
+  assert.match(content.fxBoundary, /may include.*exchange-rate effects/i);
+  assert.match(content.fxBoundary, /does not.*claim.*exchange-rate effects were zero/i);
+  assert.match(content.remainingBoundary, /not automatically good or bad/i);
+  assert.equal(
+    content.finalQuestion.prompt,
+    "Where does Apple report PP&E purchases and share repurchases?",
+  );
+  assert.doesNotMatch(JSON.stringify(content), /111\.482|15\.195|120\.686|5\.991|90\.711/);
+});
+
+test("Cash Activity completion remains submission-only and keeps evidence attached", async () => {
+  const lesson = await readSource(
+    "components/investing-financing-cash-flow-learning.tsx",
+  );
+
+  assert.match(lesson, /function reviewFinalQuestion[\s\S]*markExplored\(\["investing-financing-cash-flow"\]\)/);
+  assert.match(lesson, /onSelect=\{setSelectedLineId\}/);
+  assert.match(lesson, /EvidenceInspector/);
+  assert.match(lesson, /name="ppe-and-share-repurchases"/);
+  assert.match(lesson, /finalQuestion\.prompt/);
+  assert.doesNotMatch(lesson, /\bFCF\b|stock price|Market Cap|P\/E|BUY|SELL/);
+});
+
+test("Cash Activity preserves the reviewed cash-balance accounting scope", async () => {
+  const trace = await readSource("components/cash-activity-trace.tsx");
+
+  assert.match(trace, /Beginning balance/);
+  assert.match(trace, /Ending balance/);
+  assert.match(trace, /Cash, cash equivalents & restricted cash/);
+  assert.doesNotMatch(trace, /Beginning cash/);
+  assert.doesNotMatch(trace, /Ending cash/);
+});
+
+test("both lessons use low-pressure checks, evidence, and completion", async () => {
   const [investing, freeCashFlow, investingContent, freeCashFlowContent] = await Promise.all([
     readSource("components/investing-financing-cash-flow-learning.tsx"),
     readSource("components/free-cash-flow-learning.tsx"),
@@ -122,7 +361,6 @@ test("both lessons use progressive sections, low-pressure checks, evidence, and 
     readSource("content/cash-flow-lessons/aapl-free-cash-flow-fy2025.json").then(JSON.parse),
   ]);
 
-  assert.equal(investingContent.firstQuestion.hint, "Choose one. This is practice, not a score.");
   assert.equal(investingContent.finalQuestion.hint, "Choose one. This is practice, not a score.");
   assert.equal(freeCashFlowContent.question.hint, "Choose one. This is practice, not a score.");
   assert.match(investing, /EvidenceInspector/);
@@ -131,4 +369,44 @@ test("both lessons use progressive sections, low-pressure checks, evidence, and 
   assert.match(investing, /markExplored\(\["investing-financing-cash-flow"\]\)/);
   assert.match(freeCashFlow, /markExplored\(\["free-cash-flow"\]\)/);
   assert.match(freeCashFlow, /FinPath simple Free Cash Flow/);
+});
+
+test("Free Cash Flow uses a complete signed derivation bridge with exact geometry", async () => {
+  const [page, lesson, styles, content] = await Promise.all([
+    readSource("app/learn/company-analysis/free-cash-flow/page.tsx"),
+    readSource("components/free-cash-flow-learning.tsx"),
+    readSource("components/free-cash-flow-learning.module.css"),
+    readSource("content/cash-flow-lessons/aapl-free-cash-flow-fy2025.json").then(JSON.parse),
+  ]);
+
+  assert.match(page, /buildFreeCashFlowPresentation/);
+  assert.match(page, /presentation=\{presentation\}/);
+  assert.match(lesson, /propertyPlantEquipment\.statementCashEffect/);
+  assert.match(lesson, /propertyPlantEquipment\.deductionMagnitude/);
+  assert.match(lesson, /freeCashFlow\.amount/);
+  assert.match(lesson, /--fcf-magnitude/);
+  assert.match(styles, /width:\s*calc\(var\(--fcf-magnitude\) \* \.5%\)/);
+  assert.doesNotMatch(styles, /min-inline-size|width:\s*(?:min|max|clamp)\(/);
+  assert.doesNotMatch(lesson, /visibleSection|cash-continue|Math\.abs\(presentation\.freeCashFlow\.amount\)/);
+  assert.match(content.freeNameBoundary, /Free.*name of the derived measure/i);
+  assert.match(content.freeNameBoundary, /does not mean unrestricted cash/i);
+  assert.match(content.definitionBoundary, /FinPath uses this FCF definition consistently/i);
+  assert.match(content.definitionBoundary, /Other analysts may define FCF differently/i);
+  assert.doesNotMatch(JSON.stringify(content), /98\.767|111\.482|12\.715/);
+});
+
+test("Free Cash Flow completion remains submission-only and exposes derived evidence", async () => {
+  const [lesson, content] = await Promise.all([
+    readSource("components/free-cash-flow-learning.tsx"),
+    readSource("content/cash-flow-lessons/aapl-free-cash-flow-fy2025.json").then(JSON.parse),
+  ]);
+
+  assert.match(lesson, /function review[\s\S]*markExplored\(\["free-cash-flow"\]\)/);
+  assert.match(lesson, /EvidenceInspector/);
+  assert.match(lesson, /name="free-cash-flow-meaning"/);
+  assert.doesNotMatch(lesson, /onChange=\{\(\) => \{[^}]*markExplored/);
+  assert.equal(content.question.supportedChoiceId, "finpath-derived");
+  assert.equal(content.question.choices.length, 4);
+  assert.match(content.question.prompt, /derived result/i);
+  assert.match(lesson, /formatSignedBillions\(presentation\.freeCashFlow\.amount\)/);
 });

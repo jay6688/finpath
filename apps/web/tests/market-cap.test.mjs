@@ -173,6 +173,24 @@ test("Lesson 12 source keeps educational input separate from provider-backed Mar
   assert.doesNotMatch(explore, /Market Cap[^]*\$|market price/i);
 });
 
+test("Production Market Cap is an explicit three-provenance scenario workbench", async () => {
+  const [lesson, styles] = await Promise.all([
+    readSource("components/market-cap-learning.tsx"),
+    readSource("components/market-cap-learning.module.css"),
+  ]);
+
+  assert.match(lesson, /Reported \/ reviewed/);
+  assert.match(lesson, /Learner input \/ hypothetical/);
+  assert.match(lesson, /FinPath-derived scenario/);
+  assert.match(lesson, /Shares outstanding[^]*×[^]*Price per share[^]*Hypothetical Market Cap/is);
+  assert.match(lesson, /does not persist[^]*refresh/i);
+  assert.match(lesson, /not Apple-reported[^]*not current market data/is);
+  assert.match(lesson, /markExplored\(\["market-cap"\]\)/);
+  assert.doesNotMatch(lesson, /calculate\([^)]*\)[^}]*markExplored/s);
+  assert.match(styles, /grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
+  assert.doesNotMatch(`${lesson}\n${styles}`, /buy|sell|fair value|undervalued|overvalued/i);
+});
+
 test("React lesson source contains no hard-coded company share-count or stock-price fallback", async () => {
   const sources = await Promise.all([
     readSource("components/market-cap-learning.tsx"),

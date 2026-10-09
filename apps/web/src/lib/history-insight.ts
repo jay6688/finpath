@@ -27,6 +27,16 @@ export type RevenueGrowthRow =
       reason: RevenueGrowthUnavailableReason;
     };
 
+export type RevenueGrowthGeometry = {
+  referencePercent: number;
+  bridges: Array<{
+    fiscalYear: number;
+    direction: "increase" | "decrease" | "unchanged";
+    rawPercent: number;
+    extentPercent: number;
+  }>;
+};
+
 function directionFor(change: number): "increase" | "decrease" | "unchanged" {
   if (change > 0) return "increase";
   if (change < 0) return "decrease";
@@ -174,4 +184,33 @@ export function formatRevenueGrowthRate(percentageChange: number): string {
 
   const sign = percentageChange > 0 ? "+" : "−";
   return `${sign}${oneDecimalRate.format(absoluteRate)}%`;
+}
+
+export function buildRevenueGrowthGeometry(
+  rows: RevenueGrowthRow[],
+): RevenueGrowthGeometry {
+  const available = rows.filter(
+    (row): row is Extract<RevenueGrowthRow, { state: "available" }> =>
+      row.state === "available",
+  );
+  const referencePercent = available.reduce(
+    (largest, row) =>
+      Math.abs(row.percentageChange) > largest
+        ? Math.abs(row.percentageChange)
+        : largest,
+    0,
+  );
+
+  return {
+    referencePercent,
+    bridges: available.map((row) => ({
+      fiscalYear: row.fiscalYear,
+      direction: row.direction,
+      rawPercent: row.percentageChange,
+      extentPercent:
+        referencePercent === 0
+          ? 0
+          : (Math.abs(row.percentageChange) / referencePercent) * 100,
+    })),
+  };
 }

@@ -9,9 +9,8 @@ import {
   type CompanyCashFlowStatement,
 } from "@/lib/api";
 import {
+  buildFreeCashFlowPresentation,
   CashFlowLearningDataError,
-  deriveSimpleFreeCashFlow,
-  validateCompleteCashFlowStatement,
 } from "@/lib/cash-flow-learning";
 
 export const metadata: Metadata = {
@@ -23,18 +22,17 @@ export const dynamic = "force-dynamic";
 
 export default async function FreeCashFlowPage() {
   let cashFlowStatement: CompanyCashFlowStatement | null = null;
-  let derivation = null;
+  let presentation = null;
   let dataError: string | null = null;
   try {
     cashFlowStatement = await getCompanyCashFlowStatement(
       lessonContent.ticker,
       lessonContent.fiscalYear,
     );
-    validateCompleteCashFlowStatement(cashFlowStatement.statement, {
+    presentation = buildFreeCashFlowPresentation(cashFlowStatement.statement, {
       fiscalYear: lessonContent.fiscalYear,
       accession: lessonContent.accession,
     });
-    derivation = deriveSimpleFreeCashFlow(cashFlowStatement.statement);
   } catch (error) {
     cashFlowStatement = null;
     dataError =
@@ -45,10 +43,10 @@ export default async function FreeCashFlowPage() {
 
   return (
     <LessonShell conceptId="free-cash-flow" example="Apple Inc. · FY2025 · SEC 10-K">
-      {cashFlowStatement && derivation ? (
+      {cashFlowStatement && presentation ? (
         <FreeCashFlowLearning
           cashFlowStatement={cashFlowStatement}
-          derivation={derivation}
+          presentation={presentation}
         />
       ) : (
         <div className="data-empty-state profit-data-empty" role="status">

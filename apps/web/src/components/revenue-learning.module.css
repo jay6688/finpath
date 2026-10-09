@@ -1,0 +1,190 @@
+.lesson {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  color: var(--fp-v2-ink);
+}
+
+.introduction {
+  max-width: 58rem;
+  padding-left: var(--fp-v2-space-4);
+  border-left: 4px solid var(--fp-v2-cobalt);
+}
+
+.introduction h2 {
+  max-width: 48rem;
+  margin: .3rem 0 var(--fp-v2-space-3);
+  font-family: var(--fp-v2-font-concept);
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 500;
+  letter-spacing: -.04em;
+  line-height: 1.05;
+}
+
+.introduction > p:last-child {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--fp-v2-ink-soft);
+  line-height: 1.7;
+}
+
+.reference,
+.inspection,
+.teachingNotes {
+  background: var(--fp-v2-paper);
+  border: 1px solid var(--fp-v2-line);
+  border-radius: var(--fp-v2-radius-object);
+}
+
+.reference {
+  padding: var(--fp-v2-space-4);
+  display: grid;
+  gap: var(--fp-v2-space-4);
+}
+
+.referenceHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--fp-v2-space-2);
+  color: var(--fp-v2-ink-soft);
+  font-size: .72rem;
+}
+
+.referenceHeader h3 {
+  margin: .35rem 0 0;
+  color: var(--fp-v2-ink);
+  font-family: var(--fp-v2-font-concept);
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.provenance {
+  color: var(--fp-v2-cobalt);
+  font-size: .65rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.topLine {
+  width: 100%;
+  padding: var(--fp-v2-space-4) 0;
+  display: grid;
+  gap: var(--fp-v2-space-2);
+  border-top: 6px solid var(--fp-v2-cobalt);
+}
+
+.topLine span {
+  color: var(--fp-v2-ink-soft);
+  font-size: .72rem;
+}
+
+.topLine strong {
+  font-family: var(--fp-v2-font-number);
+  font-size: clamp(2.35rem, 9vw, 5.5rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.055em;
+  line-height: .95;
+  overflow-wrap: anywhere;
+}
+
+.boundary {
+  max-width: 48rem;
+  margin: 0;
+  padding-left: var(--fp-v2-space-3);
+  color: var(--fp-v2-ink-soft);
+  border-left: 3px solid var(--fp-v2-amber);
+  font-size: .82rem;
+  line-height: 1.65;
+}
+
+.inspection {
+  padding: var(--fp-v2-space-4);
+  display: grid;
+  gap: var(--fp-v2-space-4);
+}
+
+.inspection h3,
+.explanation h4 {
+  margin: .2rem 0 0;
+  font-family: var(--fp-v2-font-concept);
+  font-weight: 500;
+}
+
+.inspection h3 { font-size: 1.35rem; }
+
+.controls {
+  display: grid;
+  gap: var(--fp-v2-space-2);
+}
+
+.controls button {
+  min-block-size: var(--fp-v2-touch);
+  padding: .75rem;
+  color: var(--fp-v2-ink);
+  background: var(--fp-v2-paper);
+  border: 1px solid var(--fp-v2-line);
+  border-radius: var(--fp-v2-radius-control);
+  text-align: left;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.controls button[aria-pressed="true"] {
+  background: var(--fp-v2-cobalt-soft);
+  border-color: var(--fp-v2-cobalt);
+  box-shadow: inset 4px 0 0 var(--fp-v2-cobalt);
+}
+
+.controls button:focus-visible,
+.teachingNotes summary:focus-visible,
+.teachingNotes a:focus-visible {
+  outline: 3px solid var(--fp-v2-focus);
+  outline-offset: 3px;
+}
+
+.explanation {
+  min-height: 8rem;
+  padding: var(--fp-v2-space-4);
+  background: var(--fp-v2-neutral);
+  border-left: 4px solid var(--fp-v2-jade);
+}
+
+.explanation h4 { font-size: 1.2rem; }
+
+.explanation p {
+  max-width: 46rem;
+  margin: var(--fp-v2-space-2) 0 0;
+  color: var(--fp-v2-ink-soft);
+  line-height: 1.65;
+}
+
+.teachingNotes summary {
+  min-block-size: var(--fp-v2-touch);
+  padding: var(--fp-v2-space-4);
+  display: flex;
+  align-items: center;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.teachingNotes > div {
+  padding: 0 var(--fp-v2-space-4) var(--fp-v2-space-4);
+  color: var(--fp-v2-ink-soft);
+  line-height: 1.65;
+}
+
+.teachingNotes a {
+  color: var(--fp-v2-cobalt);
+  font-weight: 750;
+}
+
+@media (min-width: 48rem) {
+  .reference,
+  .inspection { padding: var(--fp-v2-space-5); }
+  .controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lesson * { transition-duration: 1ms !important; }
+}

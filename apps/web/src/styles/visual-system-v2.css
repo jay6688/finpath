@@ -1,0 +1,65 @@
+:root {
+  --fp-v2-ink: #172d31;
+  --fp-v2-ink-soft: #445c5f;
+  --fp-v2-ivory: #f7f3e9;
+  --fp-v2-paper: #fffdf7;
+  --fp-v2-neutral: #edf0ec;
+  --fp-v2-line: #bdc9c4;
+  --fp-v2-jade: #157560;
+  --fp-v2-jade-soft: #dcece5;
+  --fp-v2-cobalt: #285fa8;
+  --fp-v2-cobalt-soft: #e3ebf6;
+  --fp-v2-coral: #b86156;
+  --fp-v2-coral-soft: #f3e3df;
+  --fp-v2-amber: #a66a16;
+  --fp-v2-amber-soft: #f5e8ca;
+  --fp-v2-violet: #725f91;
+  --fp-v2-violet-soft: #ece7f2;
+  --fp-v2-focus: #174f9c;
+
+  --fp-v2-font-concept: Georgia, "Times New Roman", serif;
+  --fp-v2-font-ui: "Public Sans", "Segoe UI", Arial, sans-serif;
+  --fp-v2-font-number: "Segoe UI", Arial, sans-serif;
+  --fp-v2-type-display: clamp(2.6rem, 7vw, 5.5rem);
+  --fp-v2-type-object: clamp(2rem, 5vw, 4.5rem);
+  --fp-v2-type-section: clamp(1.35rem, 3vw, 2.15rem);
+  --fp-v2-type-number: clamp(2rem, 6vw, 4.75rem);
+  --fp-v2-type-body: 1rem;
+  --fp-v2-type-label: 0.75rem;
+
+  --fp-v2-space-1: 0.25rem;
+  --fp-v2-space-2: 0.5rem;
+  --fp-v2-space-3: 0.75rem;
+  --fp-v2-space-4: 1rem;
+  --fp-v2-space-5: 1.5rem;
+  --fp-v2-space-6: 2rem;
+  --fp-v2-space-7: 3rem;
+  --fp-v2-space-8: 4rem;
+  --fp-v2-gutter: 1rem;
+  --fp-v2-reading: 44rem;
+  --fp-v2-content: 76rem;
+  --fp-v2-research: 88rem;
+  --fp-v2-touch: 2.75rem;
+
+  --fp-v2-radius-control: 0.35rem;
+  --fp-v2-radius-object: 1rem;
+  --fp-v2-shadow-attached: 0 0.8rem 2.25rem rgb(23 45 49 / 9%);
+  --fp-v2-motion-quick: 120ms;
+  --fp-v2-motion-state: 180ms;
+  --fp-v2-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (min-width: 48rem) {
+  :root { --fp-v2-gutter: 1.5rem; }
+}
+
+@media (min-width: 75rem) {
+  :root { --fp-v2-gutter: 3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --fp-v2-motion-quick: 1ms;
+    --fp-v2-motion-state: 1ms;
+  }
+}

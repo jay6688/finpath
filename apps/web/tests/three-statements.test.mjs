@@ -103,29 +103,49 @@ function makeResponses() {
   return { incomeStatement: makeIncomeStatement(), cashFlowStatement: cashFlow, balanceSheet: makeBalanceSheet() };
 }
 
-test("connects one reviewed filing without inventing a derived metric", () => {
+test("builds an explicitly typed connection trace from one reviewed filing", () => {
   const result = buildThreeStatementConnectionData(makeResponses());
 
   assert.equal(result.company.ticker, "AAPL");
   assert.equal(result.filing.accession, "0000320193-25-000079");
   assert.equal(result.values.netIncome, 112_010_000_000);
+  assert.equal(result.values.revenue, 416_161_000_000);
+  assert.equal(result.values.costOfSales, 220_960_000_000);
+  assert.equal(result.values.operatingExpenses, 62_151_000_000);
+  assert.equal(result.values.otherIncomeExpenseNet, -321_000_000);
+  assert.equal(result.values.incomeTaxProvision, 20_719_000_000);
   assert.equal(result.values.operatingCashFlow, 111_482_000_000);
   assert.equal(result.values.investingCashFlow, 15_195_000_000);
   assert.equal(result.values.financingCashFlow, -120_686_000_000);
   assert.equal(result.values.netChangeInCash, 5_991_000_000);
   assert.equal(result.values.beginningCash, 29_943_000_000);
   assert.equal(result.values.endingCash, 35_934_000_000);
-  assert.equal(result.connections.length, 2);
-  assert.deepEqual(result.connections.map((connection) => connection.status), ["exact-match", "exact-match"]);
-  assert.equal(result.connections[0].source.evidence.kind, "reported");
-  assert.equal(result.connections[0].target.evidence.kind, "reported");
-  assert.equal(result.connections[1].source.evidence.kind, "reported");
-  assert.equal(result.connections[1].target.evidence.kind, "reported");
+  assert.deepEqual(
+    result.connections.map(({ id, type }) => [id, type]),
+    [
+      ["statement-views", "conceptual-only"],
+      ["income-to-net-income", "arithmetic"],
+      ["net-income-to-operating-cash", "reconciliation"],
+      ["activities-to-change", "arithmetic"],
+      ["change-to-ending-balance", "period-flow-to-ending-balance"],
+    ],
+  );
+  assert.equal(result.connections[0].equation, null);
+  assert.equal(result.connections[0].sourceEvidence, null);
+  assert.equal(result.connections[0].targetEvidence, null);
+  assert.equal(result.connections[1].equation.result, result.values.netIncome);
+  assert.equal(result.connections[2].sourceEvidence.kind, "reported");
+  assert.equal(result.connections[2].targetEvidence.kind, "reported");
+  assert.equal(result.connections[3].equation.result, result.values.netChangeInCash);
+  assert.equal(result.connections[4].equation.result, result.values.endingCash);
+  assert.equal(result.connections[4].sourceEvidence.kind, "reported");
+  assert.equal(result.connections[4].targetEvidence.kind, "reported");
   assert.equal(
     result.values.operatingCashFlow + result.values.investingCashFlow + result.values.financingCashFlow,
     result.values.netChangeInCash,
   );
   assert.equal(result.values.beginningCash + result.values.netChangeInCash, result.values.endingCash);
+  assert.doesNotMatch(JSON.stringify(result), /retained earnings/i);
 });
 
 test("rejects cross-company identity and filing mismatches", () => {
@@ -195,7 +215,7 @@ test("rejects missing or duplicate bridge facts and unsafe filing URLs", () => {
   assert.throws(() => buildThreeStatementConnectionData(unsafeUrl));
 });
 
-test("Lesson 10 is an Apple-only progressive lesson with truthful boundaries", async () => {
+test("Lesson 10 is an Apple-only statement connection trace with truthful boundaries", async () => {
   const readSource = (path) => readFile(new URL(`../src/${path}`, import.meta.url), "utf8");
   const [page, component, catalog, progress, sequence, dataHelper] = await Promise.all([
     readSource("app/learn/company-analysis/three-statements-connect/page.tsx"),
@@ -209,13 +229,17 @@ test("Lesson 10 is an Apple-only progressive lesson with truthful boundaries", a
   assert.match(page, /conceptId="three-statements-connect"/);
   assert.match(page, /currently reviewed for Apple FY2025 only/i);
   assert.doesNotMatch(page, /CompanyExampleSelector/);
-  assert.match(component, /three statements, three questions/i);
+  assert.match(component, /Statement Connection Trace/i);
+  assert.match(component, /performance and activity over a period/i);
+  assert.match(component, /cash movement over a period/i);
+  assert.match(component, /financial position at one point in time/i);
   assert.match(component, /indirect-method operating cash-flow reconciliation/i);
   assert.match(component, /match exactly in this reviewed Apple filing/i);
-  assert.match(component, /mean exactly/i);
-  assert.match(component, /where would you look for cash at the reporting date/i);
+  assert.match(component, /where would you look for Apple.*financial position at the reporting date/i);
   assert.match(component, /markExplored\(\["three-statements-connect"\]\)/);
   assert.match(component, /EvidenceInspector/);
+  assert.match(component, /(?:conceptual|selected)\.type === "conceptual-only"/);
+  assert.doesNotMatch(`${page}${component}`, /retained earnings/i);
   assert.doesNotMatch(component, /Revenue\s*→\s*Assets|Net Income\s*→\s*Equity/);
   assert.match(catalog, /number: 10/);
   assert.match(progress, /three-statements-connect/);

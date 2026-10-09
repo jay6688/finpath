@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  buildRevenueGrowthGeometry,
   buildRevenueGrowthRows,
   formatRevenueGrowthRate,
 } from "../src/lib/history-insight.ts";
@@ -150,6 +151,52 @@ test("formats tiny and unchanged rates without a misleading negative zero", () =
 test("uses conventional half-up display rounding without changing the raw rate", () => {
   assert.equal(formatRevenueGrowthRate(3.05), "+3.1%");
   assert.equal(formatRevenueGrowthRate(-3.05), "−3.1%");
+});
+
+test("builds signed bridge geometry on one shared raw-growth reference", () => {
+  const rows = buildRevenueGrowthRows([
+    fact(2021, 100),
+    fact(2022, 120),
+    fact(2023, 120),
+    fact(2024, 90),
+  ]);
+  const geometry = buildRevenueGrowthGeometry(rows);
+
+  assert.equal(geometry.referencePercent, 25);
+  assert.deepEqual(
+    geometry.bridges.map(({ fiscalYear, direction, extentPercent }) => ({ fiscalYear, direction, extentPercent })),
+    [
+      { fiscalYear: 2022, direction: "increase", extentPercent: 80 },
+      { fiscalYear: 2023, direction: "unchanged", extentPercent: 0 },
+      { fiscalYear: 2024, direction: "decrease", extentPercent: 100 },
+    ],
+  );
+});
+
+test("Production Revenue Growth is a two-period bridge with deliberate completion", async () => {
+  const [explorer, styles, history] = await Promise.all([
+    readFile(new URL("../src/components/revenue-growth-explorer.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/revenue-growth-explorer.module.css", import.meta.url), "utf8"),
+    readFile(new URL("../src/components/revenue-history.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(explorer, /Two-period growth bridge/);
+  assert.match(explorer, /Previous Revenue[^]*Current Revenue[^]*Dollar change[^]*Growth rate/is);
+  assert.match(explorer, /Current Revenue − Previous Revenue/);
+  assert.match(explorer, /÷ Previous Revenue × 100/);
+  assert.match(explorer, /Learners sometimes read[^]*of current Revenue/is);
+  assert.match(explorer, /style=\{\{ "--change-extent": `\$\{selectedBridge\.extentPercent\}%`/);
+  assert.match(explorer, /markExplored\(\["revenue-growth"\]\)/);
+  assert.doesNotMatch(explorer, /setSelectedFiscalYear\([^)]*\)[^}]*markExplored/s);
+  assert.match(styles, /\[data-direction="decrease"\]/);
+  assert.match(styles, /\[data-direction="unchanged"\]/);
+  assert.match(styles, /\.periodControls\s*\{[^}]*flex-wrap:\s*wrap;[^}]*overflow-x:\s*visible;/s);
+  assert.match(
+    styles,
+    /@media \(min-width: 48rem\)[^{]*\{[^}]*\.periodControls\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;/s,
+  );
+  assert.doesNotMatch(styles, /(^|[;{\s])min-(?:inline-)?size\s*:/m);
+  assert.match(history, /orderedSeries\.at\(-1\)\?\.fiscalYear/);
 });
 
 test("the component source keeps calculation, uncertainty, interaction, and exact-record boundaries", async () => {

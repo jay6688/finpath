@@ -48,59 +48,43 @@
       "helper": "The final Profit line used in this lesson"
     }
   },
-  "stages": [
-    {
-      "id": "starting-line",
-      "navigationLabel": "Starting line",
-      "continueLabel": "Start with cost of sales",
-      "lineIds": ["total-net-sales"],
-      "traceHeading": "Revenue is the starting line.",
-      "traceBody": "Apple’s filing labels Revenue as Total net sales. The reported costs and expenses below it determine the later Profit lines.",
-      "traceBoundary": "Revenue alone cannot tell you Net Income."
+  "ledger": {
+    "defaultSelection": "total-cost-of-sales",
+    "title": "Revenue becomes Net Income through one continuous composition.",
+    "scaleNote": "Every filled length uses Revenue as the same 100% reference. The tiny signed Other adjustment is a locator, not an enlarged block.",
+    "instruction": "Choose each transformation to inspect its exact Before, Adjustment and After values.",
+    "transformations": {
+      "total-cost-of-sales": {
+        "shortLabel": "Cost of Sales",
+        "summary": "Revenue becomes Gross Margin.",
+        "explanation": "Apple reported the direct costs associated with the products and services it sold. Subtracting them from Revenue produces Gross Margin.",
+        "boundary": "Gross Margin is a dollar subtotal here, not the Gross Margin percentage."
+      },
+      "total-operating-expenses": {
+        "shortLabel": "Operating Expenses",
+        "summary": "Gross Margin becomes Operating Income.",
+        "explanation": "Apple reported research and development plus selling, general and administrative expenses. Subtracting those operating expenses produces Operating Income.",
+        "boundary": "Operating Income is not final Profit; the signed Other line and tax still follow."
+      },
+      "other-income-expense-net": {
+        "shortLabel": "Other Income / (Expense), net",
+        "summary": "A signed adjustment changes Operating Income into Pre-tax Income.",
+        "explanation": "Apple reported this line as negative in FY2025. Adding the signed negative amount reduces Operating Income to Income before provision for income taxes.",
+        "boundary": "Other is not always an expense. Its sign controls whether it increases or reduces the next subtotal."
+      },
+      "income-tax-provision": {
+        "shortLabel": "Provision for Income Taxes",
+        "summary": "Pre-tax Income becomes Net Income.",
+        "explanation": "Subtracting Apple’s reported Provision for income taxes from Pre-tax Income produces Net Income.",
+        "boundary": "The tax provision is an accounting expense and is not necessarily cash tax paid during the year."
+      }
     },
-    {
-      "id": "cost-of-sales",
-      "navigationLabel": "Cost of sales",
-      "continueLabel": "Continue to operating expenses",
-      "lineIds": ["total-cost-of-sales", "gross-margin"],
-      "traceHeading": "The first Profit checkpoint.",
-      "traceBody": "Apple labels this dollar subtotal Gross margin. The same amount is often called gross profit.",
-      "traceBoundary": "This is an amount, not the Gross Margin percentage."
-    },
-    {
-      "id": "operating-expenses",
-      "navigationLabel": "Operating expenses",
-      "continueLabel": "Continue to before tax",
-      "lineIds": ["total-operating-expenses", "operating-income"],
-      "traceHeading": "Operating income is not the final line.",
-      "traceBody": "Apple reported Operating income after cost of sales and operating expenses.",
-      "traceBoundary": "Other income or expense and income tax still sit between this subtotal and Net income."
-    },
-    {
-      "id": "before-tax",
-      "navigationLabel": "Before tax",
-      "continueLabel": "Continue to tax and Net income",
-      "lineIds": [
-        "other-income-expense-net",
-        "income-before-income-taxes"
-      ],
-      "traceHeading": "Operating income is not yet income before tax.",
-      "traceBody": "Start from Operating income. Apple reported Other income/(expense), net as a negative amount in FY2025. Adding that signed negative adjustment reduces Operating income to Income before provision for income taxes.",
-      "traceBoundary": "Income before tax is still not Net income because the income tax provision has not been deducted yet."
-    },
-    {
-      "id": "tax-and-final-line",
-      "navigationLabel": "Tax and final line",
-      "continueLabel": "",
-      "lineIds": [
-        "income-tax-provision",
-        "net-income"
-      ],
-      "traceHeading": "Tax is the final major deduction before Net income.",
-      "traceBody": "Start from Income before provision for income taxes. Subtract Apple’s Provision for income taxes to arrive at Net income.",
-      "traceBoundary": "Net income is an accounting result. It is not cash held or cash generated."
+    "result": {
+      "label": "Net Income",
+      "summary": "The resulting remainder after costs, operating expenses, the signed adjustment and tax.",
+      "boundary": "Net Income is an accounting result. It is not cash held or cash generated."
     }
-  ],
+  },
   "question": {
     "prompt": "Revenue rises next year, but costs and expenses rise even faster. What could happen to Net Income?",
     "hint": "Choose one. This is practice, not a score.",

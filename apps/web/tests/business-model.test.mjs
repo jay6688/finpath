@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  buildRevenueOriginTrace,
   businessModelProfiles,
   getBusinessModelProfile,
   validateBusinessModelProfiles,
@@ -122,6 +123,35 @@ test("profiles are company-specific and arbitrary tickers fail instead of borrow
   assert.throws(() => getBusinessModelProfile("NVDA"), /reviewed Business Model profile/i);
 });
 
+test("every reviewed profile produces an evidence-bound, non-quantitative Revenue Origin Trace", () => {
+  for (const profile of businessModelProfiles) {
+    const trace = buildRevenueOriginTrace(profile);
+
+    assert.equal(trace.company.ticker, profile.company.ticker);
+    assert.equal(trace.destination, "Revenue");
+    assert.equal(trace.pathWeight, "equal-semantic-weight");
+    assert.equal(trace.paths.length, profile.moneyPaths.length);
+
+    for (const path of trace.paths) {
+      assert.ok(path.offering.length > 0);
+      assert.ok(path.counterparty.length > 0);
+      assert.ok(path.exchange.length > 0);
+      assert.equal(path.destination, "Revenue");
+      assert.equal(path.contribution, "not-reviewed");
+      assert.ok(path.evidenceIds.length > 0);
+      assert.ok(
+        path.evidenceIds.every((id) =>
+          profile.evidence.some((evidence) => evidence.id === id),
+        ),
+      );
+      assert.doesNotMatch(
+        JSON.stringify(path),
+        /percentage|percent|share|width|magnitude|contributionValue/i,
+      );
+    }
+  }
+});
+
 test("malformed reviewed narrative content is rejected during validation", () => {
   const valid = structuredClone(businessModelProfiles);
   assert.doesNotThrow(() => validateBusinessModelProfiles(valid));
@@ -172,16 +202,15 @@ test("Lesson 14 extends version-1 progress and now continues to the Capstone", (
   assert.equal(deriveCurrentConcept(restored), "business-model");
 });
 
-test("Lesson 14 uses reviewed local narrative content with durable switching and honest checks", async () => {
-  const [page, lesson, stages, selector, navigation, api] = await Promise.all([
+test("Lesson 14 renders every Revenue path, separates reporting structure, and completes only on check submission", async () => {
+  const [page, lesson, selector, navigation, api] = await Promise.all([
     readSource("app/learn/company-analysis/business-model/page.tsx"),
     readSource("components/business-model-learning.tsx"),
-    readSource("components/business-model-profile-stages.tsx"),
     readSource("components/company-example-selector.tsx"),
     readSource("components/lesson-sequence-navigation.tsx"),
     readSource("lib/api.ts"),
   ]);
-  const production = `${page}\n${lesson}\n${stages}`;
+  const production = `${page}\n${lesson}`;
 
   assert.match(page, /searchParams/);
   assert.match(page, /resolveCompanyQuery/);
@@ -190,8 +219,15 @@ test("Lesson 14 uses reviewed local narrative content with durable switching and
   assert.doesNotMatch(page, /getSupportedCompanies|getCompanyFacts|FinPathApiError/);
   assert.match(selector, /router\.push/);
   assert.match(navigation, /"business-model"/);
-  assert.match(lesson, /Revenue does not appear by itself/);
-  assert.match(lesson, /Item 1 · Business/);
+  assert.match(lesson, /How does this company turn what it offers into Revenue\?/);
+  assert.match(lesson, /Reviewed SEC narrative/);
+  assert.match(lesson, /trace\.paths\.map/);
+  assert.match(lesson, /Offering/);
+  assert.match(lesson, /Counterparty/);
+  assert.match(lesson, /Exchange/);
+  assert.match(lesson, /Reportable segment/);
+  assert.match(lesson, /Offering ≠ reportable segment/);
+  assert.match(lesson, /Distribution channel ≠ Revenue mechanism/);
   assert.ok(
     businessModelProfiles.some((profile) =>
       /segment[^]*not (?:automatically )?(?:mean )?(?:one )?product/is.test(
@@ -199,9 +235,13 @@ test("Lesson 14 uses reviewed local narrative content with durable switching and
       ),
     ),
   );
-  assert.match(lesson, /same Revenue[^]*same way/is);
+  assert.match(lesson, /onSubmit/);
   assert.match(lesson, /markExplored\(\["business-model"\]\)/);
   assert.match(lesson, /practice, not a score/i);
+  assert.match(lesson, /You reviewed \{profile\.company\.name/);
+  assert.match(lesson, /current Capstone uses Apple/);
+  assert.doesNotMatch(lesson, /onChange[^]*markExplored/s);
+  assert.doesNotMatch(production, /Math\.max\([^)]*(?:percent|contribution|width)/i);
   assert.doesNotMatch(
     production,
     /buy recommendation|sell recommendation|better business|worse business|guaranteed return/i,
