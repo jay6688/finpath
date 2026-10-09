@@ -510,7 +510,7 @@ export function CapstoneLearning({ data }: { data: CapstoneData }) {
             }}
             type="button"
           >
-            Submit Analysis Note
+            {isSubmitted ? "Analysis Note submitted" : "Submit Analysis Note"}
           </button>
 
           {isSubmitted ? (

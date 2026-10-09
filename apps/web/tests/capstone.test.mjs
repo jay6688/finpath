@@ -325,7 +325,10 @@ test("Capstone source keeps evidence explicit, Apple-only, locally drafted, and 
 });
 
 test("Capstone completion is learner-owned and has no score, forced weakness, or verdict", async () => {
-  const component = await readSource("components/capstone-learning.tsx");
+  const [component, styles] = await Promise.all([
+    readSource("components/capstone-learning.tsx"),
+    readSource("components/capstone-learning.module.css"),
+  ]);
 
   assert.match(component, /validateCapstoneCompletion/);
   assert.match(component, /disabled=\{!completion\.complete/);
@@ -337,4 +340,8 @@ test("Capstone completion is learner-owned and has no score, forced weakness, or
   assert.doesNotMatch(component, /onChange=\{[^}]*markExplored/);
   assert.doesNotMatch(component, /\b(?:points|XP|badge|confetti|company rating)\b/i);
   assert.doesNotMatch(component, />\s*(?:Buy|Sell|Hold|Strong company|Weak company|Good investment|Bad investment)\s*</i);
+  assert.match(
+    styles,
+    /\.submitButton:disabled\s*\{[^}]*background:[^;]+;[^}]*color:[^;]+;/s,
+  );
 });

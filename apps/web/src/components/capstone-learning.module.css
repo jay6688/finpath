@@ -468,8 +468,11 @@
 }
 
 .submitButton:disabled {
+  border-color: var(--muted);
+  background: var(--muted);
+  color: var(--surface);
   cursor: not-allowed;
-  opacity: 0.45;
+  opacity: 1;
 }
 
 .draftBar button:focus-visible,
