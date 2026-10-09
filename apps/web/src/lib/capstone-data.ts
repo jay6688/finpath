@@ -77,6 +77,46 @@ export type CapstoneInputs = {
   sharesOutstanding: CompanySharesOutstanding;
 };
 
+export type CapstoneEvidenceProvenance =
+  | "reported"
+  | "reviewed"
+  | "finpath-derived";
+
+export type CapstoneEvidenceRecord = {
+  id: string;
+  questionId:
+    | "revenue-origin"
+    | "period-performance"
+    | "profit-to-cash"
+    | "financial-position"
+    | "per-share-valuation";
+  label: string;
+  displayValue: string;
+  provenance: CapstoneEvidenceProvenance;
+  recordType:
+    | "Narrative Evidence Record"
+    | "Number Passport"
+    | "Derivation Passport";
+  inspection:
+    | { kind: "narrative"; evidenceIds: string[] }
+    | { kind: "financial"; evidence: ReportedEvidence | DerivedEvidence }
+    | { kind: "eps"; response: CompanyEarningsPerShare }
+    | { kind: "shares"; response: CompanySharesOutstanding };
+};
+
+export type CapstoneCasebookQuestion = {
+  id: CapstoneEvidenceRecord["questionId"];
+  number: number;
+  question: string;
+  prompt: string;
+  evidence: CapstoneEvidenceRecord[];
+  unknowns: Array<{
+    id: string;
+    provenance: "unknown";
+    label: string;
+  }>;
+};
+
 export type CapstoneData = {
   company: Pick<BusinessModelProfile["company"], "slug" | "ticker" | "name" | "cik">;
   filing: {
@@ -102,6 +142,14 @@ export type CapstoneData = {
   cash: {
     operatingCashFlow: ReportedEvidence;
     freeCashFlow: DerivedEvidence;
+    activityEvidence: {
+      operating: ReportedEvidence;
+      investing: ReportedEvidence;
+      financing: ReportedEvidence;
+      reportedChange: ReportedEvidence;
+      beginningBalance: ReportedEvidence;
+      endingBalance: ReportedEvidence;
+    };
   };
   financialPosition: {
     assets: BalanceSheetEvidence["assets"];
@@ -129,16 +177,13 @@ export type CapstoneData = {
     reason: string;
   };
   connections: StatementConnection[];
+  casebook: CapstoneCasebookQuestion[];
+  evidenceCatalog: CapstoneEvidenceRecord[];
   dataStatuses: Array<{
     source: string;
     state: DataState;
     retrievedAt: string;
   }>;
-  analysisNote: {
-    supported: string[];
-    investigateNext: string[];
-    unknown: string[];
-  };
 };
 
 export async function getCapstoneData(): Promise<CapstoneData> {
@@ -310,6 +355,27 @@ function buildValidatedCapstone({
   const operatingCashFlow = freeCashFlow.inputs[0];
   const position = buildBalanceSheetEvidence(balanceSheet);
   const filing = threeStatements.filing;
+  const activityEvidence = {
+    operating: threeStatements.evidence.operatingCashFlow,
+    investing: threeStatements.evidence.investingCashFlow,
+    financing: threeStatements.evidence.financingCashFlow,
+    reportedChange: threeStatements.evidence.netChangeInCash,
+    beginningBalance: threeStatements.evidence.beginningCash,
+    endingBalance: threeStatements.evidence.endingCash,
+  };
+  const casebook = buildCasebook({
+    businessProfile,
+    revenue,
+    revenueGrowth,
+    netIncome,
+    netProfitMargin,
+    operatingCashFlow,
+    freeCashFlow,
+    activityEvidence,
+    position,
+    earningsPerShare,
+    sharesOutstanding,
+  });
 
   return {
     company: businessProfile.company,
@@ -321,7 +387,7 @@ function buildValidatedCapstone({
       netProfitMargin,
       revenueGrowth,
     },
-    cash: { operatingCashFlow, freeCashFlow },
+    cash: { operatingCashFlow, freeCashFlow, activityEvidence },
     financialPosition: {
       assets: position.assets,
       liabilities: position.liabilities,
@@ -349,6 +415,8 @@ function buildValidatedCapstone({
         "FinPath does not have approved, verified market-price evidence for this Capstone, so current valuation remains unknown.",
     },
     connections: threeStatements.connections,
+    casebook,
+    evidenceCatalog: casebook.flatMap((question) => question.evidence),
     dataStatuses: [
       status("Revenue", overview.dataStatus),
       status("Income Statement", incomeStatement.dataStatus),
@@ -357,15 +425,6 @@ function buildValidatedCapstone({
       status("EPS", earningsPerShare.dataStatus),
       status("Shares Outstanding", sharesOutstanding.dataStatus),
     ],
-    analysisNote: buildAnalysisNote({
-      profile: businessProfile,
-      revenue,
-      netIncome,
-      operatingCashFlow,
-      freeCashFlow,
-      position,
-      dilutedEps: earningsPerShare.statement.dilutedEps.value,
-    }),
   };
 }
 
@@ -447,43 +506,218 @@ function status(
   return { source, ...dataStatus };
 }
 
-function formatBillions(evidence: ReportedEvidence): string {
-  return `$${evidence.finPathDisplay.value.toFixed(3)}B`;
+function reportedRecord({
+  id,
+  questionId,
+  label,
+  evidence,
+}: {
+  id: string;
+  questionId: CapstoneEvidenceRecord["questionId"];
+  label: string;
+  evidence: ReportedEvidence;
+}): CapstoneEvidenceRecord {
+  return {
+    id,
+    questionId,
+    label,
+    displayValue: `$${evidence.finPathDisplay.value.toFixed(3)}B`,
+    provenance: "reported",
+    recordType: "Number Passport",
+    inspection: { kind: "financial", evidence },
+  };
 }
 
-function buildAnalysisNote({
-  profile,
+function derivedRecord({
+  id,
+  questionId,
+  label,
+  displayValue,
+  evidence,
+}: {
+  id: string;
+  questionId: CapstoneEvidenceRecord["questionId"];
+  label: string;
+  displayValue: string;
+  evidence: DerivedEvidence;
+}): CapstoneEvidenceRecord {
+  return {
+    id,
+    questionId,
+    label,
+    displayValue,
+    provenance: "finpath-derived",
+    recordType: "Derivation Passport",
+    inspection: { kind: "financial", evidence },
+  };
+}
+
+function buildCasebook({
+  businessProfile,
   revenue,
+  revenueGrowth,
   netIncome,
+  netProfitMargin,
   operatingCashFlow,
   freeCashFlow,
+  activityEvidence,
   position,
-  dilutedEps,
+  earningsPerShare,
+  sharesOutstanding,
 }: {
-  profile: BusinessModelProfile;
+  businessProfile: BusinessModelProfile;
   revenue: ReportedEvidence;
+  revenueGrowth?: DerivedEvidence;
   netIncome: ReportedEvidence;
+  netProfitMargin: DerivedEvidence;
   operatingCashFlow: ReportedEvidence;
   freeCashFlow: DerivedEvidence;
+  activityEvidence: CapstoneData["cash"]["activityEvidence"];
   position: BalanceSheetEvidence;
-  dilutedEps: string;
-}): CapstoneData["analysisNote"] {
-  return {
-    supported: [
-      `${profile.company.name}'s reviewed FY${profile.filing.fiscalYear} filing describes a business spanning products and related services.`,
-      `It reported ${formatBillions(revenue)} of Revenue and ${formatBillions(netIncome)} of Net Income.`,
-      `Operating Cash Flow was ${formatBillions(operatingCashFlow)}, while FinPath's defined simple FCF calculation was $${freeCashFlow.calculation.displayedResult.toFixed(3)}B.`,
-      `At the reporting date, Cash was ${formatBillions(position.cashAndCashEquivalents)} and FinPath simple borrowings were $${position.simpleBorrowings.calculation.displayedResult.toFixed(3)}B. Apple reported Diluted EPS of $${dilutedEps}.`,
-    ],
-    investigateNext: [
-      "How sustainable are the products, services and customer relationships behind future Revenue?",
-      "What do debt maturities, interest burden and broader liquidity evidence show?",
-      "How do current verified market-price measures compare with the filing evidence?",
-    ],
-    unknown: [
-      "Future Revenue, margins and cash generation.",
-      "Whether the current market valuation is cheap, expensive, undervalued or overvalued.",
-      "Whether an investor should buy, sell or hold the shares.",
-    ],
-  };
+  earningsPerShare: CompanyEarningsPerShare;
+  sharesOutstanding: CompanySharesOutstanding;
+}): CapstoneCasebookQuestion[] {
+  const performance: CapstoneEvidenceRecord[] = [
+    reportedRecord({ id: "performance-revenue", questionId: "period-performance", label: "Revenue", evidence: revenue }),
+    reportedRecord({ id: "performance-net-income", questionId: "period-performance", label: "Net Income", evidence: netIncome }),
+    derivedRecord({
+      id: "performance-margin",
+      questionId: "period-performance",
+      label: "Net Profit Margin",
+      displayValue: `${netProfitMargin.calculation.displayedResult.toFixed(1)}%`,
+      evidence: netProfitMargin,
+    }),
+  ];
+  if (revenueGrowth) {
+    performance.splice(1, 0, derivedRecord({
+      id: "performance-growth",
+      questionId: "period-performance",
+      label: "Revenue Growth",
+      displayValue: `${revenueGrowth.calculation.displayedResult >= 0 ? "+" : ""}${revenueGrowth.calculation.displayedResult.toFixed(1)}%`,
+      evidence: revenueGrowth,
+    }));
+  }
+
+  const positionLiabilities =
+    position.liabilities.kind === "reported"
+      ? reportedRecord({ id: "position-liabilities", questionId: "financial-position", label: "Liabilities", evidence: position.liabilities })
+      : derivedRecord({
+          id: "position-liabilities",
+          questionId: "financial-position",
+          label: "Liabilities",
+          displayValue: `$${position.liabilities.calculation.displayedResult.toFixed(3)}B`,
+          evidence: position.liabilities,
+        });
+
+  return [
+    {
+      id: "revenue-origin",
+      number: 1,
+      question: "How does the business generate Revenue?",
+      prompt: "Connect reviewed offerings, counterparties and exchanges. Contribution size and profitability by offering remain unknown.",
+      evidence: businessProfile.moneyPaths.map((path) => ({
+        id: `business-${path.id}`,
+        questionId: "revenue-origin",
+        label: path.receives,
+        displayValue: `${path.payer} · ${path.mechanism}`,
+        provenance: "reviewed",
+        recordType: "Narrative Evidence Record",
+        inspection: { kind: "narrative", evidenceIds: [...path.evidenceIds] },
+      })),
+      unknowns: [
+        { id: "business-contribution", provenance: "unknown", label: "Revenue contribution by offering" },
+        { id: "business-profitability", provenance: "unknown", label: "Profitability and durability by offering" },
+        { id: "business-moat", provenance: "unknown", label: "Moat or competitive durability" },
+      ],
+    },
+    {
+      id: "period-performance",
+      number: 2,
+      question: "What does the period's performance show?",
+      prompt: "State what changed and name the comparison or relationship used as your basis.",
+      evidence: performance,
+      unknowns: [
+        { id: "performance-future", provenance: "unknown", label: "Future Revenue and margin path" },
+      ],
+    },
+    {
+      id: "profit-to-cash",
+      number: 3,
+      question: "How did Profit connect to cash?",
+      prompt: "Trace Net Income to OCF, OCF to FinPath simple FCF, and the three cash activities to reported cash change.",
+      evidence: [
+        reportedRecord({ id: "cash-net-income", questionId: "profit-to-cash", label: "Net Income", evidence: netIncome }),
+        reportedRecord({ id: "cash-operating", questionId: "profit-to-cash", label: "Operating Cash Flow", evidence: operatingCashFlow }),
+        derivedRecord({
+          id: "cash-fcf",
+          questionId: "profit-to-cash",
+          label: "Simple Free Cash Flow",
+          displayValue: `$${freeCashFlow.calculation.displayedResult.toFixed(3)}B`,
+          evidence: freeCashFlow,
+        }),
+        reportedRecord({ id: "cash-investing", questionId: "profit-to-cash", label: "Investing Cash Flow", evidence: activityEvidence.investing }),
+        reportedRecord({ id: "cash-financing", questionId: "profit-to-cash", label: "Financing Cash Flow", evidence: activityEvidence.financing }),
+        reportedRecord({ id: "cash-change", questionId: "profit-to-cash", label: "Reported change in cash", evidence: activityEvidence.reportedChange }),
+        reportedRecord({ id: "cash-beginning", questionId: "profit-to-cash", label: "Beginning cash-related balance", evidence: activityEvidence.beginningBalance }),
+        reportedRecord({ id: "cash-ending", questionId: "profit-to-cash", label: "Ending cash-related balance", evidence: activityEvidence.endingBalance }),
+      ],
+      unknowns: [
+        { id: "cash-sustainability", provenance: "unknown", label: "Future cash-generation sustainability" },
+        { id: "cash-allocation-quality", provenance: "unknown", label: "Capital-allocation quality" },
+      ],
+    },
+    {
+      id: "financial-position",
+      number: 4,
+      question: "What was the reporting-date financial position?",
+      prompt: "Use the reporting-date facts without treating borrowings alone as a solvency verdict.",
+      evidence: [
+        reportedRecord({ id: "position-assets", questionId: "financial-position", label: "Assets", evidence: position.assets }),
+        positionLiabilities,
+        reportedRecord({ id: "position-equity", questionId: "financial-position", label: "Equity", evidence: position.equity }),
+        reportedRecord({ id: "position-cash", questionId: "financial-position", label: "Cash and cash equivalents", evidence: position.cashAndCashEquivalents }),
+        derivedRecord({
+          id: "position-borrowings",
+          questionId: "financial-position",
+          label: "Simple borrowings",
+          displayValue: `$${position.simpleBorrowings.calculation.displayedResult.toFixed(3)}B`,
+          evidence: position.simpleBorrowings,
+        }),
+      ],
+      unknowns: [
+        { id: "position-solvency", provenance: "unknown", label: "Solvency or liquidity quality from these facts alone" },
+        { id: "position-debt-risk", provenance: "unknown", label: "Debt maturity and interest-burden risk" },
+      ],
+    },
+    {
+      id: "per-share-valuation",
+      number: 5,
+      question: "What does the per-share / valuation scenario show?",
+      prompt: "Use reported per-share inputs. Add one optional educational price or intentionally leave valuation unassessed.",
+      evidence: [
+        {
+          id: "valuation-eps",
+          questionId: "per-share-valuation",
+          label: "Diluted EPS",
+          displayValue: `$${earningsPerShare.statement.dilutedEps.value}`,
+          provenance: "reported",
+          recordType: "Number Passport",
+          inspection: { kind: "eps", response: earningsPerShare },
+        },
+        {
+          id: "valuation-shares",
+          questionId: "per-share-valuation",
+          label: "Shares Outstanding",
+          displayValue: new Intl.NumberFormat("en-US").format(sharesOutstanding.fact.value),
+          provenance: "reported",
+          recordType: "Number Passport",
+          inspection: { kind: "shares", response: sharesOutstanding },
+        },
+      ],
+      unknowns: [
+        { id: "valuation-current", provenance: "unknown", label: "Current market valuation" },
+        { id: "valuation-fair", provenance: "unknown", label: "Fair value, expected return or investment verdict" },
+      ],
+    },
+  ];
 }
