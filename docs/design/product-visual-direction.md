@@ -1,6 +1,10 @@
 # FinPath Product Visual Direction
 
-**Status:** Proposal only — requires approval before frontend implementation
+**Status:** Superseded by Production V2 — see
+[`visual-system-v2.md`](visual-system-v2.md) and
+[`../production-v2-release.md`](../production-v2-release.md). Kept as design
+history only; do not implement from this document.
+**Original status:** Proposal only — requires approval before frontend implementation
 **Reviewed:** 2026-08-19
 **Scope:** Global information architecture and responsive visual system; no new product functionality
 

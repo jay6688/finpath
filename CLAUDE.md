@@ -174,6 +174,9 @@ the backend changed.
 - Never push, deploy, merge, rewrite history, or touch `main` without explicit
   approval for that action.
 - Never overwrite or revert unrelated user changes.
-- Do not merge or cherry-pick experimental branches (for example
-  `design/visual-system-v2`); port primitives deliberately instead.
+- Unmerged experimental work is preserved as annotated tags, not branches:
+  `archive/visual-system-v2` (also contains Stage 1, Stage 2a and the Stage 3
+  reconcept) and `archive/visual-redesign-stage-0`. Do not merge or
+  cherry-pick them; port primitives deliberately instead
+  (`git show archive/visual-system-v2:<path>`).
 - `next dev` may re-add its block in `apps/web/AGENTS.md`; that is expected.

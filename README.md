@@ -9,7 +9,11 @@ The product does not tell users what to buy. This V1 path does not include authe
 
 ## Repository status
 
-This repository is currently at the **V1 Company Analysis Basics Capstone implemented** milestone. It contains 15 lessons, including:
+This repository is at the **Production V2 released** milestone (`main`; see
+[`docs/production-v2-release.md`](docs/production-v2-release.md)). Home, Learn
+and Explore were redesigned, and all 15 Company Analysis Basics lessons use the
+V2 teaching designs. The data and evidence capabilities below are unchanged
+from V1. The 15 lessons include:
 
 - a runnable Next.js product shell and real-data Apple company page;
 - a FastAPI company endpoint backed by SEC ticker and Company Facts data;
@@ -57,9 +61,10 @@ Lesson 3 already teaches the reported layers from Revenue through costs,
 operating expenses, tax and Net Income, so FinPath does not add a duplicate
 Profit Layers lesson. Apple is the only V1 Capstone company because it is the
 only current company with the complete reviewed evidence chain required for
-that synthesis. Market data remains unapproved and unexposed. The V1 release
-candidate has completed engineering QA; the next stage is real novice testing.
-The wider long-term FinPath product is not finished.
+that synthesis. Market data remains unapproved and unexposed. Production V2
+has completed engineering QA. Its post-release validation backlog is formal
+screen-reader certification, a real beginner usability study, and formal Core
+Web Vitals profiling. The wider long-term FinPath product is not finished.
 
 ## Prerequisites
 
@@ -201,6 +206,7 @@ project settings, and the public validation checklist are documented in
 - [`docs/data-contract.md`](docs/data-contract.md)
 - [`docs/market-data-provider.md`](docs/market-data-provider.md)
 - [`docs/market-cap-alignment.md`](docs/market-cap-alignment.md)
+- [`docs/production-v2-release.md`](docs/production-v2-release.md)
 - [`docs/v1-qa-report.md`](docs/v1-qa-report.md)
 - [`docs/novice-test-plan.md`](docs/novice-test-plan.md)
 - [`docs/design/research.md`](docs/design/research.md)
