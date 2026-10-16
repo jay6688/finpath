@@ -113,3 +113,32 @@ def test_fixture_pipeline_produces_reviewed_eps_for_all_three_companies() -> Non
     assert microsoft.statement.diluted_eps.value == Decimal("17.95")
     assert walmart.statement.earnings_numerator.value == 21_893_000_000
     assert walmart.statement.basic_verification.matches_reported is True
+
+
+class FactsMustNotBeFetched(FixtureSecDataSource):
+    async def get_company_facts(self, cik: str):
+        raise AssertionError("Unreviewed years must fail before fetching SEC facts")
+
+
+def test_unreviewed_years_fail_before_fetching_company_facts() -> None:
+    service = CompanyOverviewService(FactsMustNotBeFetched())
+
+    for fiscal_year in (2023, 2026):
+        try:
+            asyncio.run(service.get_income_statement("AAPL", fiscal_year))
+        except IncomeStatementUnavailableError as error:
+            assert f"FY{fiscal_year} is unavailable" in str(error)
+        else:
+            raise AssertionError(f"FY{fiscal_year} must not be served")
+
+
+def test_reviewed_fy2024_statements_come_from_the_fy2024_filing() -> None:
+    service = CompanyOverviewService(FixtureSecDataSource())
+
+    income = asyncio.run(service.get_income_statement("aapl", 2024))
+    cash_flow = asyncio.run(service.get_cash_flow_statement("aapl", 2024))
+
+    assert income.statement.accession == "0000320193-24-000123"
+    assert income.statement.lines[-1].value == 93_736_000_000
+    assert cash_flow.statement.accession == "0000320193-24-000123"
+    assert cash_flow.statement.sections[0].lines[0].value == 93_736_000_000

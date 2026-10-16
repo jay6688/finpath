@@ -17,6 +17,7 @@ from app.schemas.company import (
     CompanyEarningsPerShareResponse,
     CompanySharesOutstandingResponse,
     CompanyCapabilities,
+    ReviewedFiscalYears,
     SupportedCompaniesResponse,
     SupportedCompanySummary,
 )
@@ -46,6 +47,17 @@ async def supported_companies() -> SupportedCompaniesResponse:
                     threeStatements=company.capabilities.three_statements,
                     earningsPerShare=company.capabilities.earnings_per_share,
                     sharesOutstanding=company.capabilities.shares_outstanding,
+                ),
+                reviewedFiscalYears=ReviewedFiscalYears(
+                    incomeStatement=company.reviewed_fiscal_years("income_statement"),
+                    cashFlow=company.reviewed_fiscal_years("cash_flow"),
+                    balanceSheet=company.reviewed_fiscal_years("balance_sheet"),
+                    earningsPerShare=company.reviewed_fiscal_years(
+                        "earnings_per_share"
+                    ),
+                    sharesOutstanding=company.reviewed_fiscal_years(
+                        "shares_outstanding"
+                    ),
                 ),
             )
             for company in list_supported_companies()

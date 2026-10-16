@@ -1,5 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
+from typing import Literal, get_args
 
 
 class UnsupportedCompanyError(LookupError):
@@ -19,6 +20,20 @@ class CompanyCapabilities:
     shares_outstanding: bool
 
 
+# Capabilities served by a fiscal-year route
+# (`/v1/companies/{ticker}/<statement>/{fiscal_year}`).
+YearScopedCapability = Literal[
+    "income_statement",
+    "cash_flow",
+    "balance_sheet",
+    "earnings_per_share",
+    "shares_outstanding",
+]
+YEAR_SCOPED_CAPABILITIES: tuple[YearScopedCapability, ...] = get_args(
+    YearScopedCapability
+)
+
+
 @dataclass(frozen=True)
 class RevenueProfile:
     taxonomy_tag: str
@@ -36,9 +51,28 @@ class SupportedCompany:
     ticker: str
     cik: str
     display_name: str
+    # The latest reviewed year. Every enabled capability is reviewed for it.
     reviewed_fiscal_year: int
     capabilities: CompanyCapabilities
     revenue_profile: RevenueProfile
+    # Earlier years reviewed for one capability only. A year listed for the
+    # income statement says nothing about the balance sheet in that year.
+    earlier_reviewed_fiscal_years: dict[YearScopedCapability, tuple[int, ...]] = field(
+        default_factory=dict,
+        hash=False,
+    )
+
+    def reviewed_fiscal_years(
+        self, capability: YearScopedCapability
+    ) -> tuple[int, ...]:
+        """Reviewed years for one capability, newest first; empty if disabled."""
+        if not getattr(self.capabilities, capability):
+            return ()
+        earlier = self.earlier_reviewed_fiscal_years.get(capability, ())
+        return (self.reviewed_fiscal_year, *sorted(earlier, reverse=True))
+
+    def is_reviewed(self, capability: YearScopedCapability, fiscal_year: int) -> bool:
+        return fiscal_year in self.reviewed_fiscal_years(capability)
 
 
 _COMPANIES = (
@@ -68,6 +102,11 @@ _COMPANIES = (
             filed_at=date(2025, 10, 31),
             accession="0000320193-25-000079",
         ),
+        # FY2024 10-K, accession 0000320193-24-000123, filed 2024-11-01.
+        earlier_reviewed_fiscal_years={
+            "income_statement": (2024,),
+            "cash_flow": (2024,),
+        },
     ),
     SupportedCompany(
         slug="msft",
@@ -124,6 +163,27 @@ _COMPANIES = (
         ),
     ),
 )
+
+
+def _validate_registry(companies: tuple[SupportedCompany, ...]) -> None:
+    for company in companies:
+        for capability, years in company.earlier_reviewed_fiscal_years.items():
+            if capability not in YEAR_SCOPED_CAPABILITIES:
+                raise ValueError(f"{company.ticker}: unknown capability {capability}.")
+            if not getattr(company.capabilities, capability):
+                raise ValueError(
+                    f"{company.ticker}: {capability} years listed for a disabled capability."
+                )
+            if len(set(years)) != len(years) or any(
+                year >= company.reviewed_fiscal_year for year in years
+            ):
+                raise ValueError(
+                    f"{company.ticker}: earlier {capability} years must be unique "
+                    "and older than the reviewed fiscal year."
+                )
+
+
+_validate_registry(_COMPANIES)
 
 
 def list_supported_companies() -> tuple[SupportedCompany, ...]:

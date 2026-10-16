@@ -56,6 +56,32 @@ def test_supported_company_list_is_a_stable_non_financial_contract() -> None:
         "earningsPerShare": True,
         "sharesOutstanding": True,
     }
+    assert [
+        company["reviewedFiscalYear"] for company in payload["companies"]
+    ] == [2025, 2026, 2026]
+    assert [company["reviewedFiscalYears"] for company in payload["companies"]] == [
+        {
+            "incomeStatement": [2025, 2024],
+            "cashFlow": [2025, 2024],
+            "balanceSheet": [2025],
+            "earningsPerShare": [2025],
+            "sharesOutstanding": [2025],
+        },
+        {
+            "incomeStatement": [2026],
+            "cashFlow": [],
+            "balanceSheet": [2026],
+            "earningsPerShare": [2026],
+            "sharesOutstanding": [2026],
+        },
+        {
+            "incomeStatement": [],
+            "cashFlow": [],
+            "balanceSheet": [2026],
+            "earningsPerShare": [2026],
+            "sharesOutstanding": [2026],
+        },
+    ]
     assert "value" not in str(payload)
 
 
@@ -374,3 +400,109 @@ async def _request_aapl_cash_flow_statement() -> httpx.Response:
         base_url="http://finpath.test",
     ) as client:
         return await client.get("/v1/companies/AAPL/cash-flow-statements/2025")
+
+
+FY2024_SOURCE_URL = (
+    "https://www.sec.gov/Archives/edgar/data/320193/"
+    "000032019324000123/0000320193-24-000123-index.htm"
+)
+
+
+def test_aapl_fy2024_income_statement_http_contract() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        response = asyncio.run(_request("/v1/companies/AAPL/income-statements/2024"))
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    statement = response.json()["statement"]
+    assert {
+        key: statement[key]
+        for key in (
+            "fiscalYear",
+            "startDate",
+            "endDate",
+            "form",
+            "filedAt",
+            "accession",
+            "sourceUrl",
+        )
+    } == {
+        "fiscalYear": 2024,
+        "startDate": "2023-10-01",
+        "endDate": "2024-09-28",
+        "form": "10-K",
+        "filedAt": "2024-11-01",
+        "accession": "0000320193-24-000123",
+        "sourceUrl": FY2024_SOURCE_URL,
+    }
+    assert [line["value"] for line in statement["lines"]] == [
+        391_035_000_000,
+        210_352_000_000,
+        180_683_000_000,
+        57_467_000_000,
+        123_216_000_000,
+        269_000_000,
+        123_485_000_000,
+        29_749_000_000,
+        93_736_000_000,
+    ]
+
+
+def test_aapl_fy2024_cash_flow_statement_http_contract() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    try:
+        response = asyncio.run(_request("/v1/companies/AAPL/cash-flow-statements/2024"))
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    statement = response.json()["statement"]
+    assert statement["fiscalYear"] == 2024
+    assert statement["startDate"] == "2023-10-01"
+    assert statement["endDate"] == "2024-09-28"
+    assert statement["filedAt"] == "2024-11-01"
+    assert statement["accession"] == "0000320193-24-000123"
+    assert statement["sourceUrl"] == FY2024_SOURCE_URL
+    assert [
+        section["lines"][-1]["value"] for section in statement["sections"]
+    ] == [118_254_000_000, 2_935_000_000, -121_983_000_000]
+    movement = statement["cashMovement"]
+    assert movement["beginningCash"]["value"] == 30_737_000_000
+    assert movement["beginningCash"]["asOfDate"] == "2023-09-30"
+    assert movement["netChange"]["value"] == -794_000_000
+    assert movement["endingCash"]["value"] == 29_943_000_000
+    assert movement["endingCash"]["asOfDate"] == "2024-09-28"
+
+
+def test_unreviewed_years_still_fail_closed_on_every_year_route() -> None:
+    app.dependency_overrides[get_company_service] = lambda: CompanyOverviewService(
+        FixtureSecDataSource()
+    )
+    paths = {
+        # Earlier Apple years were never reviewed for these statements.
+        "/v1/companies/AAPL/income-statements/2023": "CIK 0000320193 FY2023",
+        "/v1/companies/AAPL/cash-flow-statements/2023": "CIK 0000320193 FY2023",
+        "/v1/companies/AAPL/income-statements/2026": "CIK 0000320193 FY2026",
+        # FY2024 was reviewed for two statements only.
+        "/v1/companies/AAPL/balance-sheets/2024": "CIK 0000320193 FY2024",
+        "/v1/companies/AAPL/earnings-per-share/2024": "CIK 0000320193 FY2024",
+        "/v1/companies/AAPL/shares-outstanding/2024": "CIK 0000320193 FY2024",
+        # Other companies are unchanged.
+        "/v1/companies/MSFT/income-statements/2025": "CIK 0000789019 FY2025",
+        "/v1/companies/MSFT/cash-flow-statements/2026": "CIK 0000789019 FY2026",
+        "/v1/companies/WMT/income-statements/2025": "CIK 0000104169 FY2025",
+    }
+    try:
+        responses = {path: asyncio.run(_request(path)) for path in paths}
+    finally:
+        app.dependency_overrides.clear()
+
+    for path, expected in paths.items():
+        assert responses[path].status_code == 422, path
+        assert f"profile for {expected} is unavailable" in responses[path].json()["detail"]

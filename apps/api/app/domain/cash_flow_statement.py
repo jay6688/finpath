@@ -206,6 +206,13 @@ CASH_BALANCE_TAG = "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalent
 # taxonomy choices. The response model is reusable, but an unreviewed company
 # must fail honestly instead of inheriting Apple's required rows or signs.
 STATEMENT_SPECS = {
+    # Apple's FY2024 10-K uses the same tags and sign conventions as FY2025;
+    # every section, the net change and beginning-to-ending cash reconcile.
+    ("0000320193", 2024): CashFlowStatementSpec(
+        sections=APPLE_FY2025_SECTION_SPECS,
+        net_change=NET_CHANGE_SPEC,
+        cash_balance_tag=CASH_BALANCE_TAG,
+    ),
     ("0000320193", 2025): CashFlowStatementSpec(
         sections=APPLE_FY2025_SECTION_SPECS,
         net_change=NET_CHANGE_SPEC,
