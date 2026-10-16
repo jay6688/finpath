@@ -211,26 +211,119 @@ test("builds Apple's exact financial-position frame on one Assets reference", ()
 
 test("builds Apple's Cash & Debt comparison on one shared balance scale", () => {
   const presentation = buildCashDebtPresentation(makeDirectBalanceSheet("AAPL"));
+  const total = 35_934_000_000 + 18_763_000_000 + 77_723_000_000;
 
+  assert.equal(total, 132_420_000_000);
   assert.deepEqual(presentation.cashPosition, {
     kind: "reported-balance-sheet-position",
     label: "Cash and cash equivalents",
     amount: 35_934_000_000,
-    magnitudePercent: (35_934_000_000 / 98_657_000_000) * 100,
+    magnitudePercent: (35_934_000_000 / total) * 100,
+  });
+  assert.deepEqual(presentation.securityPositions, [
+    {
+      kind: "reported-balance-sheet-position",
+      id: "current-marketable-securities",
+      label: "Current marketable securities",
+      horizon: "current",
+      amount: 18_763_000_000,
+      magnitudePercent: (18_763_000_000 / total) * 100,
+    },
+    {
+      kind: "reported-balance-sheet-position",
+      id: "noncurrent-marketable-securities",
+      label: "Non-current marketable securities",
+      horizon: "non-current",
+      amount: 77_723_000_000,
+      magnitudePercent: (77_723_000_000 / total) * 100,
+    },
+  ]);
+  assert.deepEqual(presentation.cashAndSecuritiesPosition, {
+    kind: "finpath-derived-balance-sheet-position",
+    label: "FinPath cash and securities total",
+    amount: total,
+    magnitudePercent: 100,
+    componentIds: [
+      "cash-and-cash-equivalents",
+      "current-marketable-securities",
+      "noncurrent-marketable-securities",
+    ],
+    includesNoncurrent: true,
   });
   assert.deepEqual(presentation.borrowingPosition, {
     kind: "finpath-derived-balance-sheet-position",
     label: "FinPath simple borrowings",
     amount: 98_657_000_000,
-    magnitudePercent: 100,
+    magnitudePercent: (98_657_000_000 / total) * 100,
     componentIds: ["commercial-paper", "current-term-debt", "noncurrent-term-debt"],
   });
+  // The shared scale must include the new total, not only cash and borrowings.
   assert.deepEqual(presentation.scale, {
     kind: "shared-absolute-balance-scale",
-    referenceAmount: 98_657_000_000,
+    referenceAmount: total,
   });
   assert.equal(presentation.asOfDate, "2025-09-27");
   assert.equal("netDebt" in presentation, false);
+});
+
+test("adds Microsoft short-term investments as a current-only securities total", () => {
+  const presentation = buildCashDebtPresentation(makeDirectBalanceSheet("MSFT"));
+  const total = 20_935_000_000 + 55_908_000_000;
+
+  assert.deepEqual(
+    presentation.securityPositions.map(({ id, horizon, amount }) => [id, horizon, amount]),
+    [["short-term-investments", "current", 55_908_000_000]],
+  );
+  assert.equal(presentation.cashAndSecuritiesPosition.amount, total);
+  assert.equal(presentation.cashAndSecuritiesPosition.includesNoncurrent, false);
+  assert.equal(presentation.scale.referenceAmount, total);
+  assert.equal(presentation.borrowingPosition.amount, 40_294_000_000);
+});
+
+test("counts only Walmart cash when no securities line is reviewed", () => {
+  const presentation = buildCashDebtPresentation(makeWalmartBalanceSheet());
+  const evidence = buildBalanceSheetEvidence(makeWalmartBalanceSheet());
+
+  assert.deepEqual(presentation.securityPositions, []);
+  // No zero-value securities total: the absent line stays absent.
+  assert.equal(presentation.cashAndSecuritiesPosition, null);
+  assert.equal(evidence.cashAndSecurities, null);
+  assert.equal(presentation.cashPosition.amount, 10_727_000_000);
+  assert.equal(presentation.scale.referenceAmount, 44_762_000_000);
+});
+
+test("builds traceable derived evidence for the cash and securities total", () => {
+  const evidence = buildBalanceSheetEvidence(makeDirectBalanceSheet("AAPL"));
+  const total = evidence.cashAndSecurities;
+
+  assert.equal(total.kind, "derived");
+  assert.equal(total.metric.id, "cash-and-securities");
+  assert.equal(total.calculation.type, "sum-amount");
+  assert.equal(total.calculation.exactResult, 132_420_000_000);
+  assert.equal(
+    total.calculation.formula,
+    "Cash and cash equivalents + Current marketable securities + Non-current marketable securities",
+  );
+  assert.deepEqual(
+    total.inputs.map((input) => [input.kind, input.metric.id, input.reportedFact.taxonomyTag]),
+    [
+      ["reported", "cash-and-cash-equivalents", "CashAndCashEquivalentsAtCarryingValue"],
+      ["reported", "current-marketable-securities", "MarketableSecuritiesCurrent"],
+      ["reported", "noncurrent-marketable-securities", "MarketableSecuritiesNoncurrent"],
+    ],
+  );
+  assert.match(total.limitation, /not a company-reported total/);
+  assert.match(total.limitation, /does not expect to turn into cash within a year/);
+
+  const microsoft = buildBalanceSheetEvidence(makeDirectBalanceSheet("MSFT")).cashAndSecurities;
+  assert.equal(microsoft.calculation.exactResult, 76_843_000_000);
+  assert.doesNotMatch(microsoft.limitation, /non-current/);
+});
+
+test("refuses to add a supplemental line that is not a reviewed securities line", () => {
+  const response = makeDirectBalanceSheet("MSFT");
+  response.statement.supplementalFinancialAssets[0].id = "other-financial-asset";
+  assert.throws(() => buildCashDebtPresentation(response));
 });
 
 test("keeps Walmart liabilities derived and redeemable NCI separate", () => {

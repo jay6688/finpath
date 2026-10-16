@@ -128,11 +128,28 @@
   background: var(--fp-v2-ink-soft);
 }
 
+.position[data-total="cash-and-securities"] {
+  border-top: 2px solid var(--fp-v2-ink);
+}
+
+.position[data-total="cash-and-securities"] + .position {
+  margin-top: var(--fp-v2-space-3);
+}
+
+.comparisonNote {
+  margin: 0;
+  padding: var(--fp-v2-space-3);
+  color: var(--fp-v2-ink-soft);
+  background: var(--fp-v2-neutral);
+  border-left: 4px solid var(--fp-v2-amber);
+  font-size: .75rem;
+  line-height: 1.55;
+}
+
 .amount,
 .components strong,
 .derivedTotal strong,
-.positionButtons strong,
-.supplemental strong {
+.positionButtons strong {
   font-family: var(--fp-v2-font-number);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -251,18 +268,6 @@
 .context section > p {
   color: var(--fp-v2-ink-soft);
   line-height: 1.6;
-}
-
-.supplemental > div {
-  padding: .75rem 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--fp-v2-space-3);
-  border-bottom: 1px solid var(--fp-v2-line);
-}
-
-.supplemental > div > :last-child {
-  grid-column: 1 / -1;
 }
 
 .boundaries {

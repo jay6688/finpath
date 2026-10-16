@@ -175,7 +175,8 @@ export type DerivedEvidence = {
       | "revenue-growth"
       | "free-cash-flow"
       | "total-liabilities"
-      | "simple-borrowings";
+      | "simple-borrowings"
+      | "cash-and-securities";
     label: string;
   };
   inputs: ReportedEvidence[];

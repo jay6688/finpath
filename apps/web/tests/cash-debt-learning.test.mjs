@@ -50,11 +50,43 @@ test("Lesson 09 keeps reported, derived and no-judgement boundaries explicit", a
   assert.match(component, /Debt is not automatically distress/);
   assert.match(component, /Cash does not automatically imply strength/);
   assert.match(component, /does not provide an investment verdict/);
-  assert.match(component, /no supplemental financial-asset line selected/);
+  assert.match(component, /only cash and cash equivalents are counted\./);
+  assert.doesNotMatch(component, /no supplemental financial-asset line selected/);
   assert.match(balanceLearning, /not a company-reported Total Debt line/);
   assert.match(balanceLearning, /Debt definitions can vary/);
   assert.match(evidence, /"simple-borrowings"/);
   assert.doesNotMatch(component, /Net Debt|current ratio|debt-to-equity|high debt is bad|low debt is good/i);
+});
+
+test("Cash & Debt shows securities and their total in the default comparison", async () => {
+  const component = await readSource("components/cash-debt-learning.tsx");
+  const figure = component.slice(
+    component.indexOf("<figure"),
+    component.indexOf("</figure>"),
+  );
+  const details = component.slice(
+    component.indexOf("<details"),
+    component.indexOf("</details>"),
+  );
+
+  // Visible by default: the securities rows, the derived total and the
+  // non-current caveat all sit in the always-rendered figure, not in <details>.
+  assert.match(figure, /presentation\.securityPositions\.map/);
+  assert.match(figure, /data-total="cash-and-securities"/);
+  assert.match(figure, /data-position=\{cashAndSecurities\.kind\}/);
+  assert.match(figure, /data-position=\{security\.kind\}/);
+  assert.match(figure, /does not expect to turn these into cash within a year/);
+  assert.match(figure, /cashAndSecurities\?\.includesNoncurrent/);
+  assert.match(figure, /only cash and cash equivalents are counted\./);
+  assert.doesNotMatch(details, /securityPositions|supplementalFinancialAssets/);
+  assert.match(details, /Borrowings are not Total Liabilities/);
+
+  // Each reported line keeps source inspection, and the total keeps its trail.
+  assert.match(component, /evidence\.supplementalFinancialAssets\[securityIndex\]/);
+  assert.match(component, /evidence=\{selectedSecurity\.evidence\}/);
+  assert.match(component, /evidence=\{evidence\.cashAndSecurities\}/);
+  assert.match(component, /evidence=\{evidence\.cashAndCashEquivalents\}/);
+  assert.doesNotMatch(component, /132420000000|18763000000|77723000000|55908000000/);
 });
 
 test("Cash & Debt inspection cannot write progress and completion stays submission-only", async () => {

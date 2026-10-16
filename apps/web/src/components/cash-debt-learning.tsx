@@ -36,9 +36,18 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
   const { markExplored } = useLearningProgress();
   const { company, statement, dataStatus } = balanceSheet;
   const evidence = buildBalanceSheetEvidence(balanceSheet);
-  const [selectedPosition, setSelectedPosition] = useState<"cash" | "borrowings" | null>(
-    null,
+  const cashAndSecurities = presentation.cashAndSecuritiesPosition;
+  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const securityIndex = presentation.securityPositions.findIndex(
+    (security) => security.id === selectedPosition,
   );
+  const selectedSecurity =
+    securityIndex >= 0
+      ? {
+          position: presentation.securityPositions[securityIndex],
+          evidence: evidence.supplementalFinancialAssets[securityIndex],
+        }
+      : null;
   const [choice, setChoice] = useState<string | null>(null);
   const [reviewedChoice, setReviewedChoice] = useState<string | null>(null);
 
@@ -61,7 +70,7 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
           How can a company have cash and debt at the same time?
         </h2>
         <p>
-          Compare two different positions on {company.name}&apos;s Balance Sheet.
+          Compare different positions on {company.name}&apos;s Balance Sheet.
           One does not erase the accounting existence of the other.
         </p>
         <p className={styles.period}>
@@ -75,12 +84,12 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
 
       <figure className={styles.comparison} aria-labelledby="cash-debt-comparison-heading">
         <figcaption>
-          <p className="eyebrow">Two positions · one shared absolute scale</p>
+          <p className="eyebrow">Cash, securities and borrowings · one shared absolute scale</p>
           <h3 id="cash-debt-comparison-heading">
             Compare amounts without turning them into a score.
           </h3>
           <p>
-            The longer bar is the larger amount on this reporting date. Both bars use
+            The longer bar is the larger amount on this reporting date. Every bar uses
             {" "}{formatBillions(presentation.scale.referenceAmount)} as the same reference.
           </p>
         </figcaption>
@@ -102,6 +111,58 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
           </strong>
         </div>
 
+        {presentation.securityPositions.map((security) => (
+          <div
+            className={styles.position}
+            data-horizon={security.horizon}
+            data-position={security.kind}
+            key={security.id}
+          >
+            <div className={styles.positionIdentity}>
+              <span>{company.name} reported</span>
+              <strong>{security.label}</strong>
+              <small>
+                {security.horizon === "non-current"
+                  ? "Non-current: the company does not expect to turn these into cash within a year."
+                  : "Current: the company classifies these as assets it expects to realise within a year."}
+              </small>
+            </div>
+            <div className={styles.track} aria-hidden="true">
+              <span style={positionStyle(security.magnitudePercent)} />
+            </div>
+            <strong className={styles.amount}>{formatBillions(security.amount)}</strong>
+          </div>
+        ))}
+
+        {cashAndSecurities ? (
+          <div
+            className={styles.position}
+            data-position={cashAndSecurities.kind}
+            data-total="cash-and-securities"
+          >
+            <div className={styles.positionIdentity}>
+              <span>FinPath-derived balance-sheet position</span>
+              <strong>{cashAndSecurities.label}</strong>
+              <small>
+                Cash and cash equivalents +{" "}
+                {presentation.securityPositions.map((security) => security.label).join(" + ")}
+              </small>
+            </div>
+            <div className={styles.track} aria-hidden="true">
+              <span style={positionStyle(cashAndSecurities.magnitudePercent)} />
+            </div>
+            <strong className={styles.amount}>
+              {formatBillions(cashAndSecurities.amount)}
+            </strong>
+          </div>
+        ) : (
+          <p className={styles.comparisonNote} data-securities="none">
+            For {company.name}, only cash and cash equivalents are counted. This
+            reviewed profile has no marketable-securities or short-term-investment
+            line selected, so FinPath adds no securities total.
+          </p>
+        )}
+
         <div
           className={styles.position}
           data-position={presentation.borrowingPosition.kind}
@@ -118,6 +179,14 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
             {formatBillions(presentation.borrowingPosition.amount)}
           </strong>
         </div>
+
+        {cashAndSecurities?.includesNoncurrent ? (
+          <p className={styles.comparisonNote} data-securities="includes-noncurrent">
+            The total includes non-current marketable securities. {company.name}{" "}
+            does not expect to turn that portion into cash within a year, so it is
+            not the same as money available right now.
+          </p>
+        ) : null}
       </figure>
 
       <section className={styles.derivation} aria-labelledby="borrowings-heading">
@@ -157,6 +226,27 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
             <span>Cash and cash equivalents</span>
             <strong>{formatBillions(presentation.cashPosition.amount)}</strong>
           </button>
+          {presentation.securityPositions.map((security) => (
+            <button
+              aria-pressed={selectedPosition === security.id}
+              key={security.id}
+              onClick={() => setSelectedPosition(security.id)}
+              type="button"
+            >
+              <span>{security.label}</span>
+              <strong>{formatBillions(security.amount)}</strong>
+            </button>
+          ))}
+          {cashAndSecurities ? (
+            <button
+              aria-pressed={selectedPosition === "cash-and-securities"}
+              onClick={() => setSelectedPosition("cash-and-securities")}
+              type="button"
+            >
+              <span>{cashAndSecurities.label}</span>
+              <strong>{formatBillions(cashAndSecurities.amount)}</strong>
+            </button>
+          ) : null}
           <button
             aria-pressed={selectedPosition === "borrowings"}
             onClick={() => setSelectedPosition("borrowings")}
@@ -180,6 +270,33 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
                 id="cash-debt-cash-evidence"
               />
             </>
+          ) : selectedSecurity ? (
+            <>
+              <p className="eyebrow">Company reported · instant fact</p>
+              <h4>{selectedSecurity.position.label}</h4>
+              <p>
+                {selectedSecurity.position.horizon === "non-current"
+                  ? "The company classifies these securities as non-current, so it does not expect to turn them into cash within a year."
+                  : "The company classifies these as current assets, separate from cash and cash equivalents."}
+              </p>
+              <EvidenceInspector
+                evidence={selectedSecurity.evidence}
+                id={`cash-debt-${selectedSecurity.position.id}-evidence`}
+              />
+            </>
+          ) : selectedPosition === "cash-and-securities" && evidence.cashAndSecurities ? (
+            <>
+              <p className="eyebrow">FinPath-derived · same-date reported inputs</p>
+              <h4>{evidence.cashAndSecurities.metric.label}</h4>
+              <p>
+                This is cash and cash equivalents plus the reviewed securities lines
+                shown above, not a company-reported total.
+              </p>
+              <EvidenceInspector
+                evidence={evidence.cashAndSecurities}
+                id="cash-and-securities-evidence"
+              />
+            </>
           ) : selectedPosition === "borrowings" ? (
             <>
               <p className="eyebrow">FinPath-derived · same-date reported inputs</p>
@@ -198,7 +315,7 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
               <p className="eyebrow">Reported vs derived</p>
               <h4>Choose a position to inspect it.</h4>
               <p>
-                Selection adds source detail. It does not change either amount,
+                Selection adds source detail. It does not change any amount,
                 the shared scale, or lesson progress.
               </p>
             </>
@@ -207,7 +324,7 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
       </section>
 
       <details className={styles.context}>
-        <summary>Keep Total Liabilities and other financial assets in context</summary>
+        <summary>Keep Total Liabilities and other resources in context</summary>
         <div>
           <section>
             <h3>Borrowings are not Total Liabilities</h3>
@@ -222,26 +339,14 @@ export function CashDebtLearning({ balanceSheet, presentation }: Props) {
             />
           </section>
           <section>
-            <h3>Cash is not every financial asset</h3>
-            {statement.supplementalFinancialAssets.length > 0 ? (
-              <div className={styles.supplemental}>
-                {statement.supplementalFinancialAssets.map((line, index) => (
-                  <div key={line.id}>
-                    <span>{line.reportedLabel}</span>
-                    <strong>{formatBillions(line.value)}</strong>
-                    <EvidenceInspector
-                      evidence={evidence.supplementalFinancialAssets[index]}
-                      id={`cash-debt-${line.id}-evidence`}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>
-                FinPath adds no supplemental financial-asset line because this
-                reviewed profile has no supplemental financial-asset line selected.
-              </p>
-            )}
+            <h3>The comparison is not every resource</h3>
+            <p>
+              {cashAndSecurities
+                ? "The comparison counts cash and cash equivalents and the reviewed securities lines only."
+                : "The comparison counts cash and cash equivalents only."}{" "}
+              Receivables, inventory, other assets and future cash flows sit outside
+              it, and debt repayment timing is not shown here.
+            </p>
           </section>
         </div>
       </details>

@@ -57,6 +57,8 @@ const expectedLiabilityComponentIds = new Set<BalanceSheetLineId>([
   "deferred-income-taxes-and-other",
 ]);
 
+export const cashAndSecuritiesLabel = "FinPath cash and securities total";
+
 export type BalanceSheetEvidence = {
   assets: ReportedEvidence;
   liabilities: ReportedEvidence | DerivedEvidence;
@@ -64,6 +66,7 @@ export type BalanceSheetEvidence = {
   equity: ReportedEvidence;
   cashAndCashEquivalents: ReportedEvidence;
   supplementalFinancialAssets: ReportedEvidence[];
+  cashAndSecurities: DerivedEvidence | null;
   simpleBorrowings: DerivedEvidence;
 };
 
@@ -85,6 +88,24 @@ export type BalanceSheetPresentation = {
   };
 };
 
+// Only these reviewed supplemental lines are marketable securities or
+// short-term investments. Each one carries the company's own current or
+// non-current Balance Sheet classification.
+const securityHorizons = new Map<BalanceSheetLineId, "current" | "non-current">([
+  ["current-marketable-securities", "current"],
+  ["short-term-investments", "current"],
+  ["noncurrent-marketable-securities", "non-current"],
+]);
+
+export type CashDebtSecurityPosition = {
+  kind: "reported-balance-sheet-position";
+  id: BalanceSheetLineId;
+  label: string;
+  horizon: "current" | "non-current";
+  amount: number;
+  magnitudePercent: number;
+};
+
 export type CashDebtPresentation = {
   asOfDate: string;
   cashPosition: {
@@ -93,6 +114,17 @@ export type CashDebtPresentation = {
     amount: number;
     magnitudePercent: number;
   };
+  securityPositions: CashDebtSecurityPosition[];
+  // Null when the reviewed profile selects no securities line: only cash and
+  // cash equivalents are counted, and FinPath shows no zero-value total.
+  cashAndSecuritiesPosition: {
+    kind: "finpath-derived-balance-sheet-position";
+    label: typeof cashAndSecuritiesLabel;
+    amount: number;
+    magnitudePercent: number;
+    componentIds: BalanceSheetLineId[];
+    includesNoncurrent: boolean;
+  } | null;
   borrowingPosition: {
     kind: "finpath-derived-balance-sheet-position";
     label: string;
@@ -258,6 +290,7 @@ export function buildBalanceSheetEvidence(
     supplementalFinancialAssets: statement.supplementalFinancialAssets.map((line) =>
       reported(line, line.reportedLabel),
     ),
+    cashAndSecurities: buildCashAndSecuritiesEvidence(response, reported),
     simpleBorrowings: buildSimpleBorrowingsEvidence(response, reported),
   };
 }
@@ -327,8 +360,18 @@ export function buildCashDebtPresentation(
   validateBalanceSheetForLesson(response.statement, response.company);
   const { statement } = response;
   const cashAmount = statement.cashAndCashEquivalents.value;
+  const securities = classifySecurityLines(statement);
+  const cashAndSecuritiesAmount =
+    securities.length > 0
+      ? securities.reduce((sum, { line }) => sum + line.value, cashAmount)
+      : null;
   const borrowingAmount = statement.simpleBorrowings.value;
-  const referenceAmount = Math.max(cashAmount, borrowingAmount);
+  const referenceAmount = Math.max(
+    cashAmount,
+    ...securities.map(({ line }) => line.value),
+    cashAndSecuritiesAmount ?? 0,
+    borrowingAmount,
+  );
   if (referenceAmount <= 0) {
     throw new EvidenceDataError(
       "Cash & Debt presentation requires a positive shared balance scale.",
@@ -343,6 +386,30 @@ export function buildCashDebtPresentation(
       amount: cashAmount,
       magnitudePercent: (cashAmount / referenceAmount) * 100,
     },
+    securityPositions: securities.map(({ line, horizon }) => ({
+      kind: "reported-balance-sheet-position",
+      id: line.id,
+      label: line.reportedLabel,
+      horizon,
+      amount: line.value,
+      magnitudePercent: (line.value / referenceAmount) * 100,
+    })),
+    cashAndSecuritiesPosition:
+      cashAndSecuritiesAmount === null
+        ? null
+        : {
+            kind: "finpath-derived-balance-sheet-position",
+            label: cashAndSecuritiesLabel,
+            amount: cashAndSecuritiesAmount,
+            magnitudePercent: (cashAndSecuritiesAmount / referenceAmount) * 100,
+            componentIds: [
+              statement.cashAndCashEquivalents.id,
+              ...securities.map(({ line }) => line.id),
+            ],
+            includesNoncurrent: securities.some(
+              ({ horizon }) => horizon === "non-current",
+            ),
+          },
     borrowingPosition: {
       kind: "finpath-derived-balance-sheet-position",
       label: statement.simpleBorrowings.label,
@@ -354,6 +421,57 @@ export function buildCashDebtPresentation(
       kind: "shared-absolute-balance-scale",
       referenceAmount,
     },
+  };
+}
+
+function classifySecurityLines(
+  statement: BalanceSheetStatement,
+): { line: ReportedBalanceSheetLine; horizon: "current" | "non-current" }[] {
+  return statement.supplementalFinancialAssets.map((line) => {
+    const horizon = securityHorizons.get(line.id);
+    if (!horizon) {
+      throw new EvidenceDataError(
+        "Cash & Debt only adds reviewed marketable-securities or short-term-investment lines.",
+      );
+    }
+    return { line, horizon };
+  });
+}
+
+function buildCashAndSecuritiesEvidence(
+  response: CompanyBalanceSheet,
+  reported: (line: ReportedBalanceSheetLine, label: string) => ReportedEvidence,
+): DerivedEvidence | null {
+  const { statement } = response;
+  const securities = classifySecurityLines(statement);
+  if (securities.length === 0) return null;
+  const lines = [statement.cashAndCashEquivalents, ...securities.map(({ line }) => line)];
+  const inputs = lines.map((line) => reported(line, line.reportedLabel));
+  const exactResult = inputs.reduce(
+    (sum, input) => sum + input.reportedFact.value,
+    0,
+  );
+  const includesNoncurrent = securities.some(({ horizon }) => horizon === "non-current");
+  return {
+    kind: "derived",
+    metric: { id: "cash-and-securities", label: cashAndSecuritiesLabel },
+    inputs,
+    calculation: {
+      type: "sum-amount",
+      formula: lines.map((line) => line.reportedLabel).join(" + "),
+      exactResult,
+      displayedResult: exactResult / 1_000_000_000,
+      decimalPlaces: 3,
+      roundingNote:
+        "FinPath sums exact reported USD values, then changes the display to billions.",
+      definitionNote:
+        "Cash and cash equivalents plus the reviewed marketable-securities or short-term-investment lines on the same Balance Sheet date.",
+    },
+    limitation: `This is not a company-reported total.${
+      includesNoncurrent
+        ? " It includes non-current securities, which the company does not expect to turn into cash within a year."
+        : ""
+    } It is not every financial resource the company has, and this number alone does not prove financial strength, weakness, solvency, valuation, or investment quality.`,
   };
 }
 
