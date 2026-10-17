@@ -10,6 +10,15 @@ Browser
   -> SEC data.sec.gov
 ```
 
+## Production URLs
+
+Both projects deploy production from `main`:
+
+- Web (Next.js): https://finpath-web.vercel.app
+- API (FastAPI): https://finpath-api-beige.vercel.app (health: `/health`)
+
+Merging into `main` is therefore a production release.
+
 The browser never calls FastAPI directly. Next.js reads
 `FINPATH_API_BASE_URL` on the server and makes the API request, so CORS is not
 enabled for the preview deployment.
@@ -60,7 +69,7 @@ Create a second Vercel project from the same repository:
 Configure this server-only environment variable for Production and Preview:
 
 ```text
-FINPATH_API_BASE_URL=https://<the FastAPI project>.vercel.app
+FINPATH_API_BASE_URL=https://finpath-api-beige.vercel.app
 ```
 
 The value must be an absolute HTTPS URL in production. It deliberately does

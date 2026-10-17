@@ -167,12 +167,26 @@ the backend changed.
   Git, testing and architecture, so keep core modules understandable and avoid
   complexity for show.
 
+## Production deployment
+
+Two Vercel projects deploy production from `main` (details in
+`docs/preview-deployment.md`):
+
+- Web: https://finpath-web.vercel.app
+- API: https://finpath-api-beige.vercel.app (health: `/health`)
+
+After a merge, confirm `/health`, the affected lesson routes for all three
+companies, and that no page shows an unavailable state it didn't show before.
+
 ## Git
 
 - Commit only when asked, on a feature branch, with conventional messages
   (`feat(web): …`, `fix(web): …`, `docs: …`).
 - Never push, deploy, merge, rewrite history, or touch `main` without explicit
   approval for that action.
+- Merging into `main` (including a fast-forward push) is a production release.
+  Wait until the owner explicitly says "可以合并" for that specific change;
+  approval to push a branch is not approval to merge.
 - Never overwrite or revert unrelated user changes.
 - Unmerged experimental work is preserved as annotated tags, not branches:
   `archive/visual-system-v2` (also contains Stage 1, Stage 2a and the Stage 3
