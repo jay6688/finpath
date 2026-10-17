@@ -12,7 +12,9 @@ import {
 
 type BalanceSheetStatement = CompanyBalanceSheet["statement"];
 
-const reviewedIdentities = new Map<
+// Exported only so tests can simulate a future reviewed profile; app code must
+// treat it as read-only.
+export const reviewedIdentities = new Map<
   string,
   {
     cik: string;
@@ -106,6 +108,33 @@ export type CashDebtSecurityPosition = {
   magnitudePercent: number;
 };
 
+// A supplemental financial-asset line that is not one of the reviewed
+// securities ids. It stays visible as a reported fact, but FinPath does not add
+// it to the cash and securities total.
+export type CashDebtUnclassifiedPosition = {
+  kind: "reported-balance-sheet-position";
+  id: BalanceSheetLineId;
+  label: string;
+  amount: number;
+  magnitudePercent: number;
+};
+
+// "calculated": cash plus every reviewed securities line.
+// "no-reviewed-securities": the profile selects no supplemental line, so only
+//   cash and cash equivalents are counted.
+// "unavailable-unclassified-line": a supplemental line is not a recognised
+//   securities line, so the total is withheld rather than guessed.
+export type CashAndSecuritiesStatus =
+  | "calculated"
+  | "no-reviewed-securities"
+  | "unavailable-unclassified-line";
+
+export type SupplementalFinancialAssetClassification = {
+  securities: { line: ReportedBalanceSheetLine; horizon: "current" | "non-current" }[];
+  unclassified: ReportedBalanceSheetLine[];
+  status: CashAndSecuritiesStatus;
+};
+
 export type CashDebtPresentation = {
   asOfDate: string;
   cashPosition: {
@@ -115,8 +144,10 @@ export type CashDebtPresentation = {
     magnitudePercent: number;
   };
   securityPositions: CashDebtSecurityPosition[];
-  // Null when the reviewed profile selects no securities line: only cash and
-  // cash equivalents are counted, and FinPath shows no zero-value total.
+  unclassifiedPositions: CashDebtUnclassifiedPosition[];
+  cashAndSecuritiesStatus: CashAndSecuritiesStatus;
+  // Null unless the status is "calculated". FinPath never shows a zero-value
+  // or partial total in its place.
   cashAndSecuritiesPosition: {
     kind: "finpath-derived-balance-sheet-position";
     label: typeof cashAndSecuritiesLabel;
@@ -360,15 +391,18 @@ export function buildCashDebtPresentation(
   validateBalanceSheetForLesson(response.statement, response.company);
   const { statement } = response;
   const cashAmount = statement.cashAndCashEquivalents.value;
-  const securities = classifySecurityLines(statement);
+  const { securities, unclassified, status } = classifySupplementalFinancialAssets(
+    statement.supplementalFinancialAssets,
+  );
   const cashAndSecuritiesAmount =
-    securities.length > 0
+    status === "calculated"
       ? securities.reduce((sum, { line }) => sum + line.value, cashAmount)
       : null;
   const borrowingAmount = statement.simpleBorrowings.value;
   const referenceAmount = Math.max(
     cashAmount,
     ...securities.map(({ line }) => line.value),
+    ...unclassified.map((line) => line.value),
     cashAndSecuritiesAmount ?? 0,
     borrowingAmount,
   );
@@ -394,6 +428,14 @@ export function buildCashDebtPresentation(
       amount: line.value,
       magnitudePercent: (line.value / referenceAmount) * 100,
     })),
+    unclassifiedPositions: unclassified.map((line) => ({
+      kind: "reported-balance-sheet-position",
+      id: line.id,
+      label: line.reportedLabel,
+      amount: line.value,
+      magnitudePercent: (line.value / referenceAmount) * 100,
+    })),
+    cashAndSecuritiesStatus: status,
     cashAndSecuritiesPosition:
       cashAndSecuritiesAmount === null
         ? null
@@ -424,18 +466,27 @@ export function buildCashDebtPresentation(
   };
 }
 
-function classifySecurityLines(
-  statement: BalanceSheetStatement,
-): { line: ReportedBalanceSheetLine; horizon: "current" | "non-current" }[] {
-  return statement.supplementalFinancialAssets.map((line) => {
+// Sorts supplemental lines into reviewed securities and anything else. It never
+// throws: an unrecognised line only makes the cash and securities total
+// unavailable, so shared Balance Sheet evidence (Balance Sheet lesson, Cash &
+// Debt, Capstone) keeps working.
+export function classifySupplementalFinancialAssets(
+  lines: readonly ReportedBalanceSheetLine[],
+): SupplementalFinancialAssetClassification {
+  const securities: SupplementalFinancialAssetClassification["securities"] = [];
+  const unclassified: ReportedBalanceSheetLine[] = [];
+  for (const line of lines) {
     const horizon = securityHorizons.get(line.id);
-    if (!horizon) {
-      throw new EvidenceDataError(
-        "Cash & Debt only adds reviewed marketable-securities or short-term-investment lines.",
-      );
-    }
-    return { line, horizon };
-  });
+    if (horizon) securities.push({ line, horizon });
+    else unclassified.push(line);
+  }
+  const status: CashAndSecuritiesStatus =
+    unclassified.length > 0
+      ? "unavailable-unclassified-line"
+      : securities.length > 0
+        ? "calculated"
+        : "no-reviewed-securities";
+  return { securities, unclassified, status };
 }
 
 function buildCashAndSecuritiesEvidence(
@@ -443,8 +494,10 @@ function buildCashAndSecuritiesEvidence(
   reported: (line: ReportedBalanceSheetLine, label: string) => ReportedEvidence,
 ): DerivedEvidence | null {
   const { statement } = response;
-  const securities = classifySecurityLines(statement);
-  if (securities.length === 0) return null;
+  const { securities, status } = classifySupplementalFinancialAssets(
+    statement.supplementalFinancialAssets,
+  );
+  if (status !== "calculated") return null;
   const lines = [statement.cashAndCashEquivalents, ...securities.map(({ line }) => line)];
   const inputs = lines.map((line) => reported(line, line.reportedLabel));
   const exactResult = inputs.reduce(

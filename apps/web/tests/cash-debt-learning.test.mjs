@@ -82,7 +82,7 @@ test("Cash & Debt shows securities and their total in the default comparison", a
   assert.match(details, /Borrowings are not Total Liabilities/);
 
   // Each reported line keeps source inspection, and the total keeps its trail.
-  assert.match(component, /evidence\.supplementalFinancialAssets\[securityIndex\]/);
+  assert.match(component, /evidence\.supplementalFinancialAssets\.find\(/);
   assert.match(component, /evidence=\{selectedSecurity\.evidence\}/);
   assert.match(component, /evidence=\{evidence\.cashAndSecurities\}/);
   assert.match(component, /evidence=\{evidence\.cashAndCashEquivalents\}/);
@@ -106,4 +106,35 @@ test("Explore adds a restrained company-preserving Cash & Debt path", async () =
   assert.match(snapshot, /FinPath simple borrowings/);
   assert.match(snapshot, /cash-and-debt\?company=\$\{company\.slug\}/);
   assert.match(snapshot, /Understand Cash & Debt/);
+});
+
+test("Explore snapshot reuses the Cash & Debt presentation for securities", async () => {
+  const snapshot = await readSource("components/financial-position-snapshot.tsx");
+
+  // One source of arithmetic: the shared presentation, not snapshot sums.
+  assert.match(snapshot, /buildCashDebtPresentation\(balanceSheet\)/);
+  assert.doesNotMatch(snapshot, /\.reduce\(/);
+  assert.match(snapshot, /presentation\.securityPositions\.map/);
+  assert.match(snapshot, /presentation\.unclassifiedPositions\.map/);
+  assert.match(snapshot, /presentation\.cashAndSecuritiesPosition/);
+  // Reported vs derived stay visibly distinct.
+  assert.match(snapshot, /data-evidence="reported"/);
+  assert.match(snapshot, /data-evidence="derived"/);
+  assert.match(snapshot, /FinPath-derived: Cash and cash equivalents/);
+  // Non-current boundary, Walmart cash-only note, and honest unavailable total.
+  assert.match(snapshot, /not expected to turn into cash within a year/);
+  assert.match(snapshot, /includesNoncurrent/);
+  assert.match(snapshot, /"no-reviewed-securities"[\s\S]*only cash and cash equivalents are counted/);
+  assert.match(snapshot, /"unavailable-unclassified-line"[\s\S]*Unavailable/);
+  assert.doesNotMatch(snapshot, /132420000000|132\.420|76843000000|76\.843|\$0\.000B/);
+});
+
+test("Cash & Debt lesson shows an unavailable total instead of a cash-only claim", async () => {
+  const component = await readSource("components/cash-debt-learning.tsx");
+
+  assert.match(component, /"unavailable-unclassified-line"[\s\S]*\{cashAndSecuritiesLabel\} unavailable/);
+  assert.match(component, /presentation\.unclassifiedPositions\.map/);
+  // Security evidence is matched by id, not by array position.
+  assert.match(component, /line\.metric\.id === selectedSecurityPosition\?\.id/);
+  assert.doesNotMatch(component, /supplementalFinancialAssets\[securityIndex\]/);
 });

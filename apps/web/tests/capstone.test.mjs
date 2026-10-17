@@ -23,6 +23,7 @@ import {
   markConceptsExplored,
   normalizeLearningProgress,
 } from "../src/lib/learning-progress.ts";
+import { reviewedIdentities } from "../src/lib/balance-sheet-learning.ts";
 import { getAdjacentLessons, getLesson, lessonCatalog } from "../src/lib/lesson-catalog.ts";
 import { makeCapstoneInputs } from "./capstone-fixture.mjs";
 
@@ -118,6 +119,30 @@ test("builds one coherent Apple FY2025 Capstone evidence package", () => {
       endingBalance: "reported",
     },
   );
+});
+
+test("an unclassified financial-asset line does not take down the Capstone", () => {
+  // Simulates a future reviewed Apple profile with a line FinPath has not
+  // classified as securities. Only the Cash & Debt total may become unavailable.
+  const profile = reviewedIdentities.get("0000320193-25-000079");
+  const original = profile.supplementalIds;
+  profile.supplementalIds = [...original, "restricted-cash"];
+  try {
+    const inputs = makeCapstoneInputs();
+    inputs.balanceSheet.statement.supplementalFinancialAssets.push({
+      ...inputs.balanceSheet.statement.supplementalFinancialAssets[0],
+      id: "restricted-cash",
+      taxonomyTag: "RestrictedCashCurrent",
+      taxonomyLabel: "Restricted cash",
+      reportedLabel: "Restricted cash",
+      value: 1_000_000_000,
+    });
+    const result = buildCapstoneData(inputs);
+    assert.equal(result.financialPosition.cash.finPathDisplay.value, 35.934);
+    assert.equal(result.financialPosition.simpleBorrowings.calculation.exactResult, 98_657_000_000);
+  } finally {
+    profile.supplementalIds = original;
+  }
 });
 
 test("one learner price drives both scenario Market Cap and annual P/E without market-data claims", () => {
