@@ -5312,7 +5312,7 @@ h2 {
 .cash-debt-equation__result,
 .cash-debt-assets > div,
 .cash-debt-contrast > div,
-.financial-position__cash-debt > div {
+.financial-position__cash-debt dl > div {
   min-width: 0;
   padding: 0.9rem 0;
   display: grid;
@@ -5382,7 +5382,32 @@ h2 {
   margin: 1.4rem 0 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.25rem;
+  align-items: start;
+  gap: 0 1.25rem;
+}
+
+.financial-position__cash-debt dl {
+  margin: 0;
+}
+
+.financial-position__cash-debt > p {
+  grid-column: 1 / -1;
+  margin: 0.75rem 0 0;
+}
+
+/* FinPath-derived figures get a thicker accent rule so they never read as a
+   company-reported line. */
+.financial-position__cash-debt dl > div[data-evidence="derived"] {
+  border-top: 3px solid var(--trace);
+}
+
+.financial-position__cash-debt dl > div[data-evidence="unavailable"] {
+  border-top: 1px dashed var(--divider-strong);
+}
+
+.financial-position__cash-debt dl > div[data-evidence="unavailable"] dd {
+  color: var(--muted);
+  font-size: 1.1rem;
 }
 
 .financial-position__cash-debt dt,
@@ -5419,7 +5444,7 @@ h2 {
   .cash-debt-equation__result,
   .cash-debt-assets > div,
   .cash-debt-contrast > div,
-  .financial-position__cash-debt > div {
+  .financial-position__cash-debt dl > div {
     grid-template-columns: minmax(0, 1fr);
   }
 

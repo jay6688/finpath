@@ -6,6 +6,8 @@ import {
   buildBalanceSheetPresentation,
   buildBalanceSheetEvidence,
   buildCashDebtPresentation,
+  classifySupplementalFinancialAssets,
+  reviewedIdentities,
   validateBalanceSheetForLesson,
 } from "../src/lib/balance-sheet-learning.ts";
 
@@ -320,10 +322,84 @@ test("builds traceable derived evidence for the cash and securities total", () =
   assert.doesNotMatch(microsoft.limitation, /non-current/);
 });
 
-test("refuses to add a supplemental line that is not a reviewed securities line", () => {
+test("still rejects a supplemental line the reviewed profile does not select", () => {
   const response = makeDirectBalanceSheet("MSFT");
   response.statement.supplementalFinancialAssets[0].id = "other-financial-asset";
   assert.throws(() => buildCashDebtPresentation(response));
+  assert.throws(() => buildBalanceSheetEvidence(response));
+});
+
+// Simulates a future reviewed profile that selects a financial-asset line
+// FinPath has not classified as securities (for example restricted cash).
+function withUnclassifiedMicrosoftLine(run) {
+  const profile = reviewedIdentities.get("0001193125-26-323660");
+  const original = profile.supplementalIds;
+  profile.supplementalIds = [...original, "restricted-cash"];
+  try {
+    const response = makeDirectBalanceSheet("MSFT");
+    response.statement.supplementalFinancialAssets.push(
+      reported("restricted-cash", "RestrictedCashCurrent", "Restricted cash", 1_000_000_000, "supplemental-financial-asset"),
+    );
+    return run(response);
+  } finally {
+    profile.supplementalIds = original;
+  }
+}
+
+test("an unclassified supplemental line only withholds the cash and securities total", () => {
+  withUnclassifiedMicrosoftLine((response) => {
+    const presentation = buildCashDebtPresentation(response);
+    const evidence = buildBalanceSheetEvidence(response);
+
+    assert.equal(presentation.cashAndSecuritiesStatus, "unavailable-unclassified-line");
+    // Withheld, not zero and not a partial total of the known lines.
+    assert.equal(presentation.cashAndSecuritiesPosition, null);
+    assert.equal(evidence.cashAndSecurities, null);
+    // Reported lines stay visible; the unknown one is listed separately.
+    assert.deepEqual(
+      presentation.securityPositions.map(({ id, amount }) => [id, amount]),
+      [["short-term-investments", 55_908_000_000]],
+    );
+    assert.deepEqual(
+      presentation.unclassifiedPositions.map(({ id, kind, amount }) => [id, kind, amount]),
+      [["restricted-cash", "reported-balance-sheet-position", 1_000_000_000]],
+    );
+    assert.equal(presentation.cashPosition.amount, 20_935_000_000);
+    assert.equal(presentation.borrowingPosition.amount, 40_294_000_000);
+    assert.equal(presentation.scale.referenceAmount, 55_908_000_000);
+
+    // Shared evidence still builds for the Balance Sheet lesson and Capstone.
+    assert.equal(evidence.supplementalFinancialAssets.length, 2);
+    assert.equal(evidence.assets.reportedFact.value, 758_376_000_000);
+    assert.equal(evidence.simpleBorrowings.calculation.exactResult, 40_294_000_000);
+    assert.equal(buildBalanceSheetPresentation(response).claimsTotal, 758_376_000_000);
+  });
+});
+
+test("classifies supplemental lines without throwing", () => {
+  const line = (id) => reported(id, id, id, 1, "supplemental-financial-asset");
+  assert.equal(classifySupplementalFinancialAssets([]).status, "no-reviewed-securities");
+  assert.equal(
+    classifySupplementalFinancialAssets([line("short-term-investments")]).status,
+    "calculated",
+  );
+  const mixed = classifySupplementalFinancialAssets([
+    line("current-marketable-securities"),
+    line("unknown-asset"),
+  ]);
+  assert.equal(mixed.status, "unavailable-unclassified-line");
+  assert.deepEqual(mixed.securities.map(({ line: l, horizon }) => [l.id, horizon]), [
+    ["current-marketable-securities", "current"],
+  ]);
+  assert.deepEqual(mixed.unclassified.map((l) => l.id), ["unknown-asset"]);
+});
+
+test("reports the cash and securities status for each reviewed company", () => {
+  assert.equal(buildCashDebtPresentation(makeDirectBalanceSheet("AAPL")).cashAndSecuritiesStatus, "calculated");
+  assert.equal(buildCashDebtPresentation(makeDirectBalanceSheet("MSFT")).cashAndSecuritiesStatus, "calculated");
+  const walmart = buildCashDebtPresentation(makeWalmartBalanceSheet());
+  assert.equal(walmart.cashAndSecuritiesStatus, "no-reviewed-securities");
+  assert.deepEqual(walmart.unclassifiedPositions, []);
 });
 
 test("keeps Walmart liabilities derived and redeemable NCI separate", () => {
