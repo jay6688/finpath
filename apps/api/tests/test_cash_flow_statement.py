@@ -43,6 +43,42 @@ EXPECTED_SECTION_VALUES = {
     },
 }
 
+# Apple Form 10-K for FY2024 (filed 2024-11-01), signed as cash effects.
+# Term-debt issuance is a reported SEC fact of 0 for FY2024, not a missing value.
+EXPECTED_FY2024_SECTION_VALUES = {
+    "operating": {
+        "net-income": 93_736_000_000,
+        "depreciation-and-amortization": 11_445_000_000,
+        "share-based-compensation-expense": 11_688_000_000,
+        "other": -2_266_000_000,
+        "accounts-receivable-net": -3_788_000_000,
+        "vendor-non-trade-receivables": -1_356_000_000,
+        "inventories": -1_046_000_000,
+        "other-current-and-non-current-assets": -11_731_000_000,
+        "accounts-payable": 6_020_000_000,
+        "other-current-and-non-current-liabilities": 15_552_000_000,
+        "cash-generated-by-operating-activities": 118_254_000_000,
+    },
+    "investing": {
+        "purchases-of-marketable-securities": -48_656_000_000,
+        "maturities-of-marketable-securities": 51_211_000_000,
+        "sales-of-marketable-securities": 11_135_000_000,
+        "payments-for-property-plant-and-equipment": -9_447_000_000,
+        "other-investing-activities": -1_308_000_000,
+        "cash-generated-by-investing-activities": 2_935_000_000,
+    },
+    "financing": {
+        "taxes-related-to-net-share-settlement": -5_441_000_000,
+        "dividends-and-dividend-equivalents": -15_234_000_000,
+        "common-stock-repurchases": -94_949_000_000,
+        "term-debt-issuance-net": 0,
+        "term-debt-repayment": -9_958_000_000,
+        "commercial-paper-net": 3_960_000_000,
+        "other-financing-activities": -361_000_000,
+        "cash-used-in-financing-activities": -121_983_000_000,
+    },
+}
+
 
 def extract_fixture_statement():
     return extract_cash_flow_statement(
@@ -197,3 +233,77 @@ def test_rejects_every_failed_reconciliation(
 
     with pytest.raises(CashFlowStatementUnavailableError, match=message):
         extract_cash_flow_statement(payload, cik="0000320193", fiscal_year=2025)
+
+
+def test_extracts_the_reviewed_fy2024_cash_flow_statement_from_its_own_filing() -> None:
+    statement = extract_cash_flow_statement(
+        load_sec_fixture("aapl_companyfacts.json"),
+        cik="0000320193",
+        fiscal_year=2024,
+    )
+
+    assert statement.fiscal_year == 2024
+    assert statement.start_date.isoformat() == "2023-10-01"
+    assert statement.end_date.isoformat() == "2024-09-28"
+    assert statement.form == "10-K"
+    assert statement.filed_at.isoformat() == "2024-11-01"
+    assert statement.accession == "0000320193-24-000123"
+    assert str(statement.source_url) == (
+        "https://www.sec.gov/Archives/edgar/data/320193/"
+        "000032019324000123/0000320193-24-000123-index.htm"
+    )
+    assert section_values(statement) == EXPECTED_FY2024_SECTION_VALUES
+
+
+def test_fy2024_reconciles_sections_and_beginning_to_ending_cash() -> None:
+    statement = extract_cash_flow_statement(
+        load_sec_fixture("aapl_companyfacts.json"),
+        cik="0000320193",
+        fiscal_year=2024,
+    )
+
+    for section in statement.sections:
+        assert sum(line.value for line in section.lines[:-1]) == section.lines[-1].value
+    movement = statement.cash_movement
+    assert movement.net_change.value == -794_000_000
+    assert movement.beginning_cash.value == 30_737_000_000
+    assert movement.beginning_cash.as_of_date.isoformat() == "2023-09-30"
+    assert movement.ending_cash.value == 29_943_000_000
+    assert movement.ending_cash.as_of_date.isoformat() == "2024-09-28"
+    assert (
+        movement.beginning_cash.value + movement.net_change.value
+        == movement.ending_cash.value
+    )
+
+
+def test_fy2024_does_not_borrow_ending_cash_from_the_fy2025_filing() -> None:
+    # The FY2025 10-K also reports cash at 2024-09-28. FY2024 must not use that
+    # later filing's instant when its own filing's instant is missing.
+    payload = deepcopy(load_sec_fixture("aapl_companyfacts.json"))
+    balances = payload["facts"]["us-gaap"][
+        "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"
+    ]["units"]["USD"]
+    balances[:] = [
+        fact
+        for fact in balances
+        if not (fact["accn"] == "0000320193-24-000123" and fact["end"] == "2024-09-28")
+    ]
+
+    with pytest.raises(
+        CashFlowStatementUnavailableError,
+        match="does not match the selected cash flow filing context",
+    ):
+        extract_cash_flow_statement(payload, cik="0000320193", fiscal_year=2024)
+
+
+@pytest.mark.parametrize("fiscal_year", [2022, 2023, 2026])
+def test_rejects_unreviewed_apple_years(fiscal_year: int) -> None:
+    with pytest.raises(
+        CashFlowStatementUnavailableError,
+        match=f"profile for CIK 0000320193 FY{fiscal_year} is unavailable",
+    ):
+        extract_cash_flow_statement(
+            load_sec_fixture("aapl_companyfacts.json"),
+            cik="0000320193",
+            fiscal_year=fiscal_year,
+        )

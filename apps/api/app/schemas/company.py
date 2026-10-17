@@ -41,13 +41,25 @@ class CompanyCapabilities(ApiModel):
     shares_outstanding: bool = Field(alias="sharesOutstanding")
 
 
+class ReviewedFiscalYears(ApiModel):
+    """Reviewed years per fiscal-year route, newest first; empty if disabled."""
+
+    income_statement: list[int] = Field(alias="incomeStatement")
+    cash_flow: list[int] = Field(alias="cashFlow")
+    balance_sheet: list[int] = Field(alias="balanceSheet")
+    earnings_per_share: list[int] = Field(alias="earningsPerShare")
+    shares_outstanding: list[int] = Field(alias="sharesOutstanding")
+
+
 class SupportedCompanySummary(ApiModel):
     slug: str
     ticker: str
     name: str
     cik: str
+    # The latest reviewed year, used as the default by every lesson.
     reviewed_fiscal_year: int = Field(alias="reviewedFiscalYear")
     capabilities: CompanyCapabilities
+    reviewed_fiscal_years: ReviewedFiscalYears = Field(alias="reviewedFiscalYears")
 
 
 class SupportedCompaniesResponse(ApiModel):

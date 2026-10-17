@@ -93,10 +93,7 @@ class CompanyOverviewService:
         fiscal_year: int,
     ) -> CompanyIncomeStatementResponse:
         company, profile = await self._resolve_company(ticker)
-        if (
-            not profile.capabilities.income_statement
-            or fiscal_year != profile.reviewed_fiscal_year
-        ):
+        if not profile.is_reviewed("income_statement", fiscal_year):
             raise IncomeStatementUnavailableError(
                 "Income statement profile for "
                 f"CIK {company.cik} FY{fiscal_year} is unavailable."
@@ -127,10 +124,7 @@ class CompanyOverviewService:
         fiscal_year: int,
     ) -> CompanyCashFlowStatementResponse:
         company, profile = await self._resolve_company(ticker)
-        if (
-            not profile.capabilities.cash_flow
-            or fiscal_year != profile.reviewed_fiscal_year
-        ):
+        if not profile.is_reviewed("cash_flow", fiscal_year):
             raise CashFlowStatementUnavailableError(
                 "Cash flow statement profile for "
                 f"CIK {company.cik} FY{fiscal_year} is unavailable."
@@ -161,10 +155,7 @@ class CompanyOverviewService:
         fiscal_year: int,
     ) -> CompanyBalanceSheetResponse:
         company, profile = await self._resolve_company(ticker)
-        if (
-            not profile.capabilities.balance_sheet
-            or fiscal_year != profile.reviewed_fiscal_year
-        ):
+        if not profile.is_reviewed("balance_sheet", fiscal_year):
             raise BalanceSheetUnavailableError(
                 "Balance Sheet profile for "
                 f"CIK {company.cik} FY{fiscal_year} is unavailable."
@@ -195,10 +186,7 @@ class CompanyOverviewService:
         fiscal_year: int,
     ) -> CompanyEarningsPerShareResponse:
         company, profile = await self._resolve_company(ticker)
-        if (
-            not profile.capabilities.earnings_per_share
-            or fiscal_year != profile.reviewed_fiscal_year
-        ):
+        if not profile.is_reviewed("earnings_per_share", fiscal_year):
             raise EarningsPerShareUnavailableError(
                 "Earnings per share profile for "
                 f"CIK {company.cik} FY{fiscal_year} is unavailable."
@@ -228,10 +216,7 @@ class CompanyOverviewService:
         fiscal_year: int,
     ) -> CompanySharesOutstandingResponse:
         company, profile = await self._resolve_company(ticker)
-        if (
-            not profile.capabilities.shares_outstanding
-            or fiscal_year != profile.reviewed_fiscal_year
-        ):
+        if not profile.is_reviewed("shares_outstanding", fiscal_year):
             raise SharesOutstandingUnavailableError(
                 "Shares-outstanding profile for "
                 f"CIK {company.cik} FY{fiscal_year} is unavailable."

@@ -18,6 +18,14 @@ Basic and Diluted EPS.
 The `dei:EntityCommonStockSharesOutstanding` instant retains Apple's reviewed
 10-K cover-page value and whole-share unit for the Market Cap alignment
 foundation.
+It also keeps the FY2024 facts from Apple's FY2024 Form 10-K (accession
+`0000320193-24-000123`, filed 2024-11-01) needed for the reviewed FY2024 income
+statement and cash-flow statement, including both cash instants
+(2023-09-30 and 2024-09-28) from that filing. Where the fixture already held
+the FY2025 filing's FY2024 comparatives (for example Revenue, Gross Profit and
+the 2024-09-28 cash instant), they stay alongside, so tests prove FY2024 is read
+from its own filing. Values and context fields were copied unchanged from SEC
+Company Facts.
 Do not replace it with an unexplained full Company Facts dump.
 
 `msft_companyfacts.json` preserves Microsoft's reviewed FY2026 Revenue history

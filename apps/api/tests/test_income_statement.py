@@ -21,6 +21,21 @@ EXPECTED_LINE_VALUES = {
     "net-income": 112_010_000_000,
 }
 
+# Apple Form 10-K for FY2024 (filed 2024-11-01). Other income is positive this
+# year, so the signed-adjustment line must keep its sign rather than assume a
+# deduction.
+EXPECTED_FY2024_LINE_VALUES = {
+    "total-net-sales": 391_035_000_000,
+    "total-cost-of-sales": 210_352_000_000,
+    "gross-margin": 180_683_000_000,
+    "total-operating-expenses": 57_467_000_000,
+    "operating-income": 123_216_000_000,
+    "other-income-expense-net": 269_000_000,
+    "income-before-income-taxes": 123_485_000_000,
+    "income-tax-provision": 29_749_000_000,
+    "net-income": 93_736_000_000,
+}
+
 
 def test_extracts_one_complete_fy2025_statement_context() -> None:
     statement = extract_income_statement(
@@ -72,7 +87,11 @@ def test_preserves_signed_other_expense_and_exact_reconciliation() -> None:
 
 def test_rejects_a_required_line_from_another_filing_context() -> None:
     payload = deepcopy(load_sec_fixture("aapl_companyfacts.json"))
-    fact = payload["facts"]["us-gaap"]["GrossProfit"]["units"]["USD"][-1]
+    fact = next(
+        fact
+        for fact in payload["facts"]["us-gaap"]["GrossProfit"]["units"]["USD"]
+        if fact["fy"] == 2025 and fact["end"] == "2025-09-27"
+    )
     fact["accn"] = "0000320193-24-000123"
 
     with pytest.raises(
@@ -117,3 +136,74 @@ def test_rejects_a_statement_that_does_not_reconcile() -> None:
         match="Gross margin minus operating expenses",
     ):
         extract_income_statement(payload, cik="0000320193", fiscal_year=2025)
+
+
+def test_extracts_the_reviewed_fy2024_statement_from_its_own_filing() -> None:
+    # The FY2025 10-K re-reports FY2024 as a comparative column. FY2024 must
+    # come from the FY2024 filing, not from that later comparative.
+    statement = extract_income_statement(
+        load_sec_fixture("aapl_companyfacts.json"),
+        cik="0000320193",
+        fiscal_year=2024,
+    )
+
+    assert statement.fiscal_year == 2024
+    assert statement.start_date.isoformat() == "2023-10-01"
+    assert statement.end_date.isoformat() == "2024-09-28"
+    assert statement.form == "10-K"
+    assert statement.filed_at.isoformat() == "2024-11-01"
+    assert statement.accession == "0000320193-24-000123"
+    assert str(statement.source_url) == (
+        "https://www.sec.gov/Archives/edgar/data/320193/"
+        "000032019324000123/0000320193-24-000123-index.htm"
+    )
+    assert [line.id for line in statement.lines] == list(EXPECTED_FY2024_LINE_VALUES)
+    assert {
+        line.id: line.value for line in statement.lines
+    } == EXPECTED_FY2024_LINE_VALUES
+
+
+def test_fy2024_keeps_positive_other_income_and_reconciles() -> None:
+    statement = extract_income_statement(
+        load_sec_fixture("aapl_companyfacts.json"),
+        cik="0000320193",
+        fiscal_year=2024,
+    )
+    values = {line.id: line.value for line in statement.lines}
+
+    assert values["other-income-expense-net"] == 269_000_000
+    assert (
+        values["operating-income"] + values["other-income-expense-net"]
+        == values["income-before-income-taxes"]
+    )
+
+
+def test_rejects_a_fy2024_line_that_does_not_reconcile() -> None:
+    payload = deepcopy(load_sec_fixture("aapl_companyfacts.json"))
+    fact = next(
+        fact
+        for fact in payload["facts"]["us-gaap"]["NonoperatingIncomeExpense"]["units"][
+            "USD"
+        ]
+        if fact["accn"] == "0000320193-24-000123"
+    )
+    fact["val"] = -269_000_000
+
+    with pytest.raises(
+        IncomeStatementUnavailableError,
+        match="Operating income plus other income or expense",
+    ):
+        extract_income_statement(payload, cik="0000320193", fiscal_year=2024)
+
+
+@pytest.mark.parametrize("fiscal_year", [2022, 2023, 2026])
+def test_rejects_unreviewed_apple_years(fiscal_year: int) -> None:
+    with pytest.raises(
+        IncomeStatementUnavailableError,
+        match=f"profile for CIK 0000320193 FY{fiscal_year} is unavailable",
+    ):
+        extract_income_statement(
+            load_sec_fixture("aapl_companyfacts.json"),
+            cik="0000320193",
+            fiscal_year=fiscal_year,
+        )

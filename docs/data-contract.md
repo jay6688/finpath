@@ -95,6 +95,18 @@ The pipeline links to the official filing index and never guesses a company-cont
 
 `retrievedAt` always describes when the displayed upstream payload was retrieved, not when the browser rendered the page.
 
+## Reviewed fiscal years
+
+`GET /v1/companies` lists each reviewed company. `reviewedFiscalYear` is the
+latest reviewed year and remains the default every lesson requests.
+`reviewedFiscalYears` lists, newest first, every year reviewed for each
+fiscal-year route (`incomeStatement`, `cashFlow`, `balanceSheet`,
+`earningsPerShare`, `sharesOutstanding`); a disabled capability has an empty
+list. A year listed for one statement says nothing about another statement in
+that year. The source of truth is
+`apps/api/app/domain/company_registry.py`, and a test keeps it identical to the
+statement profile tables.
+
 ## FY income-statement endpoint
 
 ```http
@@ -103,7 +115,8 @@ GET /v1/companies/{ticker}/income-statements/{fiscal_year}
 
 The Profit lesson uses this narrow statement contract. The API returns one
 coherent annual filing context rather than selecting each line independently.
-V0 guarantees the reviewed Apple FY2025 path only.
+Reviewed profiles: Apple FY2025 and FY2024, Microsoft FY2026. Any other
+company or year fails closed as unavailable before Company Facts are fetched.
 
 The ordered `statement.lines` are:
 
@@ -150,9 +163,10 @@ sections—Operating, Investing, and Financing—plus the reported net change an
 beginning/ending cash balances in one coherent annual filing context.
 
 The response model is reusable, while taxonomy-row and sign rules are selected
-from an explicitly reviewed company/fiscal-year statement profile. V0 contains
-only the Apple FY2025 profile. An unreviewed company fails as unsupported
-instead of silently inheriting Apple's row requirements.
+from an explicitly reviewed company/fiscal-year statement profile. Reviewed
+profiles: Apple FY2025 and FY2024 (each from its own 10-K, never from a later
+filing's comparative column). An unreviewed company or year fails as
+unsupported instead of silently inheriting Apple's row requirements.
 
 The SEC Company Facts taxonomy expresses some asset and liability changes as
 economic increases/decreases, while Apple's cash-flow statement displays their
